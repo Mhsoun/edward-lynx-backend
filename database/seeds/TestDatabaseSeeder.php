@@ -18,7 +18,6 @@ class TestDatabaseSeeder extends Seeder
      */
     public function run()
     {
-        Model::unguard();
         $this->call('DatabaseSeeder');
         $this->call('TestUserTableSeeder');
         $this->call('TestQuestionTableSeeder');

@@ -15,7 +15,7 @@
 	   $.ajaxSetup({
             processData: false,
             beforeSend: function(req, settings) {
-                var baseUrl = "{{ url() }}"
+                var baseUrl = "{{ url('/') }}"
 
                 if (settings.url[0] != "/") {
                     baseUrl += "/";
