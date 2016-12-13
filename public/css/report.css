@@ -1,0 +1,165 @@
+/*
+  CSS for the report
+ */
+
+body {
+    color: #282828;
+}
+
+h1, h2, h3, h4 {
+    font-family: bookantiqua;
+}
+
+.description {
+    font-family: calibri;
+}
+
+.pageBreak {
+    page-break-after: always;
+}
+
+.row {
+    margin: 0 10px;
+}
+
+.detailedElement {
+    margin-bottom: 25px;
+}
+
+.left {
+    float: left;
+    width: 50%;
+}
+
+.right {
+    float: right;
+    width: 50%;
+}
+
+.topcontainer {
+    margin-top: 50px;
+}
+
+.coverPage {
+    color: #4E4A4C;
+}
+
+.textButton:hover {
+    cursor: pointer;
+}
+
+.editTitle {
+    display: inline;
+}
+
+.description {
+    margin-top: 6px;
+}
+
+.previewOnly {
+
+}
+
+.secondaryCommentTitle {
+    display: none;
+}
+
+.twoColumnDiagram {
+    width: 100em;
+}
+
+.twoColumnDiagramLarge {
+    width: 120em;
+}
+
+.textButton:hover {
+    cursor: pointer;
+}
+
+.helpBox {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    width: 50em;
+
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#radarLegend {
+    list-style: none;
+}
+
+@media print {
+    /* Hide delete buttons in print mode */
+    .btn-danger {
+        display: none;
+    }
+
+    body {
+        font-size: 12px;
+        font-family: calibri;
+    }
+
+    .mainTitle {
+        font-size: 26px;
+        color: #4E4A4C;
+        text-align: center;
+        display: block;
+    }
+
+    h3 {
+        font-size: 18px;
+    }
+
+    h4 {
+        font-size: 16px;
+        margin-top: 0px;
+    }
+
+    b {
+        font-weight: bold;
+    }
+
+    .topContainer {
+        display: none;
+    }
+
+    .previewOnly {
+        display: none;
+    }
+
+    .editBox {
+        display: none;
+    }
+
+    .diagram {
+
+    }
+
+    .secondaryCommentTitle {
+        display: block;
+    }
+
+    .questionDiagram {
+        margin-left: 75px;
+    }
+
+    .twoColumnDiagram {
+        width: auto;
+    }
+
+    .twoColumnDiagramLarge {
+        width: auto;
+    }
+
+    .pieChart {
+        margin-left: 20em;
+    }
+
+    .textButton {
+        display: none;
+    }
+}

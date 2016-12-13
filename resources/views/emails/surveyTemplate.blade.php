@@ -1,0 +1,1 @@
+{!! \App\EmailContentParser::parse($text, $data) !!}

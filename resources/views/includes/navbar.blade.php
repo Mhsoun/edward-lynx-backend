@@ -1,0 +1,1 @@
+@include('includes/base-navbar', ['user' => Auth::user(),'showMenu' => true])
