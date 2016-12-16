@@ -5,7 +5,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as BaseVerifier;
 use Symfony\Component\HttpFoundation\Cookie;
 
 class VerifyCsrfToken extends BaseVerifier {
-	private $execpt = ['email-bounced'];
+	private $execpt = [
+		'email-bounced',
+		'api/v1/*'
+	];
 
 	/**
 	 * Handle an incoming request.
