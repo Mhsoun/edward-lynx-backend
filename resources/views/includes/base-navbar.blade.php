@@ -33,7 +33,7 @@
                     <li><a href="{{ action('SurveyController@index') }}">{{ Lang::get('nav.surveys') }}</a></li>
                     <li><a href="{{ action('ReportTemplateController@index') }}">{{ Lang::get('nav.reportTemplates') }}</a></li>
                     <li><a href="{{ action('UserController@settings') }}">{{ Lang::get('nav.settings') }}</a></li>
-                    @if ($user->isAdmin)
+                    @if ($user != null && $user->isAdmin)
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ Lang::get('nav.admin') }} <span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
@@ -59,7 +59,13 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ $user->name }} <span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="{{ url('/auth/logout')}}">{{ Lang::get('nav.logout') }}</a></li>
+                                <li>
+                                    <a href="{{ url('/logout')}}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">   {{ Lang::get('nav.logout') }}
+                                    </a>
+                                    <form id="logout-form" action="{{ url('/logout') }}" method="POST" style="display: none">
+                                        {{ csrf_field() }}
+                                    </form>
+                                </li>
                             </ul>
                         </li>
                     @endif

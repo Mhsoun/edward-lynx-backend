@@ -11,6 +11,8 @@
 |
 */
 
+Auth::routes();
+
 Route::bind('form', function ($id) {
     return App\form::whereSlug($id)->first();
 });
@@ -208,9 +210,18 @@ Route::get('/survey/user-report', 'ReportController@showUserReport');
 Route::post('/survey/generate-user-report', 'ReportController@createUserPDF');
 
 /* Controller for Auth*/
-Route::controllers([
-    'auth' => 'Auth\AuthController',
-    'password' => 'Auth\PasswordController',
-]);
+// Route::controllers([
+//     'auth' => 'Auth\AuthController',
+//     'password' => 'Auth\PasswordController',
+// ]);
 
 Route::get('/settings/newacct', 'UserController@newAcct');
+
+// API Routes
+Route::group(['namespace' => 'Api'], function () {
+    Route::group(['namespace' => 'V1'], function () {
+
+        
+
+    });
+});
