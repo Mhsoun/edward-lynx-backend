@@ -30,6 +30,7 @@ class Kernel extends HttpKernel {
 		'guest' => 'App\Http\Middleware\RedirectIfAuthenticated',
 		'group-owner' => '\App\Http\Middleware\RedirectIfNotGroupOwner',
 		'survey-owner' => '\App\Http\Middleware\RedirectIfNotSurveyOwner',
-		'admin' => '\App\Http\Middleware\RedirectIfNotAdmin'
+		'admin' => '\App\Http\Middleware\RedirectIfNotAdmin',
+		'api'	=>	'\App\Http\Middleware\Api'
 	];
 }
