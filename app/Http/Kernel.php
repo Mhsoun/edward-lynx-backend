@@ -35,7 +35,7 @@ class Kernel extends HttpKernel {
 		],
 
 		'api' => [
-			\App\Http\Middleware\Api::class
+			\App\Http\Middleware\RequireJsonContentType::class
 		]
 	];
 

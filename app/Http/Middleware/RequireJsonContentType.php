@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Request;
 
-class Api
+class RequireJsonContentType
 {
     /**
      * Handle an incoming request.
