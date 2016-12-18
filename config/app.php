@@ -151,6 +151,7 @@ return [
         //'Illuminate\Html\HtmlServiceProvider',
 
         'Collective\Html\HtmlServiceProvider',
+        'Laravel\Passport\PassportServiceProvider',
 
 
         /*

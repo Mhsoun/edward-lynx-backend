@@ -1,9 +1,10 @@
 <?php namespace App\Models;
 
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 // use Illuminate\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
 // use Illuminate\Auth\Passwords\CanResetPassword;
 // use Illuminate\Foundation\Auth\Access\Authorizable;
 // use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -17,7 +18,7 @@ use App\Models\DefaultText;
 */
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasApiTokens, Notifiable;
 
     /**
      * The database table used by the model.
