@@ -7,7 +7,8 @@ use Symfony\Component\HttpFoundation\Cookie;
 class VerifyCsrfToken extends BaseVerifier {
 	private $execpt = [
 		'email-bounced',
-		'api/v1/*'
+		'api/v1/*',
+		'oauth/*'
 	];
 
 	/**
