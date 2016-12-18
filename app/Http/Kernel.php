@@ -10,13 +10,8 @@ class Kernel extends HttpKernel {
 	 * @var array
 	 */
 	protected $middleware = [
-		//'Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode',
-		//'Illuminate\Cookie\Middleware\EncryptCookies',
-		//'Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse',
-		//'Illuminate\Session\Middleware\StartSession',
-		//'Illuminate\View\Middleware\ShareErrorsFromSession',
-		//'App\Http\Middleware\VerifyCsrfToken',
-		'\App\Http\Middleware\SetLocale'
+		\Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
+		\App\Http\Middleware\SetLocale::class
 	];
 
 	/**
@@ -35,6 +30,8 @@ class Kernel extends HttpKernel {
 		],
 
 		'api' => [
+			'auth:api',
+			'bindings',
 			\App\Http\Middleware\RequireJsonContentType::class
 		]
 	];
@@ -45,9 +42,13 @@ class Kernel extends HttpKernel {
 	 * @var array
 	 */
 	protected $routeMiddleware = [
-		'auth' => 'App\Http\Middleware\Authenticate',
-		'auth.basic' => 'Illuminate\Auth\Middleware\AuthenticateWithBasicAuth',
-		'guest' => 'App\Http\Middleware\RedirectIfAuthenticated',
+		'auth'			=> \Illuminate\Auth\Middleware\Authenticate::class,
+		'auth.basic'	=> \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+		'bindings'		=> \Illuminate\Routing\Middleware\SubstituteBindings::class,
+		'can'			=> \Illuminate\Auth\Middleware\Authorize::class,
+		'guest' 		=> \App\Http\Middleware\RedirectIfAuthenticated::class,
+		'throttle'		=> \Illuminate\Routing\Middleware\ThrottleRequests::class,
+
 		'group-owner' => '\App\Http\Middleware\RedirectIfNotGroupOwner',
 		'survey-owner' => '\App\Http\Middleware\RedirectIfNotSurveyOwner',
 		'admin' => '\App\Http\Middleware\RedirectIfNotAdmin'
