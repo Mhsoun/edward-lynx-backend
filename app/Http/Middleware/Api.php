@@ -16,10 +16,9 @@ class Api
      */
     public function handle($request, Closure $next)
     {
-        $accept = Request::header('accept');
         $content = Request::header('content-type');
-        $json = 'application/json';
-        if ($accept != $json || $content != $json) {
+
+        if (!$request->isMethod('get') && $content != 'application/json') {
             return response('Unsupported Media Type', 415);
         }
         
