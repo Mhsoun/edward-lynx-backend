@@ -16,7 +16,49 @@ class UserController extends Controller
     public function get(Request $request)
     {
         $user = $request->user();
-        $response = [
+        $response = $this->userInfo($user);
+        return response()->json($response);
+    }
+
+    /**
+     * Updates user information.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function update(Request $request)
+    {
+        $user = $request->user();
+        
+        $this->validate($request, [
+            'name'              => 'max:255',
+            'info'              => 'max:255',
+            'lang'              => 'in:en,fi,sv',
+            'password'          => 'required_with:currentPassword|min:6',
+            'currentPassword'   => 'required_with:password|min:6|same_password:' . $user->id
+        ]);
+
+        $fields = ['name', 'info', 'lang', 'password'];
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $user->{$field} = $request->input($field);
+            }
+        }
+        $user->save();
+
+        $response = $this->userInfo($user);
+        return response()->json($response);
+    }
+
+    /**
+     * Builds an array containing user info to be returned as response.
+     * 
+     * @param Model $user
+     * @return array
+     */
+    protected function userInfo($user)
+    {
+        return [
             'name'          => $user->name,
             'email'         => $user->email,
             'info'          => $user->info,
@@ -24,7 +66,6 @@ class UserController extends Controller
             'navColor'      => $user->navColor,
             'registeredOn'  => $user->created_at->toIso8601String()
         ];
-        return response()->json($response);
     }
 
 }

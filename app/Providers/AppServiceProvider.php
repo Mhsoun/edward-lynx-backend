@@ -1,6 +1,8 @@
 <?php namespace App\Providers;
 
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Validator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -9,7 +11,10 @@ class AppServiceProvider extends ServiceProvider
 	 */
 	public function boot()
 	{
-		//
+		Validator::extend('same_password', function ($attr, $val, $params, $validator) {
+			$user = User::find($params[0]);
+			return Hash::make($val) == $user->password;
+		});
 	}
 
 	/**

@@ -86,8 +86,8 @@ return [
 	*/
 
 	'custom' => [
-		'attribute-name' => [
-			'rule-name' => 'custom-message',
+		'currentPassword' => [
+			'same_password' => 'The current password is not valid.',
 		],
 	],
 
