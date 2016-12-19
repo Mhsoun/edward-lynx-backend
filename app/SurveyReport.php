@@ -1296,7 +1296,7 @@ abstract class SurveyReport
                 $values = $survey->extraAnswers()
                    ->where('extraQuestionId', '=', $extraQuestion->extraQuestionId)
                    ->distinct()
-                   ->lists($typeName);
+                   ->pluck($typeName);
             } else if ($type == \App\ExtraAnswerValue::Options) {
                 foreach ($extraQuestion->extraQuestion->values as $value) {
                     array_push($values, $value->name());

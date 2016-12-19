@@ -32,7 +32,7 @@ class Question extends Model
 	*/
 	public function tagsList()
 	{
-		return $this->tags()->lists('tag');
+		return $this->tags()->pluck('tag');
 	}
 
 	/**

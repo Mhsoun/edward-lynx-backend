@@ -2,7 +2,7 @@
 @section('content')
     <div class="container">
         <div class="mainBox">
-            @if ($errors->has())
+            @if ($errors->count() > 0)
                 <div class="alert alert-danger">
                     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                     @foreach ($errors->all() as $error)
