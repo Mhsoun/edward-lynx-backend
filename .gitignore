@@ -10,7 +10,6 @@ composer.lock
 .DS_Store
 workspace.xml
 Thumbs.db
-.env
 
 ### PhpStorm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
