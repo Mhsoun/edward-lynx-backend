@@ -44,7 +44,7 @@ class ExtraQuestion extends Model
     */
     public function languages()
     {
-        return $this->names()->lists("lang");
+        return $this->names()->pluck("lang");
     }
 
     /**

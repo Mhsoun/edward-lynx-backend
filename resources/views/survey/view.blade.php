@@ -149,7 +149,7 @@
                                                     $answers = $survey->extraAnswers()
                                                         ->where('extraQuestionId', '=', $extraQuestion->id())
                                                         ->distinct()
-                                                        ->lists($type);
+                                                        ->pluck($type);
                                                 ?>
                                                 @foreach ($answers as $value)
                                                     <option value="{{ $value }}">{{ $value }}</option>
