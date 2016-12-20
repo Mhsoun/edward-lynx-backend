@@ -52,6 +52,11 @@ class UserController extends Controller
         return response()->json($response);
     }
 
+    public function testAuth()
+    {
+        return response()->json(['status' => 'ok']);
+    }
+
     /**
      * Builds an array containing user info to be returned as response.
      * 
