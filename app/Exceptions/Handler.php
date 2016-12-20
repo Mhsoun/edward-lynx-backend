@@ -44,7 +44,17 @@ class Handler extends ExceptionHandler {
 	 */
 	public function render($request, Exception $e)
 	{
-		return parent::render($request, $e);
+		$e = $this->prepareException($e);
+
+        if ($e instanceof HttpResponseException) {
+            return $e->getResponse();
+        } elseif ($e instanceof AuthenticationException) {
+            return $this->unauthenticated($request, $e);
+        } elseif ($e instanceof ValidationException) {
+            return $this->convertValidationExceptionToResponse($e, $request);
+        }
+
+        return $this->prepareResponse($request, $e);
 	}
 
 	/**
@@ -63,6 +73,39 @@ class Handler extends ExceptionHandler {
 	    return redirect()->guest('login');
 	}
 
-	
+	/**
+	 * Puts validation errors under the error key so it is easily detectable.
+	 * 
+	 * @param ValidationException $e
+	 * @param Request $request
+	 * @return Response
+	 */
+	protected function convertValidationExceptionToResponse(ValidationException $e, $request)
+	{
+		if ($e->response) {
 
+			// If for some reason we already have a response override it.
+			if ($request->expectsJson()) {
+				$e->response = $this->generateValidationErrorJson($e);
+			}
+
+            return $e->response;
+        }
+
+        $errors = $e->validator->errors()->getMessages();
+        if ($request->expectsJson()) {
+        	$json = $this->generateValidationErrorJson();
+            return response()->json($json, 422);
+        }
+
+        return redirect()->back()->withInput($request->input())->withErrors($errors);
+	}
+
+	protected function generateValidationErrorJson(ValidationException $e)
+	{
+		return response()->json([
+			'error'		=> 'validation_error',
+			'message'	=> $e->validator->errors()->getMessages()
+		]);
+	}
 }
