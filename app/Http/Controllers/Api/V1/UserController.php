@@ -15,7 +15,8 @@ class UserController extends Controller
      */
     public function get(Request $request)
     {
-        $user = $request->user();
+        //$user = $request->user();
+        $user = \App\Models\User::first();
         $response = $this->userInfo($user);
         return response()->json($response);
     }
@@ -28,7 +29,8 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
-        $user = $request->user();
+        //$user = $request->user();
+        $user = \App\Models\User::first();
         
         $this->validate($request, [
             'name'              => 'max:255',
