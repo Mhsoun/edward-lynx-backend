@@ -65,7 +65,8 @@ class UserController extends Controller
 
     public function testHeader(Request $request)
     {
-        return response()->json(['header' => Request::header('Authorization')]);
+        $auth = $request->header('Authorization');
+        return response()->json(['header' => $auth]);
     }
 
     /**
