@@ -127,7 +127,6 @@ return [
 		 * Laravel Framework Service Providers...
 		 */
 		'Illuminate\Auth\AuthServiceProvider',
-		//'Illuminate\Bus\BusServiceProvider',
 		'Illuminate\Broadcasting\BroadcastServiceProvider',
 		'Illuminate\Cache\CacheServiceProvider',
 		'Illuminate\Foundation\Providers\ConsoleSupportServiceProvider',
@@ -150,6 +149,7 @@ return [
         'Illuminate\View\ViewServiceProvider',
         //'Illuminate\Html\HtmlServiceProvider',
 
+        Collective\Bus\BusServiceProvider::class,
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
 
