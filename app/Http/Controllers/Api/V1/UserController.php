@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
 use Auth;
+use Hash;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -40,12 +41,17 @@ class UserController extends Controller
             'currentPassword'   => 'required_with:password|min:6|same_password:' . $user->id
         ]);
 
-        $fields = ['name', 'info', 'lang', 'password'];
+        $fields = ['name', 'info', 'lang'];
         foreach ($fields as $field) {
             if ($request->has($field)) {
                 $user->{$field} = $request->input($field);
             }
         }
+
+        if ($request->has('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
         $user->save();
 
         $response = $this->userInfo($user);
