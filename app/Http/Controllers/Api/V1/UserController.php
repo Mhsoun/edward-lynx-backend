@@ -63,6 +63,11 @@ class UserController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    public function testHeader(Request $request)
+    {
+        return response()->json(['header' => Request::header('Authorization')]);
+    }
+
     /**
      * Builds an array containing user info to be returned as response.
      * 
