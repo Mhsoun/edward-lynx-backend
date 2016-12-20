@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
 	{
 		Validator::extend('same_password', function ($attr, $val, $params, $validator) {
 			$user = User::find($params[0]);
-			return Hash::make($val) == $user->password;
+			return Hash::check($val, $user->password);
 		});
 	}
 
