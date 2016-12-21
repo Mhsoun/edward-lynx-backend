@@ -149,7 +149,7 @@ return [
         'Illuminate\View\ViewServiceProvider',
         //'Illuminate\Html\HtmlServiceProvider',
 
-        Collective\Bus\BusServiceProvider::class,
+        AltThree\Bus\BusServiceProvider::class,
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
 
