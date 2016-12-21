@@ -32,7 +32,7 @@ class Kernel extends HttpKernel {
 		'api' => [
 			'auth:api',
 			'bindings',
-			\App\Http\Middleware\RequireJsonContentType::class
+			\App\Http\Middleware\RequireJsonHeaders::class
 		]
 	];
 
