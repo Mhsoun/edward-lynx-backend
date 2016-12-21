@@ -104,8 +104,8 @@ class Handler extends ExceptionHandler {
 	protected function generateValidationErrorJson(ValidationException $e)
 	{
 		return response()->json([
-			'error'		=> 'validation_error',
-			'message'	=> $e->validator->errors()->getMessages()
+			'error'				=> 'validation_error',
+			'validation_errors'	=> $e->validator->errors()->getMessages()
 		], 422);
 	}
 }
