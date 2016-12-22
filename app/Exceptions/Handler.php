@@ -23,6 +23,20 @@ class Handler extends ExceptionHandler {
 	];
 
 	/**
+	 * Map of HTTP status codes into status text.
+	 * 
+	 * @var array
+	 */
+	protected $codeToText = [
+		400 => 'Bad Request',
+		401 => 'Unauthorized',
+		403 => 'Forbidden',
+		404 => 'Not Found',
+		409 => 'Conflict',
+		500 => 'Internal Server Error'
+	];
+
+	/**
 	 * Report or log an exception.
 	 *
 	 * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
@@ -52,6 +66,10 @@ class Handler extends ExceptionHandler {
             return $this->unauthenticated($request, $e);
         } elseif ($e instanceof ValidationException) {
             return $this->convertValidationExceptionToResponse($e, $request);
+        } elseif ($e instanceof HttpException && $request->expectsJson()) {
+        	return $this->convertHttpExceptionToApiResponse($e);
+        } elseif ($e instanceof ApiException) {
+        	return $this->convertApiExceptionToResponse($e);
         }
 
         return $this->prepareResponse($request, $e);
@@ -99,6 +117,36 @@ class Handler extends ExceptionHandler {
         }
 
         return redirect()->back()->withInput($request->input())->withErrors($errors);
+	}
+
+	/**
+	 * Converts a HTTP exception to an API error response.
+	 * 
+	 * @param  HttpException $e
+	 * @return \Illuminate\Http\Response
+	 */
+	protected function convertHttpExceptionToApiResponse(HttpException $e)
+	{
+		$code = $e->getStatusCode();
+		return response()->json([
+			'error'		=> $this->codeToText[$code],
+			'message'	=> $e->getMessage()
+		], $code);
+	}
+
+	/**
+	 * Converts an api exception to a api error response.
+	 * 
+	 * @param  ApiException $e
+	 * @return \Illuminate\Http\Response
+	 */
+	protected function convertApiExceptionToResponse(ApiException $e)
+	{
+		$code = $e->getStatusCode();
+		return response()->json([
+			'error'		=> $this->codeToText[$code],
+			'message'	=> $e->getMessage()
+		], $code);
 	}
 
 	/**
