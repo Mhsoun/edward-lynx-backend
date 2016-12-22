@@ -38,6 +38,17 @@ class SurveyPolicy
     }
 
     /**
+     * Determine whether the user can view all surveys.
+     *
+     * @param  \App\User  $user
+     * @return boolean
+     */
+    public function viewAll(User $user)
+    {
+        return $user->isA('superadmin');
+    }
+
+    /**
      * Determine whether the user can create surveys.
      *
      * @param  \App\User  $user
