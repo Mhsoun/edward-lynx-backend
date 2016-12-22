@@ -4,12 +4,12 @@ use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Foundation\Auth\User as BaseUser;
 // use Illuminate\Auth\Authenticatable;
 // use Illuminate\Auth\Passwords\CanResetPassword;
-// use Illuminate\Foundation\Auth\Access\Authorizable;
-// use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-// use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 // use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Lang;
 use App\Models\DefaultText;
@@ -17,9 +17,9 @@ use App\Models\DefaultText;
 /**
 * Represents a user
 */
-class User extends Authenticatable
+class User extends BaseUser implements AuthorizableContract
 {
-    use HasApiTokens, Notifiable;
+    use Authorizable, HasApiTokens, Notifiable;
 
     /**
      * Indicates what each access level is.
