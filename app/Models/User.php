@@ -21,6 +21,21 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     /**
+     * Indicates what each access level is.
+     *
+     * @var array
+     */
+    const ACCESS_LEVELS = [
+        0 => null,
+        1 => 'superadmin',
+        2 => 'admin',
+        3 => 'supervisor',
+        4 => 'participant',
+        5 => 'feedback-provider',
+        6 => 'analyst'
+    ];
+
+    /**
      * The database table used by the model.
      *
      * @var string

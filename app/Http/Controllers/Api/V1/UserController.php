@@ -2,6 +2,7 @@
 
 use Auth;
 use Hash;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -16,8 +17,7 @@ class UserController extends Controller
      */
     public function get(Request $request)
     {
-        //$user = $request->user();
-        $user = \App\Models\User::first();
+        $user = $request->user();
         $response = $this->userInfo($user);
         return response()->json($response);
     }
@@ -30,8 +30,7 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
-        //$user = $request->user();
-        $user = \App\Models\User::first();
+        $user = $request->user();
         
         $this->validate($request, [
             'name'              => 'max:255',
@@ -67,11 +66,13 @@ class UserController extends Controller
     protected function userInfo($user)
     {
         return [
+            'id'            => $user->id,
             'name'          => $user->name,
             'email'         => $user->email,
             'info'          => $user->info,
             'lang'          => $user->lang,
             'navColor'      => $user->navColor,
+            'type'          => User::ACCESS_LEVELS[$user->access_level],
             'registeredOn'  => $user->created_at->toIso8601String()
         ];
     }
