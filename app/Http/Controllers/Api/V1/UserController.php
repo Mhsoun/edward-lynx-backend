@@ -2,6 +2,7 @@
 
 use Auth;
 use Hash;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -65,11 +66,13 @@ class UserController extends Controller
     protected function userInfo($user)
     {
         return [
+            'id'            => $user->id,
             'name'          => $user->name,
             'email'         => $user->email,
             'info'          => $user->info,
             'lang'          => $user->lang,
             'navColor'      => $user->navColor,
+            'type'          => User::ACCESS_LEVELS[$user->access_level],
             'registeredOn'  => $user->created_at->toIso8601String()
         ];
     }
