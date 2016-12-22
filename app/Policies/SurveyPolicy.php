@@ -16,7 +16,7 @@ class SurveyPolicy
      */
     public function before(User $user)
     {
-        if ($user->is('superadmin')) {
+        if ($user->isA('superadmin')) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class SurveyPolicy
      */
     public function create(User $user)
     {
-        if ($user->is('admin')) {
+        if ($user->isAn('admin')) {
             return true;
         }
 
@@ -93,7 +93,7 @@ class SurveyPolicy
      */
     public function answer(User $user, Survey $survey)
     {
-        if ($user->is('admin')) {
+        if ($user->isAn('admin')) {
             return true;
         }
 

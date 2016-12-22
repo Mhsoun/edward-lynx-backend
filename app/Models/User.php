@@ -684,7 +684,7 @@ class User extends Authenticatable
      * @param  string $accessLevel
      * @return boolean
      */
-    public function is($accessLevel)
+    public function isA($accessLevel)
     {
         $level = array_search($accessLevel, User::ACCESS_LEVELS, true);
         if ($level !== FALSE) {
@@ -692,5 +692,16 @@ class User extends Authenticatable
         } else {
             throw new UnexpectedValueException("Unknown access level name '$accessLevel'.");
         }
+    }
+
+    /**
+     * Alias of isA() method for readability.
+     * 
+     * @param string $accessLevel
+     * @return boolean
+     */
+    public function isAn($accessLevel)
+    {
+        return $this->isA($accessLevel);
     }
 }
