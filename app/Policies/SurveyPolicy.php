@@ -9,6 +9,19 @@ class SurveyPolicy
     use HandlesAuthorization;
 
     /**
+     * Before hook. Superadmins can do everything.
+     * 
+     * @param  User $user
+     * @return boolean
+     */
+    public function before(User $user)
+    {
+        if ($user->isA('superadmin')) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view the survey.
      *
      * @param  \App\User  $user
@@ -17,7 +30,11 @@ class SurveyPolicy
      */
     public function view(User $user, Survey $survey)
     {
-        return $user->id == 1;
+        if ($survey->ownerId == $user->id) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -28,7 +45,11 @@ class SurveyPolicy
      */
     public function create(User $user)
     {
-        return $user->id == 1;
+        if ($user->isAn('admin')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -40,7 +61,11 @@ class SurveyPolicy
      */
     public function update(User $user, Survey $survey)
     {
-        return $user->id == 1;
+        if ($survey->ownerId == $user->id) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -52,7 +77,11 @@ class SurveyPolicy
      */
     public function delete(User $user, Survey $survey)
     {
-        return $user->id == 1;
+        if ($survey->ownerId == $user->id) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -64,6 +93,10 @@ class SurveyPolicy
      */
     public function answer(User $user, Survey $survey)
     {
-        return $user->id == 1;
+        if ($user->isAn('admin')) {
+            return true;
+        }
+
+        return false;
     }
 }

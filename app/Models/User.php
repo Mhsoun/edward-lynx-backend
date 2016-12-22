@@ -1,5 +1,6 @@
 <?php namespace App\Models;
 
+use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -675,5 +676,32 @@ class User extends Authenticatable
             $lang,
             'report.resultsPerExtraQuestion',
             'report.resultsPerExtraQuestionText');
+    }
+
+    /**
+     * Returns TRUE if the current user has the provided access level.
+     *
+     * @param  string $accessLevel
+     * @return boolean
+     */
+    public function isA($accessLevel)
+    {
+        $level = array_search($accessLevel, User::ACCESS_LEVELS, true);
+        if ($level !== FALSE) {
+            return $level;
+        } else {
+            throw new UnexpectedValueException("Unknown access level name '$accessLevel'.");
+        }
+    }
+
+    /**
+     * Alias of isA() method for readability.
+     * 
+     * @param string $accessLevel
+     * @return boolean
+     */
+    public function isAn($accessLevel)
+    {
+        return $this->isA($accessLevel);
     }
 }
