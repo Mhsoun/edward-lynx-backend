@@ -24,7 +24,7 @@ class SurveyController extends Controller
 
         $user = $request->user();
 
-        if ($user->isA('superadmin')) {
+        if ($user->can('viewAll', Survey::class)) {
             $surveys = Survey::select('*');
         } else {
             $surveys = Survey::where('ownerId', $user->id);
