@@ -36,4 +36,15 @@ class SurveyController extends Controller
         return response()->json($surveys);
     }
 
+    /**
+     * Returns survey information.
+     * 
+     * @param  Survey $survey
+     * @return JSONResponse 
+     */
+    public function show(Survey $survey)
+    {
+        return response()->json($survey);
+    }
+
 }
