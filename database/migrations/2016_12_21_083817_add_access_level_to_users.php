@@ -16,6 +16,9 @@ class AddAccessLevelToUsers extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->tinyInteger('access_level');
         });
+
+        DB::table('users')->where('id', 1)->update(['access_level' => 1]);
+        DB::table('users')->where('id', '!=', 1)->update(['access_level' => 2]);
     }
 
     /**
