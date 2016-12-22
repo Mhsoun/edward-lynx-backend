@@ -52,6 +52,8 @@ class Handler extends ExceptionHandler {
             return $this->unauthenticated($request, $e);
         } elseif ($e instanceof ValidationException) {
             return $this->convertValidationExceptionToResponse($e, $request);
+        } elseif ($e instanceof ApiException) {
+        	return $this->convertApiExceptionToResponse($e);
         }
 
         return $this->prepareResponse($request, $e);
@@ -99,6 +101,24 @@ class Handler extends ExceptionHandler {
         }
 
         return redirect()->back()->withInput($request->input())->withErrors($errors);
+	}
+
+	/**
+	 * Converts an api exception to a api error response.
+	 * 
+	 * @param  ApiException $e [description]
+	 * @return \Illuminate\Http\Response
+	 */
+	protected function convertApiExceptionToResponse(ApiException $e)
+	{
+		$codeToError = [
+			400 => 'Bad Request'
+		];
+
+		return response()->json([
+			'error'		=> $codeToError[$e->getStatusCode()],
+			'message'	=> $e->getMessage()
+		], $e->getStatusCode());
 	}
 
 	/**
