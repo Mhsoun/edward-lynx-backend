@@ -686,12 +686,8 @@ class User extends Authenticatable
      */
     public function isA($accessLevel)
     {
-        $level = array_search($accessLevel, User::ACCESS_LEVELS, true);
-        if ($level !== FALSE) {
-            return $level;
-        } else {
-            throw new UnexpectedValueException("Unknown access level name '$accessLevel'.");
-        }
+        $level = User::ACCESS_LEVELS[$this->access_level];
+        return $level === $accessLevel;
     }
 
     /**
