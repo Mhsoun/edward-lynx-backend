@@ -159,7 +159,7 @@
                     @else
                         <td>{{ $answerType->descriptionText() }}</td>
                     @endif
-                    <td>{{ implode(";", $question->tags) }}</td>
+                    <td>{{ implode(";", $question->tags->all()) }}</td>
                     <td>
                         <input type="checkbox" onchange="updateQuestionOptional(this, {{ $question->id }})" {{ $question->optional ? 'checked' : ''  }}>
                     </td>

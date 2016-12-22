@@ -101,11 +101,18 @@ class Handler extends ExceptionHandler {
         return redirect()->back()->withInput($request->input())->withErrors($errors);
 	}
 
+	/**
+	 * Generates the validation error JSON that will be returned
+	 * on error.
+	 * 
+	 * @param ValidationException $e 
+	 * @return JSONResponse
+	 */
 	protected function generateValidationErrorJson(ValidationException $e)
 	{
 		return response()->json([
-			'error'		=> 'validation_error',
-			'message'	=> $e->validator->errors()->getMessages()
+			'error'				=> 'validation_error',
+			'validation_errors'	=> $e->validator->errors()->getMessages()
 		], 422);
 	}
 }

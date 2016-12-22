@@ -214,5 +214,3 @@ Route::post('/survey/generate-user-report', 'ReportController@createUserPDF');
 //     'auth' => 'Auth\AuthController',
 //     'password' => 'Auth\PasswordController',
 // ]);
-
-Route::get('/settings/newacct', 'UserController@newAcct');
