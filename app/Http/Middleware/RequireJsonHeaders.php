@@ -28,9 +28,15 @@ class RequireJsonHeaders
         }
 
         if (!$request->isMethod('get') && $content != $json) {
+            if (empty($content)) {
+                $message = 'Content-Type header is required for non-GET requests.';
+            } else {
+                $message = "Only application/json is accepted as the Content-Type. You provided '$content'.";
+            }
+
             return response()->json([
                 'error'     => 'Unsupported Media Type',
-                'message'   => 'Content-Type header is required for non-GET requests.'
+                'message'   => $message
             ], 415);
         }
         
