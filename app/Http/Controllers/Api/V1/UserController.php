@@ -5,9 +5,13 @@ use Hash;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 
 class UserController extends Controller
 {
+
+    use SendsPasswordResetEmails;
 
     /**
      * Returns the current user's info.
@@ -55,6 +59,30 @@ class UserController extends Controller
 
         $response = $this->userInfo($user);
         return response()->json($response);
+    }
+
+    /**
+     * Forgot Password endpoint.
+     * 
+     * @param  Request $request
+     * @return Illuminate\Http\Response
+     */
+    public function forgotPassword(Request $request)
+    {
+        $this->validate($request, [
+            'email' => 'required|email'
+        ]);
+
+        $response = $this->broker()->sendResetLink($request->only('email'));
+
+        if ($response === Password::RESET_LINK_SENT) {
+            return response('', 201);
+        } else {
+            return response()->json([
+                'error'     => 'Bad Request',
+                'message'   => trans($response)
+            ], 400);
+        }
     }
 
     /**

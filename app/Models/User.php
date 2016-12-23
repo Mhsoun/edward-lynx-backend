@@ -4,7 +4,7 @@ use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as BaseUser;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 // use Illuminate\Auth\Authenticatable;
 // use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
@@ -17,7 +17,7 @@ use App\Models\DefaultText;
 /**
 * Represents a user
 */
-class User extends BaseUser implements AuthorizableContract
+class User extends Authenticatable implements AuthorizableContract
 {
     use Authorizable, HasApiTokens, Notifiable;
 
