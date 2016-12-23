@@ -33,6 +33,12 @@ class Kernel extends HttpKernel {
 			'auth:api',
 			'bindings',
 			\App\Http\Middleware\RequireJsonHeaders::class
+		],
+
+		'api_public' => [
+			'throttle',
+			'bindings',
+			\App\Http\Middleware\RequireJsonHeaders::class
 		]
 	];
 
