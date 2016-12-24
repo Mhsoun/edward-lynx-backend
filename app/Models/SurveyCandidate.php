@@ -14,6 +14,7 @@ class SurveyCandidate extends Model
 
     //Laravel does not support composite primary key, we use a the link as primary here so a recipient has be updated.
     protected $primaryKey = 'link';
+	public $incrementing = false;
 
     protected $fillable = [];
     public $timestamps = false;
