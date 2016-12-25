@@ -411,14 +411,15 @@ class UserTableSeeder extends Seeder
     {
         if (User::where('name', '=', 'Edward Lynx')->get()->count() == 0) {
         	$edwardLynx = User::create([
-        		'name' => 'Edward Lynx',
-        		'email' => 'admin@edwardlynx.com',
-        		'info' => '',
-        		'password' => Hash::make("password123")
+        		'name' 		=> 'Edward Lynx',
+        		'email' 	=> 'admin@edwardlynx.com',
+        		'info' 		=> '',
+        		'password' 	=> Hash::make("password123")
         	]);
 
         	$edwardLynx->isAdmin = true;
         	$edwardLynx->isValidated = true;
+			$edwardLynx->access_level = 1;
         	$edwardLynx->save();
         }
 
