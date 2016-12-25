@@ -1,6 +1,8 @@
 <?php namespace App;
+
 use Auth;
-use \App\Models\Survey;
+use App\Models\Survey;
+use App\Models\EmailText;
 
 /**
 * Contains functions for surveys
@@ -48,13 +50,7 @@ abstract class Surveys
     */
     private static function createEmailText($ownerId, $lang, $email)
     {
-        $emailText = new \App\Models\EmailText;
-        $emailText->lang = $lang;
-        $emailText->subject = $email->subject;
-        $emailText->text = $email->text;
-        $emailText->ownerId = $ownerId;
-        $emailText->save();
-        return $emailText;
+		return EmailText::make(User::find($ownerId), $email->subject, $email->text, $lang);
     }
 
     /**
