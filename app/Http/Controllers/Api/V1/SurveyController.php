@@ -1,6 +1,8 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
+use App\SurveyTypes;
 use App\Models\Survey;
+use App\Models\DefaultText;
 use Illuminate\Http\Request;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
@@ -35,6 +37,35 @@ class SurveyController extends Controller
 
         return response()->json($surveys);
     }
+	
+	/**
+	 * Creates a survey.
+	 *
+	 * @return void
+	 */
+	public function create(Request $request)
+	{
+		$user = $request->user();
+		
+		$this->validate($request, [
+			'name'	=> 'required|max:255',
+			'lang'	=> 'required|in:en,fi,sv',
+			'type'	=> 'required|in:individual,group,progress,ltt,normal',
+		]);
+		
+		// TODO: make sure that the user can create this type of survey!
+		
+		$type = SurveyTypes::stringToCode($request->type);
+		
+		$survey = new Survey($request->only('name'));
+		$survey->lang = $request->lang;
+		$survey->type = $type;
+		//$survey->description = DefaultText::getDefaultText($user, DefaultText::InviteEmail, $survey->type, $survey->lang);
+		$survey->startDate = '0000-00-00 00:00:00';
+		$survey->endDate = '0000-00-00 00:00:00';
+		
+		$survey->save();
+	}
 
     /**
      * Returns survey information.
