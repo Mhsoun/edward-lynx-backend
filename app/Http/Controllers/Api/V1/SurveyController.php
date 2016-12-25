@@ -2,6 +2,7 @@
 
 use App\SurveyTypes;
 use App\Models\Survey;
+use App\Models\EmailText;
 use App\Models\DefaultText;
 use Illuminate\Http\Request;
 use App\Exceptions\ApiException;
@@ -38,12 +39,17 @@ class SurveyController extends Controller
         return response()->json($surveys);
     }
 	
+	public function create(Request $request)
+	{
+		
+	}
+	
 	/**
 	 * Creates a survey.
 	 *
 	 * @return void
 	 */
-	public function create(Request $request)
+	public function createOld(Request $request)
 	{
 		$user = $request->user();
 		
@@ -55,6 +61,9 @@ class SurveyController extends Controller
 		
 		// TODO: make sure that the user can create this type of survey!
 		
+		$surveyData = $this->processNewSurvey($request->all());
+		$survey = Surveys::create(app(), $surveyData);
+		
 		$type = SurveyTypes::stringToCode($request->type);
 		
 		$survey = new Survey($request->only('name'));
@@ -63,6 +72,21 @@ class SurveyController extends Controller
 		//$survey->description = DefaultText::getDefaultText($user, DefaultText::InviteEmail, $survey->type, $survey->lang);
 		$survey->startDate = '0000-00-00 00:00:00';
 		$survey->endDate = '0000-00-00 00:00:00';
+		
+		// Create default email texts
+		$defaultEmails = [
+			'invitationTextId'				=> DefaultText::InviteEmail,
+			'manualRemindingTextId'			=> DefaultText::ReminderEmail,
+			'toEvaluateInvitationTextId'	=> DefaultText::InviteOthersEmail,
+			'candidateInvitationTextId'		=> DefaultText::InviteCandidateEmail,
+			'inviteOthersReminderEmail'		=> DefaultText::InviteRemindingMail
+		];
+		foreach ($defaultEmails as $field => $type) {
+			$defaultText = DefaultText::getDefaultText($user, $type, $survey->type, $survey->lang);
+			if (!empty($default))
+			$email = EmailText::make($user, $defaultText->subject, $defaultText->text, $survey->lang);
+			$survey->{$field} = $email->id;
+		}
 		
 		$survey->save();
 	}
@@ -77,5 +101,10 @@ class SurveyController extends Controller
     {
         return response()->json($survey);
     }
+	
+	protected function processNewSurvey(array $input)
+	{
+		
+	}
 
 }
