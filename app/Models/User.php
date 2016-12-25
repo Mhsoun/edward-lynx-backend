@@ -681,19 +681,23 @@ class User extends Authenticatable implements AuthorizableContract
     /**
      * Returns TRUE if the current user has the provided access level.
      *
-     * @param  string $accessLevel
+     * @param  string 	$accessLevel
      * @return boolean
      */
     public function isA($accessLevel)
     {
-        $level = User::ACCESS_LEVELS[$this->access_level];
-        return $level === $accessLevel;
+        $level = array_search($accessLevel, User::ACCESS_LEVELS, true);
+		if ( $level === false ) {
+			throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
+		}
+			
+        return $level === $this->access_level;
     }
 
     /**
      * Alias of isA() method for readability.
      * 
-     * @param string $accessLevel
+     * @param string 	$accessLevel
      * @return boolean
      */
     public function isAn($accessLevel)
