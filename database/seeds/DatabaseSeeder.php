@@ -419,7 +419,6 @@ class UserTableSeeder extends Seeder
 
         	$edwardLynx->isAdmin = true;
         	$edwardLynx->isValidated = true;
-			$edwardLynx->access_level = 1;
         	$edwardLynx->save();
         }
 
