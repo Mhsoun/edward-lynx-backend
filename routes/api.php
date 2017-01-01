@@ -5,4 +5,6 @@ Route::patch('/user', 'UserController@update');
 
 Route::get('/surveys', 'SurveyController@index');
 Route::post('/surveys', 'SurveyController@create');
-Route::get('/surveys/{survey}', 'SurveyController@show')->middleware('can:view,survey');
+Route::get('/surveys/{survey}', 'SurveyController@show')
+    ->middleware('can:view,survey')
+    ->name('api1-survey');

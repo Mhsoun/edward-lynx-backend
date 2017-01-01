@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
 use App\Surveys;
+use Carbon\Carbon;
 use App\SurveyTypes;
 use App\Models\Survey;
 use App\Models\EmailText;
@@ -58,7 +59,8 @@ class SurveyController extends Controller
 	/**
 	 * Creates a survey.
 	 *
-	 * @return void
+     * @param   Illuminate\Http\Request         $request
+	 * @return  Illuminate\Http\JsonResponse
 	 */
 	public function create(Request $request)
 	{
@@ -80,33 +82,13 @@ class SurveyController extends Controller
         // Make sure that the current user can create this survey type.
         $this->authorize('create', [Survey::class, $type]);
         
-		$surveyData = $this->processNewSurvey($request->all());
-		$survey = Surveys::create(app(), $surveyData);
-		$type = SurveyTypes::stringToCode($request->type);
-		
-		$survey = new Survey($request->only('name'));
-		$survey->lang = $request->lang;
-		$survey->type = $type;
-		//$survey->description = DefaultText::getDefaultText($user, DefaultText::InviteEmail, $survey->type, $survey->lang);
-		$survey->startDate = '0000-00-00 00:00:00';
-		$survey->endDate = '0000-00-00 00:00:00';
-		
-		// Create default email texts
-		$defaultEmails = [
-			'invitationTextId'				=> DefaultText::InviteEmail,
-			'manualRemindingTextId'			=> DefaultText::ReminderEmail,
-			'toEvaluateInvitationTextId'	=> DefaultText::InviteOthersEmail,
-			'candidateInvitationTextId'		=> DefaultText::InviteCandidateEmail,
-			'inviteOthersReminderEmail'		=> DefaultText::InviteRemindingMail
-		];
-		foreach ($defaultEmails as $field => $type) {
-			$defaultText = DefaultText::getDefaultText($user, $type, $survey->type, $survey->lang);
-			if (!empty($default))
-			$email = EmailText::make($user, $defaultText->subject, $defaultText->text, $survey->lang);
-			$survey->{$field} = $email->id;
-		}
-		
-		$survey->save();
+        // Create our draft survey.
+        $surveyData = $this->generateSurveyData($request);
+        $survey = Surveys::create(app(), $surveyData);
+        $url = route('api1-survey', ['survey' => $survey]);
+        
+        return response()->json($survey, 201)
+                         ->header('Location', $url);
 	}
 
     /**
@@ -119,10 +101,112 @@ class SurveyController extends Controller
     {
         return response()->json($survey);
     }
+    
+    /**
+     * Cleans up strings.
+     *
+     * @param   string  $str
+     * @return  string
+     */
+    protected function sanitize($str)
+    {
+        return htmlspecialchars($str);
+    }
 	
-	protected function processNewSurvey(array $input)
+    /**
+     * Creates the survey data structure required by Surveys::create().
+     *
+     * @param   Illuminate\Http\Request     $input
+     * @return  object
+     */
+	protected function generateSurveyData(Request $request)
 	{
-		
+        $user = $request->user();
+        
+		$data               = new stdClass();
+        $data->name         = $this->sanitize($request->name);
+        $data->type         = intval($request->type);
+        $data->lang         = $request->lang;
+        $data->ownerId      = $request->user()->id;
+        $data->startDate    = Carbon::now();
+        $data->endDate      = Carbon::now();
+        
+        $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText');
+        $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText');
+        $data->questionInfo = $this->getTextOrDefault($request, 'questionInfo', 'defaultQuestionInfoText');
+        
+        $data->individual   = $this->generate360Data($request);
+        $data->emails       = $this->generateEmails($request);
+        
+        $data->categories   = [];
+        $data->questions    = [];
+            
+        return $data;
 	}
+    
+    /**
+     * Generates the data under the "individual" key for survey data.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @return  object
+     */
+    protected function generate360Data($request)
+    {
+        $user = $request->user();
+        
+        $individual = new stdClass();
+        $individual->inviteText = $this->getTextOrDefault($user, 'inviteText', 'defaultInviteOthersInformationText');
+        $individual->candidates = [];
+        return $individual;
+    }
+    
+    /**
+     * Generates default emails under the "emails" key for survey data.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @return  object
+     */
+    protected function generateEmails($request)
+    {
+        $user = $request->user();
+        $lang = $request->lang;
+        $emails = new stdClass();
+        
+        $types = [
+            'invitation'            => 'defaultInvitationEmail',
+            'reminder'              => 'defaultReminderEmail',
+            'toEvaluate'            => 'defaultToEvaluateEmail',
+            'inviteOthersReminder'  => 'defaultCandidateInvitationEmail',
+            'candidateInvite'       => 'defaultInviteRemindingEmail',
+            // 'userReport'            => '',
+            // 'toEvaluateRole'        => ''
+        ];
+        foreach ($types as $key => $method) {
+            $default = $user->{$method}(SurveyTypes::Individual, $lang);
+            $emails->{$key}->subject = $default->subject;
+            $email->{$key}->text = $default->message;
+            $email->{$key}->lang = $lang;
+        }
+        
+        return $emails;
+    }
+    
+    /**
+     * Retrieves form field text if it is present, otherwise
+     * it fetches the default text for that field.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @param   string                  $field
+     * @param   string                  $method
+     * @return  string
+     */
+    protected function getTextOrDefault(Request $request, $field, $method)
+    {
+        if ($request->has($field)) {
+            return $request->input($field);
+        } else {
+            return $request->user()->{$method}(SurveyTypes::Individual, $request->lang)->text;
+        }
+    }
 
 }
