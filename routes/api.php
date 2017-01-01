@@ -6,6 +6,11 @@ Route::group(['prefix' => 'user'], function() {
     Route::patch('/', 'UserController@update');
 });
 
-Route::get('/surveys', 'SurveyController@index');
-Route::post('/surveys', 'SurveyController@create')->middleware('can:create,App\Models\Survey');
-Route::get('/surveys/{survey}', 'SurveyController@show')->middleware('can:view,survey');
+// /surveys Endpoints
+Route::group(['prefix' => '/surveys'], function() {
+    Route::get('/', 'SurveyController@index');
+    Route::post('/', 'SurveyController@create');
+    Route::get('/surveys/{survey}', 'SurveyController@show')
+        ->middleware('can:view,survey')
+        ->name('api1-survey');
+});
