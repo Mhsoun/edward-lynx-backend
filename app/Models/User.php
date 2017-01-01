@@ -672,26 +672,33 @@ class User extends Authenticatable implements AuthorizableContract
     }
 
     /**
-     * Returns TRUE if the current user has the provided access level.
+     * Returns TRUE if the current user has the provided type/access level.
      *
-     * @param  string 	$accessLevel
-     * @return boolean
+     * Take note that this is a naive implementation of ACLs.
+     * This follows how self::isEdwardLynx() in detecting superadmins
+     * by checking if isAdmin is = 1. All other accounts with a 0 isAdmin
+     * attribute are admins to their respective companies only.
+     *
+     * @param  	string  $accessLevel
+     * @return 	boolean
      */
     public function isA($accessLevel)
     {
-        $level = array_search($accessLevel, User::ACCESS_LEVELS, true);
-		if ( $level === false ) {
-			throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
+		switch ($accessLevel) {
+			case 'superadmin':
+				return $this->attributes['isAdmin'] == 1;
+			case 'admin':
+				return $this->attributes['isAdmin'] != 1;
+			default:
+				throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
 		}
-			
-        return $level === $this->access_level;
     }
 
     /**
      * Alias of isA() method for readability.
      * 
-     * @param string 	$accessLevel
-     * @return boolean
+     * @param 	string 	$accessLevel
+     * @return 	boolean	
      */
     public function isAn($accessLevel)
     {
@@ -711,20 +718,12 @@ class User extends Authenticatable implements AuthorizableContract
 	
 	/**
 	 * Returns the user's type or access level.
-	 * 
-	 * Take note that this is a naive access level detection.
-	 * As all accounts stored in the users table are company
-	 * users (except user #1), they are assumed to be 'admin'
-	 * to their respective companies.
-	 *
-	 * User #1 meanwhile is the superadmin (Edward Lynx account.)
 	 *
 	 * @return	string
 	 */
 	public function getTypeAttribute()
 	{
-		$id = $this->attributes['id'];
-		if (self::isEdwardLynx($id)) {
+		if ($this->isA('superadmin')) {
 			return 'superadmin';
 		} else {
 			return 'admin';
