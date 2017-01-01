@@ -156,7 +156,7 @@ class SurveyController extends Controller
         $user = $request->user();
         
         $individual = new stdClass();
-        $individual->inviteText = $this->getTextOrDefault($user, 'inviteText', 'defaultInviteOthersInformationText');
+        $individual->inviteText = $this->getTextOrDefault($request, 'inviteText', 'defaultInviteOthersInformationText');
         $individual->candidates = [];
         return $individual;
     }
