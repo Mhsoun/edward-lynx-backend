@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
+use stdClass;
 use App\Surveys;
 use Carbon\Carbon;
 use App\SurveyTypes;
