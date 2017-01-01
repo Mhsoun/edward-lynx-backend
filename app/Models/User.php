@@ -1,5 +1,6 @@
 <?php namespace App\Models;
 
+use Carbon\Carbon;
 use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
@@ -40,7 +41,14 @@ class User extends Authenticatable implements AuthorizableContract
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated'];
+
+	/**
+	 * Additional attributes added into the model's JSON.
+	 *
+	 * @var array
+	 */
+	protected $appends = ['type', 'registeredOn'];
 
     protected $attributes = [
         'isAdmin' => false,
@@ -689,4 +697,37 @@ class User extends Authenticatable implements AuthorizableContract
     {
         return $this->isA($accessLevel);
     }
+	
+	/**
+	 * Returns the user's account creation date as the registration date.
+	 *
+	 * @return	string
+	 */
+	public function getRegisteredOnAttribute()
+	{
+		$date = new Carbon($this->attributes['created_at']);
+		return $date->toIso8601String();
+	}
+	
+	/**
+	 * Returns the user's type or access level.
+	 * 
+	 * Take note that this is a naive access level detection.
+	 * As all accounts stored in the users table are company
+	 * users (except user #1), they are assumed to be 'admin'
+	 * to their respective companies.
+	 *
+	 * User #1 meanwhile is the superadmin (Edward Lynx account.)
+	 *
+	 * @return	string
+	 */
+	public function getTypeAttribute()
+	{
+		$id = $this->attributes['id'];
+		if (self::isEdwardLynx($id)) {
+			return 'superadmin';
+		} else {
+			return 'admin';
+		}
+	}
 }
