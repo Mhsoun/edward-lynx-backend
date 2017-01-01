@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
+use App\Surveys;
 use App\SurveyTypes;
 use App\Models\Survey;
 use App\Models\EmailText;
@@ -61,16 +62,17 @@ class SurveyController extends Controller
 	 */
 	public function create(Request $request)
 	{
+		$this->validate($request, [
+			'name'	    => 'required|max:255',
+			'lang'	    => 'required|in:en,fi,sv',
+			'type'	    => 'required|in:individual',
+		], [
+		    'type.in'   =>  'Only Lynx 360 (individual) types are accepted.'
+		]);
+        
 		$user = $request->user();
 		
-		$this->validate($request, [
-			'name'	=> 'required|max:255',
-			'lang'	=> 'required|in:en,fi,sv',
-			'type'	=> 'required|in:individual,group,progress,ltt,normal',
-		]);
-		
 		// TODO: make sure that the user can create this type of survey!
-		
 		$surveyData = $this->processNewSurvey($request->all());
 		$survey = Surveys::create(app(), $surveyData);
 		$type = SurveyTypes::stringToCode($request->type);
