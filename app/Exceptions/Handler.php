@@ -85,7 +85,7 @@ class Handler extends ExceptionHandler {
         } elseif ($e instanceof ValidationException) {
             return $this->convertValidationExceptionToResponse($e, $request);
         } elseif ($e instanceof HttpException && $request->expectsJson()) {
-        	return $this->convertHttpExceptionToApiResponse($e);
+        	return $this->convertHttpExceptionToJsonResponse($e);
         } elseif ($e instanceof ApiException) {
         	return $this->convertApiExceptionToResponse($e);
         }
@@ -138,12 +138,12 @@ class Handler extends ExceptionHandler {
 	}
 
 	/**
-	 * Converts a HTTP exception to an API error response.
+	 * Converts a HTTP exception to a JSON error response.
 	 * 
 	 * @param  HttpException $e
 	 * @return \Illuminate\Http\Response
 	 */
-	protected function convertHttpExceptionToApiResponse(HttpException $e)
+	protected function convertHttpExceptionToJsonResponse(HttpException $e)
 	{
 		$code = $e->getStatusCode();
 		return response()->json([
