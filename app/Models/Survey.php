@@ -1,7 +1,8 @@
 <?php namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Lang;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
 /**
 * Represents a survey
@@ -24,6 +25,21 @@ class Survey extends Model
 	public $timestamps = false;
 
 	protected $dates = ['startDate', 'endDate', 'autoRemindingDate'];
+
+    /**
+     * List of fields whitelisted for serialization to JSON.
+     * 
+     * @var array
+     */
+    protected $visible = [
+        'id',
+        'name',
+        'type',
+        'lang',
+        'startDate',
+        'endDate',
+        'description'
+    ];
 
 	/**
 	* Returns name of the type

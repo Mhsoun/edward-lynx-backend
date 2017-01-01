@@ -1,6 +1,8 @@
 <?php namespace App;
+
 use Auth;
-use \App\Models\Survey;
+use App\Models\Survey;
+use App\Models\EmailText;
 
 /**
 * Contains functions for surveys
@@ -48,13 +50,7 @@ abstract class Surveys
     */
     private static function createEmailText($ownerId, $lang, $email)
     {
-        $emailText = new \App\Models\EmailText;
-        $emailText->lang = $lang;
-        $emailText->subject = $email->subject;
-        $emailText->text = $email->text;
-        $emailText->ownerId = $ownerId;
-        $emailText->save();
-        return $emailText;
+		return EmailText::make(User::find($ownerId), $email->subject, $email->text, $lang);
     }
 
     /**
@@ -71,14 +67,13 @@ abstract class Surveys
             'userReport' => 'userReportTextId',
             'toEvaluateRole' => 'evaluatedTeamInvitationTextId',
         ];
+		
+		$owner = User::find($surveyData->ownerId);
 
         foreach ($emails as $email => $columnName) {
             if (property_exists($surveyData->emails, $email)) {
-                $emailText = Surveys::createEmailText(
-                    $surveyData->ownerId,
-                    $surveyData->lang,
-                    $surveyData->emails->{$email});
-
+				$email = $surveyData->emails->{$email};
+				$emailText = EmailText::make($owner, $email->subject, $email->text, $surveyData->lang);
                 $survey[$columnName] = $emailText->id;
             }
         }

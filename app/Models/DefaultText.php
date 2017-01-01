@@ -1,8 +1,9 @@
 <?php namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Lang;
 use Auth;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
 /**
 * Represents a default text for emails/descriptions
@@ -603,4 +604,23 @@ class DefaultText extends Model
 		$defaultText = $user->{$name}($survey->type, $lang, $roleId);
 		return DefaultText::getReportTextInternal($survey, $lang, $reportTemplate, $defaultText);
     }
+	
+	/**
+	 * Returns the default text for a survey.
+	 *
+	 * For $type see the class constants defined above.
+	 *
+	 * @param App\Models\User 	$user
+	 * @param integer 			$type
+	 * @param integer			$surveyType
+	 * @param integer			$lang
+	 */
+	public static function getDefaultText(User $user, $type, $surveyType, $lang)
+	{	
+		$defaults = DefaultText::defaultInformations($user)[$type];
+		$getText = $defaults->texts[0]->getText;
+		$desc = $getText($surveyType, $lang)->text;
+		
+		return $desc;
+	}
 }

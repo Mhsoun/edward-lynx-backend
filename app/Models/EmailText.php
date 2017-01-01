@@ -16,4 +16,24 @@ class EmailText extends Model
 
 	//Don't generate the automatic timestamp columns
 	public $timestamps = false;
+	
+	/**
+	 * Creates a new EmailText instance.
+	 *
+	 * @param App\Models\User	$owner
+	 * @param string			$subject
+	 * @param string			$text
+	 * @param string			$lang
+	 * @return App\Models\EmailText
+	 */
+	public static function make(User $owner, $subject, $text, $lang)
+	{
+        $emailText = new self;
+        $emailText->lang = $lang;
+        $emailText->subject = $subject;
+        $emailText->text = $text;
+        $emailText->ownerId = $owner->id;
+        $emailText->save();
+        return $emailText;
+	}
 }
