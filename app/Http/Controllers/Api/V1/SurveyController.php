@@ -39,17 +39,12 @@ class SurveyController extends Controller
         return response()->json($surveys);
     }
 	
-	public function create(Request $request)
-	{
-		
-	}
-	
 	/**
 	 * Creates a survey.
 	 *
 	 * @return void
 	 */
-	public function createOld(Request $request)
+	public function create(Request $request)
 	{
 		$user = $request->user();
 		
@@ -63,7 +58,6 @@ class SurveyController extends Controller
 		
 		$surveyData = $this->processNewSurvey($request->all());
 		$survey = Surveys::create(app(), $surveyData);
-		
 		$type = SurveyTypes::stringToCode($request->type);
 		
 		$survey = new Survey($request->only('name'));
