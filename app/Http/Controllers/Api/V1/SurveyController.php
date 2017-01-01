@@ -184,9 +184,10 @@ class SurveyController extends Controller
         ];
         foreach ($types as $key => $method) {
             $default = $user->{$method}(SurveyTypes::Individual, $lang);
+            $emails->{$key} = new stdClass();
             $emails->{$key}->subject = $default->subject;
-            $email->{$key}->text = $default->message;
-            $email->{$key}->lang = $lang;
+            $emails->{$key}->text = $default->message;
+            $emails->{$key}->lang = $lang;
         }
         
         return $emails;
