@@ -1,5 +1,7 @@
 <?php namespace App;
+
 use Lang;
+use InvalidArgumentException;
 
 /**
 * The list of survey types
@@ -185,4 +187,49 @@ abstract class SurveyTypes
 
         return false;
     }
+	
+	/**
+	 * 
+	 */
+	public static function strToInt($type)
+	{
+        switch ($type) {
+            case 'individual':
+                return SurveyTypes::Individual;
+            case 'group':
+                return SurveyTypes::Group;
+            case 'progress':
+                return SurveyTypes::Progress;
+            case 'normal':
+                return SurveyTypes::Normal;
+            case 'ltt':
+                return SurveyTypes::LTT;
+            default:
+                return -1;
+        }
+	}
+	
+	/**
+	 * Converts the provided string type into a type code.
+	 *
+	 * @param string $type
+	 * @return integer
+	 */
+	public static function stringToCode($type)
+	{
+        switch ($type) {
+            case 'individual':
+                return self::Individual;
+            case 'group':
+                return self::Group;
+            case 'progress':
+                return self::Progress;
+            case 'normal':
+                return self::Normal;
+            case 'ltt':
+                return self::LTT;
+            default:
+                throw new InvalidArgumentException("Unknown survey type '$type'.");
+        }
+	}
 }
