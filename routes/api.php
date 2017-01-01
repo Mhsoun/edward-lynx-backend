@@ -1,7 +1,10 @@
 <?php
 
-Route::get('/user', 'UserController@get');
-Route::patch('/user', 'UserController@update');
+// /user Endpoints
+Route::group(['prefix' => 'user'], function() {
+    Route::get('/', 'UserController@get');
+    Route::patch('/', 'UserController@update');
+});
 
 // /surveys Endpoints
 Route::group(['prefix' => '/surveys'], function() {
