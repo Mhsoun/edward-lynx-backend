@@ -1,5 +1,6 @@
 <?php namespace App\Models;
 
+use Carbon\Carbon;
 use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
@@ -40,7 +41,14 @@ class User extends Authenticatable implements AuthorizableContract
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated'];
+
+	/**
+	 * Additional attributes added into the model's JSON.
+	 *
+	 * @var array
+	 */
+	protected $appends = ['type', 'registeredOn'];
 
     protected $attributes = [
         'isAdmin' => false,
@@ -664,29 +672,61 @@ class User extends Authenticatable implements AuthorizableContract
     }
 
     /**
-     * Returns TRUE if the current user has the provided access level.
+     * Returns TRUE if the current user has the provided type/access level.
      *
-     * @param  string 	$accessLevel
-     * @return boolean
+     * Take note that this is a naive implementation of ACLs.
+     * This follows how self::isEdwardLynx() in detecting superadmins
+     * by checking if isAdmin is = 1. All other accounts with a 0 isAdmin
+     * attribute are admins to their respective companies only.
+     *
+     * @param  	string  $accessLevel
+     * @return 	boolean
      */
     public function isA($accessLevel)
     {
-        $level = array_search($accessLevel, User::ACCESS_LEVELS, true);
-		if ( $level === false ) {
-			throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
+		switch ($accessLevel) {
+			case 'superadmin':
+				return $this->attributes['isAdmin'] == 1;
+			case 'admin':
+				return $this->attributes['isAdmin'] != 1;
+			default:
+				throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
 		}
-			
-        return $level === $this->access_level;
     }
 
     /**
      * Alias of isA() method for readability.
      * 
-     * @param string 	$accessLevel
-     * @return boolean
+     * @param 	string 	$accessLevel
+     * @return 	boolean	
      */
     public function isAn($accessLevel)
     {
         return $this->isA($accessLevel);
     }
+	
+	/**
+	 * Returns the user's account creation date as the registration date.
+	 *
+	 * @return	string
+	 */
+	public function getRegisteredOnAttribute()
+	{
+		$date = new Carbon($this->attributes['created_at']);
+		return $date->toIso8601String();
+	}
+	
+	/**
+	 * Returns the user's type or access level.
+	 *
+	 * @return	string
+	 */
+	public function getTypeAttribute()
+	{
+		if ($this->isA('superadmin')) {
+			return 'superadmin';
+		} else {
+			return 'admin';
+		}
+	}
 }
