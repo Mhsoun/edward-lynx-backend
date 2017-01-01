@@ -20,12 +20,13 @@ class SurveyController extends Controller
     public function index(Request $request)
     {
         $this->validate($request, [
-            'per_page'  => 'integer|between:1,50'
+            'num'   => 'integer|between:1,50'
         ]);
-            
-        $perPage = intval($request->input('per_page', 10));
+        
+        $num = intval($request->input('num', 10));
         $user = $request->user();
 
+        // Fetch all surveys if we are a superadmin.
         if ($user->can('viewAll', Survey::class)) {
             $surveys = Survey::select('*');
         } else {
@@ -33,14 +34,22 @@ class SurveyController extends Controller
         }
 
         $surveys = $surveys->latest('startDate')
-                           ->paginate($perPage);
-
+                           ->paginate($num);
+        
+        // Append num parameter if it is present.
+        $nextPage = $surveys->nextPageUrl();
+        $prevPage = $surveys->previousPageUrl();
+        if ($request->has('num')) {
+            $nextPage = $nextPage ? "{$nextPage}&num={$num}" : null;
+            $prevPage = $prevPage ? "{$prevPage}&num={$num}" : null; 
+        }
+        
         return response()->json([
             'total'         => $surveys->total(),
             'perPage'       => $surveys->perPage(),
             'totalPages'    => ceil($surveys->total() / $surveys->perPage()),
-            'nextPageUrl'   => $surveys->nextPageUrl(),
-            'prevPageUrl'   => $surveys->previousPageUrl(),
+            'nextPageUrl'   => $nextPage,
+            'prevPageUrl'   => $prevPage,
             'items'         => $surveys->items()
         ]);
     }
