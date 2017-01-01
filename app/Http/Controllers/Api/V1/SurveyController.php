@@ -6,8 +6,8 @@ use App\Models\Survey;
 use App\Models\EmailText;
 use App\Models\DefaultText;
 use Illuminate\Http\Request;
-use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class SurveyController extends Controller
 {
@@ -69,10 +69,17 @@ class SurveyController extends Controller
 		], [
 		    'type.in'   =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
+            
+        // Convert the string type to our internal representation
+        // of a survey type.
+        $types = [
+            'individual'    =>  SurveyTypes::Individual,
+        ];
+        $type = $types[$request->type];
         
-		$user = $request->user();
-		
-		// TODO: make sure that the user can create this type of survey!
+        // Make sure that the current user can create this survey type.
+        $this->authorize('create', [Survey::class, $type]);
+        
 		$surveyData = $this->processNewSurvey($request->all());
 		$survey = Surveys::create(app(), $surveyData);
 		$type = SurveyTypes::stringToCode($request->type);

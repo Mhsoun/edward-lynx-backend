@@ -1,5 +1,6 @@
 <?php namespace App\Policies;
 
+use App\SurveyTypes;
 use App\Models\User;
 use App\Models\Survey;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -49,18 +50,16 @@ class SurveyPolicy
     }
 
     /**
-     * Determine whether the user can create surveys.
+     * Determine whether the user can create a survey
+     * with the given type.
      *
-     * @param  \App\User  $user
-     * @return boolean
+     * @param   \App\User   $user
+     * @param   string      $type
+     * @return  boolean
      */
-    public function create(User $user)
+    public function create(User $user, $type)
     {
-        if ($user->isAn('admin')) {
-            return true;
-        }
-
-        return false;
+        return SurveyTypes::canCreate($user->allowedSurveyTypes, $type);
     }
 
     /**
