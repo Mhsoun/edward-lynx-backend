@@ -14,17 +14,16 @@ class SurveyController extends Controller
     /**
      * Returns a list of surveys the user can access.
      *
-     * @param  Illuminate\Http\Request $request
-     * @return JSONResponse
+     * @param   Illuminate\Http\Request     $request
+     * @return  JSONResponse
      */
     public function index(Request $request)
     {
+        $this->validate($request, [
+            'per_page'  => 'integer|between:1,50'
+        ]);
+            
         $perPage = intval($request->input('per_page', 10));
-
-        if ($perPage <= 0 || $perPage > 50) {
-            throw new ApiException("Parameter 'per_page' should be greater than 0 but less than or equal to 50. You provided '$perPage'.");
-        }
-
         $user = $request->user();
 
         if ($user->can('viewAll', Survey::class)) {
