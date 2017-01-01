@@ -22,8 +22,7 @@ class UserController extends Controller
     public function get(Request $request)
     {
         $user = $request->user();
-        $response = $this->userInfo($user);
-        return response()->json($response);
+        return response()->json($user);
     }
 
     /**
@@ -83,26 +82,6 @@ class UserController extends Controller
                 'message'   => trans($response)
             ], 400);
         }
-    }
-
-    /**
-     * Builds an array containing user info to be returned as response.
-     * 
-     * @param Model $user
-     * @return array
-     */
-    protected function userInfo($user)
-    {
-        return [
-            'id'            => $user->id,
-            'name'          => $user->name,
-            'email'         => $user->email,
-            'info'          => $user->info,
-            'lang'          => $user->lang,
-            'navColor'      => $user->navColor,
-            'type'          => User::ACCESS_LEVELS[$user->access_level],
-            'registeredOn'  => $user->created_at->toIso8601String()
-        ];
     }
 
 }
