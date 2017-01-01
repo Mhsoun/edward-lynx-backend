@@ -1,6 +1,7 @@
 <?php namespace App;
 
 use Auth;
+use App\Models\User;
 use App\Models\Survey;
 use App\Models\EmailText;
 
