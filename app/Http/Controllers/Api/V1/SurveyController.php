@@ -33,9 +33,16 @@ class SurveyController extends Controller
         }
 
         $surveys = $surveys->latest('startDate')
-            ->simplePaginate($perPage);
+                           ->paginate($perPage);
 
-        return response()->json($surveys);
+        return response()->json([
+            'total'         => $surveys->total(),
+            'perPage'       => $surveys->perPage(),
+            'totalPages'    => ceil($surveys->total() / $surveys->perPage()),
+            'nextPageUrl'   => $surveys->nextPageUrl(),
+            'prevPageUrl'   => $surveys->previousPageUrl(),
+            'items'         => $surveys->items()
+        ]);
     }
 	
 	/**
