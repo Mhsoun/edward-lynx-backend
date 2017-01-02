@@ -674,4 +674,19 @@ class Survey extends Model
 
     	return false;
     }
+    
+    /**
+     * Directly override JSON serialization for this model
+     * so we can change attributes without overwriting attribute
+     * values through accessors.
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        $data = $this->toArray();
+        $data['startDate'] = $this->startDate->toIso8601String();
+        $data['endDate'] = $this->endDate->toIso8601String();
+        return $data;
+    }
 }
