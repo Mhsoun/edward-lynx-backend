@@ -38,6 +38,8 @@ class HalResponse extends JsonResponse
     {
         if ($input instanceof LengthAwarePaginator) {
             return $this->encodeLengthAwarePaginator($input);
+        } elseif ($input instanceof Model) {
+            return $this->encodeModel($input);
         }
     }
     
@@ -87,6 +89,20 @@ class HalResponse extends JsonResponse
             'perPage'   => $pager->perPage(),
             'totalPages'=> ceil($pager->total() / $pager->perPage())
         ];
+    }
+    
+    /**
+     * Converts an Eloquent Model to a JSON-HAL response.
+     *
+     * @param   Illuminate\Database\Eloquent\Model  $model
+     * @return  array
+     */
+    protected function encodeModel(Model $model)
+    {
+        $links = [
+            'self' => ['href' => $this->modelUrl($model)]
+        ];
+        return array_merge($links, $model->jsonSerialize());
     }
     
     /**
