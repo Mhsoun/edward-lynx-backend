@@ -15,7 +15,7 @@ class HalServiceProvider extends ServiceProvider
      */
     public function boot(ResponseFactory $response)
     {
-        $response->macro('hal', function($input, $status = 200, $headers = [], $options = 0) {
+        $response->macro('jsonHal', function($input, $status = 200, $headers = [], $options = 0) {
             return new HalResponse($input, $status, $headers, $options);
         });
     }
