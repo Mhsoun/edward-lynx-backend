@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use Route;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -99,9 +100,13 @@ class HalResponse extends JsonResponse
      */
     protected function encodeModel(Model $model)
     {
-        $links = [
-            'self' => ['href' => $this->modelUrl($model)]
-        ];
+        $links = [];
+        if ($modelUrl = $this->modelUrl($model)) {
+            $links = [
+                'self' => ['href' => $modelUrl]
+            ];
+        }
+        
         return array_merge($links, $model->jsonSerialize());
     }
     
@@ -116,7 +121,13 @@ class HalResponse extends JsonResponse
         $apiPrefix = 'api1';
         $key = class_basename($model);
         $key = strtolower(str_singular($key));
-        return route("{$apiPrefix}-{$key}", $model);
+        $modelRoute = "{$apiPrefix}-{$key}";
+        
+        if (Route::has($modelRoute)) {
+            return route($modelRoute, $model);
+        } else {
+            return null;
+        }
     }
     
 }
