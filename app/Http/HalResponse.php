@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use Route;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -38,6 +39,8 @@ class HalResponse extends JsonResponse
     {
         if ($input instanceof LengthAwarePaginator) {
             return $this->encodeLengthAwarePaginator($input);
+        } elseif ($input instanceof Model) {
+            return $this->encodeModel($input);
         }
     }
     
@@ -75,9 +78,7 @@ class HalResponse extends JsonResponse
         // Process our collection.
         $collection = [];
         foreach ($pager->items() as $item) {
-            $collection[] = array_merge([
-                '_links' => ['self' => ['href' => $this->modelUrl($item)]]
-            ], $item->jsonSerialize());
+            $collection[] = $this->encodeModel($item);
         }
         
         return [
@@ -87,6 +88,24 @@ class HalResponse extends JsonResponse
             'perPage'   => $pager->perPage(),
             'totalPages'=> ceil($pager->total() / $pager->perPage())
         ];
+    }
+    
+    /**
+     * Converts an Eloquent Model to a JSON-HAL response.
+     *
+     * @param   Illuminate\Database\Eloquent\Model  $model
+     * @return  array
+     */
+    protected function encodeModel(Model $model)
+    {
+        $links = [];
+        if ($modelUrl = $this->modelUrl($model)) {
+            $links = [
+                'self' => ['href' => $modelUrl]
+            ];
+        }
+        
+        return array_merge($links, $model->jsonSerialize());
     }
     
     /**
@@ -100,7 +119,13 @@ class HalResponse extends JsonResponse
         $apiPrefix = 'api1';
         $key = class_basename($model);
         $key = strtolower(str_singular($key));
-        return route("{$apiPrefix}-{$key}", $model);
+        $modelRoute = "{$apiPrefix}-{$key}";
+        
+        if (Route::has($modelRoute)) {
+            return route($modelRoute, $model);
+        } else {
+            return null;
+        }
     }
     
 }
