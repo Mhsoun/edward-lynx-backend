@@ -684,7 +684,7 @@ class Survey extends Model
      */
     public function jsonSerialize()
     {
-        $data = $this->toArray();
+        $data = parent::jsonSerialize();
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
         return $data;
