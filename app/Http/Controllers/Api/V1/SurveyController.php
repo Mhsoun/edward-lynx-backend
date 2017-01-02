@@ -39,22 +39,7 @@ class SurveyController extends Controller
         $surveys = $surveys->latest('startDate')
                            ->paginate($num);
         
-        // Append num parameter if it is present.
-        $nextPage = $surveys->nextPageUrl();
-        $prevPage = $surveys->previousPageUrl();
-        if ($request->has('num')) {
-            $nextPage = $nextPage ? "{$nextPage}&num={$num}" : null;
-            $prevPage = $prevPage ? "{$prevPage}&num={$num}" : null; 
-        }
-        
-        return response()->json([
-            'total'         => $surveys->total(),
-            'perPage'       => $surveys->perPage(),
-            'totalPages'    => ceil($surveys->total() / $surveys->perPage()),
-            'nextPageUrl'   => $nextPage,
-            'prevPageUrl'   => $prevPage,
-            'items'         => $surveys->items()
-        ]);
+        return response()->jsonHal($surveys);
     }
 	
 	/**
