@@ -78,9 +78,7 @@ class HalResponse extends JsonResponse
         // Process our collection.
         $collection = [];
         foreach ($pager->items() as $item) {
-            $collection[] = array_merge([
-                '_links' => ['self' => ['href' => $this->modelUrl($item)]]
-            ], $item->jsonSerialize());
+            $collection[] = $this->encodeModel($item);
         }
         
         return [
