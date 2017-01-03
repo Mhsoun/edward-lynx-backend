@@ -27,11 +27,11 @@ class RequireJsonHeaders
             ], 415);
         }
 
-        if (!$request->isMethod('get') && $content != $json) {
+        if (!$request->isMethod('get') && !in_array($content, $validAccept)) {
             if (empty($content)) {
                 $message = 'Content-Type header is required for non-GET requests.';
             } else {
-                $message = "Only application/json is accepted as the Content-Type. You provided '$content'.";
+                $message = "Only application/hal+json is accepted as the Content-Type. You provided '$content'.";
             }
 
             return response()->json([
