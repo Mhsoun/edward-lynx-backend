@@ -38,7 +38,9 @@ class Survey extends Model
         'lang',
         'startDate',
         'endDate',
-        'description'
+        'description',
+        'thankYouText',
+        'questionInfoText'
     ];
 
 	/**
@@ -673,5 +675,63 @@ class Survey extends Model
 		}
 
     	return false;
+    }
+    
+    /**
+     * Directly override JSON serialization for this model
+     * so we can change attributes without overwriting attribute
+     * values through accessors.
+     *
+     * @param   integer $options
+     * @return  array
+     */
+    public function jsonSerialize($options = 0)
+    {
+        $data = parent::jsonSerialize();
+        
+        $data['startDate'] = $this->startDate->toIso8601String();
+        $data['endDate'] = $this->endDate->toIso8601String();
+        
+        if ($options == 0) {
+            $data = $this->getEmailsForJson($data);
+        } elseif ($options == 1) {
+            unset($data['thankYouText']);
+            unset($data['questionInfoText']);
+        }
+            
+        return $data;
+    }
+    
+    /**
+     * Returns email information associated to this survey
+     * for serialization to JSON.
+     *
+     * @param   array   $data
+     * @return  array
+     */
+    protected function getEmailsForJson(array $data)
+    {
+        $data['emails'] = [];
+        $texts = [
+            'invitation',
+            'manualReminding',
+            'toEvaluate',
+            'inviteOthersReminding',
+            'candidateInvitation'
+        ];
+        
+        foreach ($texts as $text) {
+            $method = "{$text}Text";
+            $emailText = $this->{$method};
+            
+            if ($emailText->exists) {
+                $data['emails'][$text] = [
+                    'subject'   => $emailText->subject,
+                    'text'      => $emailText->text
+                ];
+            }
+        }
+        
+        return $data;
     }
 }
