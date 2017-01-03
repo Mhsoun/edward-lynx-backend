@@ -50,6 +50,8 @@ class SurveyController extends Controller
 	 */
 	public function create(Request $request)
 	{
+        return response('', 503);
+        
 		$this->validate($request, [
 			'name'	    => 'required|max:255',
 			'lang'	    => 'required|in:en,fi,sv',
