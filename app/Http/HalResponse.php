@@ -135,7 +135,9 @@ class HalResponse extends JsonResponse
         $links = [];
         if ($modelUrl = $this->modelUrl($model)) {
             $links = [
-                'self' => ['href' => $modelUrl]
+                '_links' => [
+                    'self' => ['href' => $modelUrl]
+                ]
             ];
         }
         
