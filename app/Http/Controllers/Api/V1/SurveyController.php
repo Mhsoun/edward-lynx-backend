@@ -39,7 +39,8 @@ class SurveyController extends Controller
         $surveys = $surveys->latest('startDate')
                            ->paginate($num);
         
-        return response()->jsonHal($surveys);
+        return response()->jsonHal($surveys)
+                         ->summarize();
     }
 	
 	/**
