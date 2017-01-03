@@ -682,16 +682,22 @@ class Survey extends Model
      * so we can change attributes without overwriting attribute
      * values through accessors.
      *
+     * @param   integer $options
      * @return  array
      */
-    public function jsonSerialize()
+    public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
         
-        $data = $this->getEmailsForJson($data);
+        if ($options == 0) {
+            $data = $this->getEmailsForJson($data);
+        } elseif ($options == 1) {
+            unset($data['thankYouText']);
+            unset($data['questionInfoText']);
+        }
             
         return $data;
     }
