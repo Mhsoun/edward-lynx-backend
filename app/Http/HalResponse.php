@@ -13,6 +13,24 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class HalResponse extends JsonResponse
 {
     
+    const SERIALIZE_FULL = 0;
+    const SERIALIZE_SUMMARY = 1;
+    
+    /**
+     * Our input data.
+     *
+     * @var integer
+     */
+    protected $input;
+    
+    /**
+     * Serialization options flag sent when invoking
+     * jsonSerialize() for Models.
+     *
+     * @var integer
+     */
+    protected $serializationOptions = 0;
+    
     /**
      * Constructor.
      *
@@ -23,10 +41,26 @@ class HalResponse extends JsonResponse
      */
     public function __construct($input, $status = 200, array $headers = [], $options = 0)
     {
-        $data = $this->encode($input);
-        $headers['Content-Type'] = 'application/hal+json';
+        $this->input = $input;
         
-        parent::__construct($data, $status, $headers, $options);
+        $headers['Content-Type'] = 'application/hal+json';
+        parent::__construct($this->encode($input), $status, $headers, $options);
+    }
+    
+    /**
+     * Tells serializers to not return a whole data set
+     * but instead a summary only.
+     *
+     * @return  App\Http\HalResponse
+     */
+    public function summarize()
+    {
+        $this->serializationOptions = self::SERIALIZE_SUMMARY;
+        
+        $data = $this->encode($this->input);
+        $this->setData($data);
+        
+        return $this->update();
     }
     
     /**
@@ -105,7 +139,9 @@ class HalResponse extends JsonResponse
             ];
         }
         
-        return array_merge($links, $model->jsonSerialize());
+        $modelJson = $model->jsonSerialize($this->serializationOptions);
+        
+        return array_merge($links, $modelJson);
     }
     
     /**
