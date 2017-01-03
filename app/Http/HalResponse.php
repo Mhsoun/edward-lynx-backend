@@ -43,7 +43,7 @@ class HalResponse extends JsonResponse
     {
         $this->input = $input;
         
-        $headers['Content-Type'] = 'application/hal+json';
+        $headers['Content-Type'] = 'application/json';
         parent::__construct($this->encode($input), $status, $headers, $options);
     }
     
