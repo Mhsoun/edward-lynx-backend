@@ -18,7 +18,7 @@ class RequireJsonHeaders
     {
         $accept = Request::header('accept');
         $content = Request::header('content-type');
-        $validAccept = ['application/json', 'application/hal+json'];
+        $validAccept = ['application/json'];
 
         if (!in_array($accept, $validAccept)) {
             return response()->json([
@@ -31,7 +31,7 @@ class RequireJsonHeaders
             if (empty($content)) {
                 $message = 'Content-Type header is required for non-GET requests.';
             } else {
-                $message = "Only application/hal+json is accepted as the Content-Type. You provided '$content'.";
+                $message = "Only application/json is accepted as the Content-Type. You provided '$content'.";
             }
 
             return response()->json([
