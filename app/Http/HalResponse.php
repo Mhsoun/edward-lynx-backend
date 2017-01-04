@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use Route;
+use RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -75,6 +76,8 @@ class HalResponse extends JsonResponse
             return $this->encodeLengthAwarePaginator($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
+        } elseif (is_array($input)) {
+            return $this->encodeArray($input);
         }
     }
     
@@ -164,6 +167,29 @@ class HalResponse extends JsonResponse
         } else {
             return null;
         }
+    }
+    
+    /**
+     * Converts an array of Models, objects or arrays to a JSON-HAL response.
+     *
+     * @param   array   $arr
+     * @return  array
+     */
+    protected function encodeArray(array $arr)
+    {
+        $result = [];
+        foreach ($arr as $item) {
+            if ($item instanceof Model) {
+                $result[] = $this->encodeModel($item);
+            } elseif ($item instanceof stdClass) {
+                $result[] = json_decode(json_encode($item));
+            } elseif (is_array($item)) {
+                $result[] = $item;
+            } else {
+                throw new RuntimeException("Failed to encode item {$item} in array.");
+            }
+        }
+        return $result;
     }
     
 }
