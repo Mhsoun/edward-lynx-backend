@@ -108,24 +108,32 @@ class HalResponse extends JsonResponse
         if ($prevPage) {
             $links['prev'] = ['href' => $prevPage];
         }
-        
-        // Generate the pluralized name of the collection
-        $key = class_basename($pager->items()[0]);
-        $key = strtolower(str_plural($key));
-        
-        // Process our collection.
-        $collection = [];
-        foreach ($pager->items() as $item) {
-            $collection[] = $this->encodeModel($item);
-        }
-        
-        return [
+
+        // Build initial response
+        $resp = [
             '_links'    => $links,
-            $key        => $collection,
             'total'     => $pager->total(),
             'num'       => $pager->perPage(),
             'pages'     => ceil($pager->total() / $pager->perPage())
         ];
+        
+        if ($pager->isEmpty()) {
+            abort(404, 'Resource does not exist.');
+        } else {
+            // Generate the pluralized name of the collection
+            $key = class_basename($pager->items()[0]);
+            $key = strtolower(str_plural($key));
+        
+            // Process our collection.
+            $collection = [];
+            foreach ($pager->items() as $item) {
+                $collection[] = $this->encodeModel($item);
+            }
+            
+            $resp[$key] = $collection;
+            
+            return $resp;
+        }
     }
     
     /**
