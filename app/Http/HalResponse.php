@@ -75,6 +75,8 @@ class HalResponse extends JsonResponse
     {
         if ($input instanceof LengthAwarePaginator) {
             return $this->encodeLengthAwarePaginator($input);
+        } elseif ($input instanceof JsonHalCollection) {
+            return $this->encodeJsonHalCollection($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
         } elseif (is_array($input)) {
@@ -134,6 +136,17 @@ class HalResponse extends JsonResponse
             
             return $resp;
         }
+    }
+    
+    /**
+     * Converts a JsonHalCollection to a valid JSON-HAL response.
+     *
+     * @param   App\Http\JsonHalCollection  $collection
+     * @return  array
+     */
+    public function encodeJsonHalCollection(JsonHalCollection $collection)
+    {
+        return $collection->jsonSerialize();
     }
     
     /**
