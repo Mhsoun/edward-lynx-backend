@@ -118,7 +118,7 @@ class HalResponse extends JsonResponse
         ];
         
         if ($pager->isEmpty()) {
-            abort(404, 'Resource does not exist.');
+            return [];
         } else {
             // Generate the pluralized name of the collection
             $key = class_basename($pager->items()[0]);
