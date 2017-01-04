@@ -16,20 +16,20 @@ class UserController extends Controller
     /**
      * Returns the current user's info.
      * 
-     * @param Request $request
-     * @return JsonResponse
+     * @param   Request                 $request
+     * @return  App\Http\HalResponse
      */
     public function get(Request $request)
     {
         $user = $request->user();
-        return response()->json($user);
+        return response()->jsonHal($user);
     }
 
     /**
      * Updates user information.
      * 
-     * @param Request $request
-     * @return JsonResponse
+     * @param   Request                 $request
+     * @return  App\Http\HalResponse
      */
     public function update(Request $request)
     {
@@ -55,16 +55,15 @@ class UserController extends Controller
         }
 
         $user->save();
-
-        $response = $this->userInfo($user);
-        return response()->json($response);
+        
+        return response()->jsonHal($user);
     }
 
     /**
      * Forgot Password endpoint.
      * 
-     * @param  Request $request
-     * @return Illuminate\Http\Response
+     * @param   Request                     $request
+     * @return  Illuminate\Http\Response
      */
     public function forgotPassword(Request $request)
     {
