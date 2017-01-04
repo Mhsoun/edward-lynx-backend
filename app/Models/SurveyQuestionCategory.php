@@ -32,4 +32,21 @@ class SurveyQuestionCategory extends Model
 			$this->hasMany('\App\Models\SurveyQuestion', 'surveyId', 'surveyId')
 			->whereRaw('questionId IN (SELECT questions.id FROM questions WHERE questions.categoryId=?)', [$this->categoryId]);
 	}
+    
+    /**
+     * Returns the order and child questions when serializing to JSON.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $attrs = parent::jsonSerialize();
+        $category = $this->category->jsonSerialize();
+        $questions = $this->questions->jsonSerialize();
+        
+        return array_merge($category, [
+            'order'     => $this->order,
+            'questions' => $questions
+        ]);
+    }
 }

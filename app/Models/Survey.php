@@ -475,13 +475,20 @@ class Survey extends Model
 
     /**
     * Returns the categories and questions, ordered correctly
+    *
+    * @param    bool    $asModels
+    * @return   array
     */
-    public function categoriesAndQuestions()
+    public function categoriesAndQuestions($asModels = false)
     {
     	$categories = [];
 
         foreach ($this->categories()->orderBy('order', 'asc')->get() as $category) {
-            array_push($categories, $this->categoryViewData($category));
+            if ($asModels) {
+                array_push($categories, $category);
+            } else {
+                array_push($categories, $this->categoryViewData($category));
+            }
         }
 
         return $categories;

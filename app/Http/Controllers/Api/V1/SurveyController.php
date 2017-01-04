@@ -92,6 +92,22 @@ class SurveyController extends Controller
     }
     
     /**
+     * Returns the survey's questions.
+     *
+     * @param   App\Models\Survey   $survey
+     * @return  App\Http\HalResponse
+     */
+    public function questions(Survey $survey)
+    {
+        $categories = $survey->categoriesAndQuestions(true);
+        $categories = array_map(function($cat) {
+            return $cat->jsonSerialize();
+        }, $survey->categoriesAndQuestions(true));
+        
+        return response()->jsonHal($categories);
+    }
+    
+    /**
      * Cleans up strings.
      *
      * @param   string  $str
