@@ -139,15 +139,19 @@ class HalResponse extends JsonResponse
         $links = [];
         if ($modelUrl = $this->modelUrl($model)) {
             $links = [
-                '_links' => [
-                    'self' => ['href' => $modelUrl]
-                ]
+                'self' => ['href' => $modelUrl]
             ];
+            
+            if (is_callable([$model, 'jsonHalLinks'])) {
+                $links = array_merge($links, $model->jsonHalLinks($links));
+            }
         }
         
         $modelJson = $model->jsonSerialize($this->serializationOptions);
         
-        return array_merge($links, $modelJson);
+        return array_merge([
+            '_links' => $links
+        ], $modelJson);
     }
     
     /**
