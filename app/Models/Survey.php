@@ -741,4 +741,19 @@ class Survey extends Model
         
         return $data;
     }
+    
+    /**
+     * Returns additional links to be appended to this object's
+     * _links JSON-HAL representation.
+     *
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        $questionsUrl = route('api1-survey-questions', ['survey' => $this]);
+        
+        return [
+            'questions' => ['href' => $questionsUrl]
+        ];
+    }
 }
