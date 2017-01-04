@@ -208,7 +208,7 @@ class AnswerType implements JsonSerializable
             'help'          => $this->helpText,
             'isText'        => $this->isText,
             'isNumeric'     => $this->isNumeric,
-            'options'       => $options
+            'options'       => $this->isText() ? null : $options
         ];
     }
 
