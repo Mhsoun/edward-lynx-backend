@@ -8,6 +8,7 @@ use App\Models\Survey;
 use App\Models\EmailText;
 use App\Models\DefaultText;
 use Illuminate\Http\Request;
+use App\Http\JsonHalCollection;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -99,10 +100,8 @@ class SurveyController extends Controller
      */
     public function questions(Survey $survey)
     {
-        $categories = $survey->categoriesAndQuestions(true);
-        $categories = array_map(function($cat) {
-            return $cat->jsonSerialize();
-        }, $survey->categoriesAndQuestions(true));
+        $url = route('api1-survey-questions', $survey);
+        $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
         
         return response()->jsonHal($categories);
     }
