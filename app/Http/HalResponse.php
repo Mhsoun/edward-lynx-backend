@@ -114,24 +114,16 @@ class HalResponse extends JsonResponse
             '_links'    => $links,
             'total'     => $pager->total(),
             'num'       => $pager->perPage(),
-            'pages'     => ceil($pager->total() / $pager->perPage())
+            'pages'     => ceil($pager->total() / $pager->perPage()),
+            'items'     => []
         ];
         
         if ($pager->isEmpty()) {
-            return [];
+            return $resp;
         } else {
-            // Generate the pluralized name of the collection
-            $key = class_basename($pager->items()[0]);
-            $key = strtolower(str_plural($key));
-        
-            // Process our collection.
-            $collection = [];
             foreach ($pager->items() as $item) {
-                $collection[] = $this->encodeModel($item);
+                $resp['items'][] = $this->encodeModel($item);
             }
-            
-            $resp[$key] = $collection;
-            
             return $resp;
         }
     }
@@ -150,7 +142,7 @@ class HalResponse extends JsonResponse
                 'self' => ['href' => $modelUrl]
             ];
             
-            if (is_callable([$model, 'jsonHalLinks'])) {
+            if (method_exists($model, 'jsonHalLinks')) {
                 $links = array_merge($links, $model->jsonHalLinks($links));
             }
         }
