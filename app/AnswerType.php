@@ -1,10 +1,11 @@
 <?php namespace App;
 use Lang;
+use JsonSerializable;
 
 /**
 * Represents an answer value
 */
-class AnswerValue
+class AnswerValue implements JsonSerializable
 {
     public $value;
     public $description;
@@ -17,12 +18,25 @@ class AnswerValue
         $this->value = $value;
         $this->description = $description;
     }
+    
+    /**
+     * Returns the JSON representation of this object.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'description'   => $this->description,
+            'value'         => $this->value
+        ];
+    }
 }
 
 /**
 * Represents an answer type
 */
-class AnswerType
+class AnswerType implements JsonSerializable
 {
     private $typeId;
     private $values;
@@ -175,6 +189,27 @@ class AnswerType
     {
         $this->valueExplanations = $valueExplanations;
         return $this;
+    }
+    
+    /**
+     * Returns the JSON representation of this object.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $options = array_map(function($val) {
+            return $val->jsonSerialize();
+        }, $this->values);
+        
+        return [
+            'type'          => $this->typeId,
+            'description'   => $this->descriptionText,
+            'help'          => $this->helpText,
+            'isText'        => $this->isText,
+            'isNumeric'     => $this->isNumeric,
+            'options'       => $this->isText() ? null : $options
+        ];
     }
 
     /**

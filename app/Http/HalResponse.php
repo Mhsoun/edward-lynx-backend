@@ -123,8 +123,8 @@ class HalResponse extends JsonResponse
             '_links'    => $links,
             $key        => $collection,
             'total'     => $pager->total(),
-            'perPage'   => $pager->perPage(),
-            'totalPages'=> ceil($pager->total() / $pager->perPage())
+            'num'       => $pager->perPage(),
+            'pages'     => ceil($pager->total() / $pager->perPage())
         ];
     }
     

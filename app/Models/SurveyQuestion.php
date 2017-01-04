@@ -100,4 +100,17 @@ class SurveyQuestion extends Model
 			return true;
 		}
 	}
+    
+    /**
+     * Returns the question when serializing to JSON.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $question = $this->question->jsonSerialize();
+        return array_merge($question, [
+            'order' => $this->order
+        ]);
+    }
 }
