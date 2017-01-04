@@ -9,6 +9,8 @@ class QuestionCategory extends Model
 {
 	protected $fillable = ['title'];
 	public $timestamps = false;
+    
+    protected $visible = ['id', 'title', 'description', 'isSurvey'];
 
 	/**
 	* Returns the questions in the category

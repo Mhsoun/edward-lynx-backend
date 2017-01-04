@@ -2,6 +2,9 @@
 
 namespace App\Http;
 
+use Route;
+use stdClass;
+use RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -11,6 +14,24 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  */
 class HalResponse extends JsonResponse
 {
+    
+    const SERIALIZE_FULL = 0;
+    const SERIALIZE_SUMMARY = 1;
+    
+    /**
+     * Our input data.
+     *
+     * @var integer
+     */
+    protected $input;
+    
+    /**
+     * Serialization options flag sent when invoking
+     * jsonSerialize() for Models.
+     *
+     * @var integer
+     */
+    protected $serializationOptions = 0;
     
     /**
      * Constructor.
@@ -22,10 +43,26 @@ class HalResponse extends JsonResponse
      */
     public function __construct($input, $status = 200, array $headers = [], $options = 0)
     {
-        $data = $this->encode($input);
-        $headers['Content-Type'] = 'application/hal+json';
+        $this->input = $input;
         
-        parent::__construct($data, $status, $headers, $options);
+        $headers['Content-Type'] = 'application/json';
+        parent::__construct($this->encode($input), $status, $headers, $options);
+    }
+    
+    /**
+     * Tells serializers to not return a whole data set
+     * but instead a summary only.
+     *
+     * @return  App\Http\HalResponse
+     */
+    public function summarize()
+    {
+        $this->serializationOptions = self::SERIALIZE_SUMMARY;
+        
+        $data = $this->encode($this->input);
+        $this->setData($data);
+        
+        return $this->update();
     }
     
     /**
@@ -38,6 +75,10 @@ class HalResponse extends JsonResponse
     {
         if ($input instanceof LengthAwarePaginator) {
             return $this->encodeLengthAwarePaginator($input);
+        } elseif ($input instanceof Model) {
+            return $this->encodeModel($input);
+        } elseif (is_array($input)) {
+            return $this->encodeArray($input);
         }
     }
     
@@ -67,26 +108,58 @@ class HalResponse extends JsonResponse
         if ($prevPage) {
             $links['prev'] = ['href' => $prevPage];
         }
+
+        // Build initial response
+        $resp = [
+            '_links'    => $links,
+            'total'     => $pager->total(),
+            'num'       => $pager->perPage(),
+            'pages'     => ceil($pager->total() / $pager->perPage())
+        ];
         
-        // Generate the pluralized name of the collection
-        $key = class_basename($pager->items()[0]);
-        $key = strtolower(str_plural($key));
+        if ($pager->isEmpty()) {
+            abort(404, 'Resource does not exist.');
+        } else {
+            // Generate the pluralized name of the collection
+            $key = class_basename($pager->items()[0]);
+            $key = strtolower(str_plural($key));
         
-        // Process our collection.
-        $collection = [];
-        foreach ($pager->items() as $item) {
-            $collection[] = array_merge([
-                '_links' => ['self' => ['href' => $this->modelUrl($item)]]
-            ], $item->jsonSerialize());
+            // Process our collection.
+            $collection = [];
+            foreach ($pager->items() as $item) {
+                $collection[] = $this->encodeModel($item);
+            }
+            
+            $resp[$key] = $collection;
+            
+            return $resp;
+        }
+    }
+    
+    /**
+     * Converts an Eloquent Model to a JSON-HAL response.
+     *
+     * @param   Illuminate\Database\Eloquent\Model  $model
+     * @return  array
+     */
+    protected function encodeModel(Model $model)
+    {
+        $links = [];
+        if ($modelUrl = $this->modelUrl($model)) {
+            $links = [
+                'self' => ['href' => $modelUrl]
+            ];
+            
+            if (is_callable([$model, 'jsonHalLinks'])) {
+                $links = array_merge($links, $model->jsonHalLinks($links));
+            }
         }
         
-        return [
-            '_links'    => $links,
-            $key        => $collection,
-            'total'     => $pager->total(),
-            'perPage'   => $pager->perPage(),
-            'totalPages'=> ceil($pager->total() / $pager->perPage())
-        ];
+        $modelJson = $model->jsonSerialize($this->serializationOptions);
+        
+        return array_merge([
+            '_links' => $links
+        ], $modelJson);
     }
     
     /**
@@ -100,7 +173,36 @@ class HalResponse extends JsonResponse
         $apiPrefix = 'api1';
         $key = class_basename($model);
         $key = strtolower(str_singular($key));
-        return route("{$apiPrefix}-{$key}", $model);
+        $modelRoute = "{$apiPrefix}-{$key}";
+        
+        if (Route::has($modelRoute)) {
+            return route($modelRoute, $model);
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Converts an array of Models, objects or arrays to a JSON-HAL response.
+     *
+     * @param   array   $arr
+     * @return  array
+     */
+    protected function encodeArray(array $arr)
+    {
+        $result = [];
+        foreach ($arr as $item) {
+            if ($item instanceof Model) {
+                $result[] = $this->encodeModel($item);
+            } elseif ($item instanceof stdClass) {
+                $result[] = json_decode(json_encode($item));
+            } elseif (is_array($item)) {
+                $result[] = $item;
+            } else {
+                throw new RuntimeException("Failed to encode item {$item} in array.");
+            }
+        }
+        return $result;
     }
     
 }

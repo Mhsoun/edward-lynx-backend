@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
+use stdClass;
 use App\Surveys;
 use Carbon\Carbon;
 use App\SurveyTypes;
@@ -38,22 +39,8 @@ class SurveyController extends Controller
         $surveys = $surveys->latest('startDate')
                            ->paginate($num);
         
-        // Append num parameter if it is present.
-        $nextPage = $surveys->nextPageUrl();
-        $prevPage = $surveys->previousPageUrl();
-        if ($request->has('num')) {
-            $nextPage = $nextPage ? "{$nextPage}&num={$num}" : null;
-            $prevPage = $prevPage ? "{$prevPage}&num={$num}" : null; 
-        }
-        
-        return response()->json([
-            'total'         => $surveys->total(),
-            'perPage'       => $surveys->perPage(),
-            'totalPages'    => ceil($surveys->total() / $surveys->perPage()),
-            'nextPageUrl'   => $nextPage,
-            'prevPageUrl'   => $prevPage,
-            'items'         => $surveys->items()
-        ]);
+        return response()->jsonHal($surveys)
+                         ->summarize();
     }
 	
 	/**
@@ -64,6 +51,8 @@ class SurveyController extends Controller
 	 */
 	public function create(Request $request)
 	{
+        return response('', 503);
+        
 		$this->validate($request, [
 			'name'	    => 'required|max:255',
 			'lang'	    => 'required|in:en,fi,sv',
@@ -94,12 +83,28 @@ class SurveyController extends Controller
     /**
      * Returns survey information.
      * 
-     * @param  Survey $survey
+     * @param  Survey       $survey
      * @return JSONResponse 
      */
     public function show(Survey $survey)
     {
-        return response()->json($survey);
+        return response()->jsonHal($survey);
+    }
+    
+    /**
+     * Returns the survey's questions.
+     *
+     * @param   App\Models\Survey   $survey
+     * @return  App\Http\HalResponse
+     */
+    public function questions(Survey $survey)
+    {
+        $categories = $survey->categoriesAndQuestions(true);
+        $categories = array_map(function($cat) {
+            return $cat->jsonSerialize();
+        }, $survey->categoriesAndQuestions(true));
+        
+        return response()->jsonHal($categories);
     }
     
     /**
@@ -155,7 +160,7 @@ class SurveyController extends Controller
         $user = $request->user();
         
         $individual = new stdClass();
-        $individual->inviteText = $this->getTextOrDefault($user, 'inviteText', 'defaultInviteOthersInformationText');
+        $individual->inviteText = $this->getTextOrDefault($request, 'inviteText', 'defaultInviteOthersInformationText');
         $individual->candidates = [];
         return $individual;
     }
@@ -183,9 +188,10 @@ class SurveyController extends Controller
         ];
         foreach ($types as $key => $method) {
             $default = $user->{$method}(SurveyTypes::Individual, $lang);
+            $emails->{$key} = new stdClass();
             $emails->{$key}->subject = $default->subject;
-            $email->{$key}->text = $default->message;
-            $email->{$key}->lang = $lang;
+            $emails->{$key}->text = $default->message;
+            $emails->{$key}->lang = $lang;
         }
         
         return $emails;

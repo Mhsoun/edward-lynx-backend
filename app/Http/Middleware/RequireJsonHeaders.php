@@ -18,16 +18,16 @@ class RequireJsonHeaders
     {
         $accept = Request::header('accept');
         $content = Request::header('content-type');
-        $json = 'application/json';
+        $validAccept = ['application/json'];
 
-        if ($accept != $json) {
+        if (!in_array($accept, $validAccept)) {
             return response()->json([
                 'error'     => 'Unsupported Media Type',
-                'message'   => 'Missing Accept header.'
+                'message'   => 'Invalid Accept header.'
             ], 415);
         }
 
-        if (!$request->isMethod('get') && $content != $json) {
+        if (!$request->isMethod('get') && !in_array($content, $validAccept)) {
             if (empty($content)) {
                 $message = 'Content-Type header is required for non-GET requests.';
             } else {

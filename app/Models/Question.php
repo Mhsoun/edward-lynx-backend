@@ -10,6 +10,8 @@ class Question extends Model
 	protected $fillable = ['text'];
 	public $timestamps = false;
 	private $cachedCustomScaleObject = null;
+    protected $visible = ['id', 'text', 'optional', 'isNA', 'isFollowUpQuestion', 'answer'];
+    protected $appends = ['answer'];
 
 	/**
 	* Returns the category that the question belongs to
@@ -150,4 +152,14 @@ class Question extends Model
 
 		return $copyQuestion;
 	}
+    
+    /**
+     * Returns an array of possible answers to this question.
+     *
+     * @return  array
+     */
+    public function getAnswerAttribute()
+    {
+        return $this->answerTypeObject()->jsonSerialize();
+    }
 }
