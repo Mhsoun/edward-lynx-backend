@@ -75,6 +75,8 @@ class HalResponse extends JsonResponse
     {
         if ($input instanceof LengthAwarePaginator) {
             return $this->encodeLengthAwarePaginator($input);
+        } elseif ($input instanceof JsonHalCollection) {
+            return $this->encodeJsonHalCollection($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
         } elseif (is_array($input)) {
@@ -114,18 +116,37 @@ class HalResponse extends JsonResponse
             '_links'    => $links,
             'total'     => $pager->total(),
             'num'       => $pager->perPage(),
-            'pages'     => ceil($pager->total() / $pager->perPage()),
-            'items'     => []
+            'pages'     => ceil($pager->total() / $pager->perPage())
         ];
         
         if ($pager->isEmpty()) {
-            return $resp;
+            abort(404, 'Resource does not exist.');
         } else {
+            // Generate the pluralized name of the collection
+            $key = class_basename($pager->items()[0]);
+            $key = strtolower(str_plural($key));
+        
+            // Process our collection.
+            $collection = [];
             foreach ($pager->items() as $item) {
-                $resp['items'][] = $this->encodeModel($item);
+                $collection[] = $this->encodeModel($item);
             }
+            
+            $resp[$key] = $collection;
+            
             return $resp;
         }
+    }
+    
+    /**
+     * Converts a JsonHalCollection to a valid JSON-HAL response.
+     *
+     * @param   App\Http\JsonHalCollection  $collection
+     * @return  array
+     */
+    public function encodeJsonHalCollection(JsonHalCollection $collection)
+    {
+        return $collection->jsonSerialize();
     }
     
     /**
@@ -142,7 +163,7 @@ class HalResponse extends JsonResponse
                 'self' => ['href' => $modelUrl]
             ];
             
-            if (method_exists($model, 'jsonHalLinks')) {
+            if (is_callable([$model, 'jsonHalLinks'])) {
                 $links = array_merge($links, $model->jsonHalLinks($links));
             }
         }
