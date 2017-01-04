@@ -203,6 +203,7 @@ class AnswerType implements JsonSerializable
         }, $this->values);
         
         return [
+            'type'          => $this->typeId,
             'description'   => $this->descriptionText,
             'help'          => $this->helpText,
             'isText'        => $this->isText,
