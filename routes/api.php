@@ -13,4 +13,8 @@ Route::group(['prefix' => '/surveys'], function() {
     Route::get('/{survey}', 'SurveyController@show')
         ->middleware('can:view,survey')
         ->name('api1-survey');
+    
+    Route::get('/{survey}/questions', 'SurveyController@questions')
+        ->middleware('can:view,survey')
+        ->name('api1-survey-questions');
 });
