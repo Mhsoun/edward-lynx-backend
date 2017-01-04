@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use Route;
+use stdClass;
 use RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
