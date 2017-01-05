@@ -1,6 +1,7 @@
 <?php namespace App\Providers;
 
 use App\Models\User;
+use App\Models\SurveyRecipient;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +17,14 @@ class AppServiceProvider extends ServiceProvider
 			$user = User::find($params[0]);
 			return Hash::check($val, $user->password);
 		});
+        
+        // Validates survey answers by checking if it follows the correct
+        // structure and it provides valid answer types.    
+        Validator::extend('valid_answers', function ($attr, $val, $params, $validator) {
+            $key = request('key');
+            $survey = SurveyRecipient::where('link', $key)->get();
+            dd($survey);
+        });
 	}
 
 	/**
