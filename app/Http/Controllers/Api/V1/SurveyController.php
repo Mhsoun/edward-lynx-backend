@@ -93,6 +93,38 @@ class SurveyController extends Controller
     }
     
     /**
+     * Updates survey information.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
+     * @return  App\Http\HalResponse
+     */
+    public function update(Request $request, Survey $survey)
+    {
+        $rules = [
+            'enableAutoReminding'   => 'boolean',
+            'autoRemindingDate'     => 'isodate|after:today'
+        ];
+        $dates = ['autoRemindingDate'];
+        $this->validate($request, $rules);
+        
+        foreach (array_keys($rules) as $field) {
+            if ($request->has($field)) {
+                $val = $request->{$field};
+                
+                if (in_array($field, $dates)) {
+                    $val = Carbon::parse($val);
+                }
+                
+                $survey->{$field} = $val;
+            }
+        }
+        $survey->save();
+        
+        return response()->jsonHal($survey);
+    }
+    
+    /**
      * Returns the survey's questions.
      *
      * @param   App\Models\Survey   $survey
