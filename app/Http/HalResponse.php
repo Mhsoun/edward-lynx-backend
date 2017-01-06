@@ -116,24 +116,17 @@ class HalResponse extends JsonResponse
             '_links'    => $links,
             'total'     => $pager->total(),
             'num'       => $pager->perPage(),
-            'pages'     => ceil($pager->total() / $pager->perPage())
+            'pages'     => ceil($pager->total() / $pager->perPage()),
+            'items'     => []
         ];
         
         if ($pager->isEmpty()) {
-            abort(404, 'Resource does not exist.');
+            return $resp;
         } else {
-            // Generate the pluralized name of the collection
-            $key = class_basename($pager->items()[0]);
-            $key = strtolower(str_plural($key));
-        
             // Process our collection.
-            $collection = [];
             foreach ($pager->items() as $item) {
-                $collection[] = $this->encodeModel($item);
+                $resp['items'][] = $this->encodeModel($item);
             }
-            
-            $resp[$key] = $collection;
-            
             return $resp;
         }
     }
