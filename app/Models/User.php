@@ -1,6 +1,7 @@
 <?php namespace App\Models;
 
 use Carbon\Carbon;
+use App\Models\UserDevice;
 use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
@@ -65,6 +66,16 @@ class User extends Authenticatable implements AuthorizableContract
         }
 
         return false;
+    }
+    
+    /**
+     * Returns the devices registered to this user.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function devices()
+    {
+        return $this->hasMany(UserDevice::class);
     }
 
     /**
