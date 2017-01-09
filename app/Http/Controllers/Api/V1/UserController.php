@@ -96,7 +96,7 @@ class UserController extends Controller
             'token' => 'required|string'
         ]);
             
-        $user = $request()->user();
+        $user = request()->user();
 
         $device = new UserDevice();
         $device->token = $request->token;
