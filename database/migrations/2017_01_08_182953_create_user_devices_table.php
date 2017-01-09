@@ -16,10 +16,12 @@ class CreateUserDevicesTable extends Migration
         Schema::create('user_devices', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id')->unsigned();
-            $table->text('token')->unique();
+            $table->text('token');
             $table->timestamps();
             
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')
+                  ->references('id')->on('users')
+                  ->onDelete('cascade');
         });
     }
 
