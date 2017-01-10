@@ -26,7 +26,7 @@ class UserController extends Controller
         if ($request->type === 'list') {
             $resp = [];
             foreach ($users as $user) {
-                $resp[] = [
+                $resp[]['items'] = [
                     'id'    => $user->id,
                     'name'  => $user->name,
                     'email' => $user->email
@@ -48,6 +48,11 @@ class UserController extends Controller
     {
         $user = $request->user();
         return response()->jsonHal($user);
+    }
+    
+    public function show(Request $request, Survey $survey)
+    {
+        
     }
 
     /**
