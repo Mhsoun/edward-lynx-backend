@@ -3,6 +3,7 @@
 use Auth;
 use Hash;
 use App\Models\User;
+use App\Models\UserDevice;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Password;
@@ -81,6 +82,29 @@ class UserController extends Controller
                 'message'   => trans($response)
             ], 400);
         }
+    }
+    
+    /**
+     * Adds a device registration token to a user.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @return  Illuminate\Http\Response
+     */
+    public function registrationTokens(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required|string'
+        ]);
+            
+        $user = request()->user();
+
+        $device = new UserDevice();
+        $device->token = $request->token;
+        
+        $user->devices()->save($device);
+        
+        return response('', 201);
+
     }
 
 }
