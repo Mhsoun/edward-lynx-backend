@@ -7,6 +7,11 @@ Route::group(['prefix' => 'user'], function() {
     Route::post('/registration-tokens', 'UserController@registrationTokens');
 });
 
+// /users endpoint
+Route::group(['prefix' => 'users'], function() {
+    Route::get('/', 'UserController@index');
+});
+
 // /surveys Endpoints
 Route::group(['prefix' => '/surveys'], function() {
     Route::get('/', 'SurveyController@index');

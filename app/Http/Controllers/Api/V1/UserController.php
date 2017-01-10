@@ -15,6 +15,30 @@ class UserController extends Controller
     use SendsPasswordResetEmails;
 
     /**
+     * Return list of all users.
+     *
+     * @param   Illuminate\Http\Request    $request
+     * @return  App\Htttp\HalResponse
+     */
+    public function index(Request $request)
+    {
+        $users = User::all();
+        if ($request->type === 'list') {
+            $resp = [];
+            foreach ($users as $user) {
+                $resp[] = [
+                    'id'    => $user->id,
+                    'name'  => $user->name,
+                    'email' => $user->email
+                ];
+            }
+        } else {
+            $resp = $users;
+        }
+        return response()->json($resp);
+    }
+
+    /**
      * Returns the current user's info.
      * 
      * @param   Request                 $request
