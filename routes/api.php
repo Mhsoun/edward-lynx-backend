@@ -5,6 +5,8 @@ Route::group(['prefix' => 'user'], function() {
     Route::get('/', 'UserController@get');
     Route::patch('/', 'UserController@update');
     Route::post('/registration-tokens', 'UserController@registrationTokens');
+    
+    Route::get('/temp', 'UserController@temp');
 });
 
 // /surveys Endpoints
