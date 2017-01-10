@@ -186,9 +186,9 @@ class SurveyController extends Controller
         $data->startDate    = Carbon::parse($request->startDate);
         $data->endDate      = Carbon::parse($request->endDate);
         
-        $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText');
-        $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText');
-        $data->questionInfo = $this->getTextOrDefault($request, 'questionInfo', 'defaultQuestionInfoText');
+        $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText', $data->type);
+        $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText', $data->type);
+        $data->questionInfo = $this->getTextOrDefault($request, 'questionInfo', 'defaultQuestionInfoText', $data->type);
         
         $data->individual   = $this->generate360Data($request, $data->type);
         $data->emails       = $this->generateEmails($request, $data->type);
