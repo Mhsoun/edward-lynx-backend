@@ -15,6 +15,30 @@ class UserController extends Controller
     use SendsPasswordResetEmails;
 
     /**
+     * Return list of all users.
+     *
+     * @param   Illuminate\Http\Request    $request
+     * @return  App\Htttp\HalResponse
+     */
+    public function index(Request $request)
+    {
+        $users = User::all();
+        if ($request->type === 'list') {
+            $resp = [];
+            foreach ($users as $user) {
+                $resp[] = [
+                    'id'    => $user->id,
+                    'name'  => $user->name,
+                    'email' => $user->email
+                ];
+            }
+        } else {
+            $resp = $users;
+        }
+        return response()->json($resp);
+    }
+
+    /**
      * Returns the current user's info.
      * 
      * @param   Request                 $request
@@ -107,29 +131,4 @@ class UserController extends Controller
 
     }
     
-    public function temp()
-    {
-        $user = new User();
-        $user->name = 'EL Participant';
-        $user->email = 'participant@edwardlynx.com';
-        $user->info  = 'Edward Lynx Participant';
-        $user->password = Hash::make('participant123');
-        $user->remember_token = 'Isjx6s3gY5jv19z3E1fIZxPuCP9d33DRySSq2sEM5Mu4YPzAADzDUBl6qLV8';
-        $user->isAdmin = 0;
-        $user->access_level = 3;
-        $user->save();
-        
-        $user = new User();
-        $user->name = 'EL FeedbackProvider';
-        $user->email = 'feedback.provider@edwardlynx.com';
-        $user->info  = 'Edward Lynx Feedback Provider';
-        $user->password = Hash::make('feedback.provider123');
-        $user->remember_token = 'Isjx6s3gY5jv19z3E1fIZxPuCP9d33DRySSq2sEM5Mu4YPzAADzDUBl6qLV8';
-        $user->isAdmin = 0;
-        $user->access_level = 4;
-        $user->save();
-        
-        return response('', 201);
-    }
-
 }

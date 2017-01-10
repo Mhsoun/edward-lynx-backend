@@ -5,8 +5,11 @@ Route::group(['prefix' => 'user'], function() {
     Route::get('/', 'UserController@get');
     Route::patch('/', 'UserController@update');
     Route::post('/registration-tokens', 'UserController@registrationTokens');
-    
-    Route::get('/temp', 'UserController@temp');
+});
+
+// /users endpoint
+Route::group(['prefix' => 'users'], function() {
+    Route::get('/', 'UserController@index');
 });
 
 // /surveys Endpoints
