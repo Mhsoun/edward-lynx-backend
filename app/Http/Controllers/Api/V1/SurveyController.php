@@ -96,8 +96,7 @@ class SurveyController extends Controller
         $survey = Surveys::create(app(), $surveyData);
         $url = route('api1-survey', ['survey' => $survey]);
         
-        return response()->json($survey, 201)
-                         ->header('Location', $url);
+        return response('', 201, ['Location' => $url]);
 	}
 
     /**
