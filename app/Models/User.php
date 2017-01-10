@@ -31,7 +31,6 @@ class User extends Authenticatable implements AuthorizableContract
         4   => 'feedback-provider',
         5   => 'analyst'
     ];
-    
 
     /**
      * The database table used by the model.
