@@ -51,21 +51,40 @@ class SurveyController extends Controller
 	 * @return  Illuminate\Http\JsonResponse
 	 */
 	public function create(Request $request)
-	{
-        return response('', 503);
-        
+	{        
 		$this->validate($request, [
-			'name'	    => 'required|max:255',
-			'lang'	    => 'required|in:en,fi,sv',
-			'type'	    => 'required|in:individual',
+			'name'	                            => 'required|max:255',
+			'lang'	                            => 'required|in:en,fi,sv',
+			'type'	                            => 'required|in:instant',
+            'startDate'                         => 'required|isodate',
+            'endDate'                           => 'required|isodate',
+            'description'                       => 'string',
+            'thankYouText'                      => 'string',
+            'questionInfo'                      => 'string',
+            'recipients'                        => 'required|array',
+            'recipients.*.name'                 => 'required|string',
+            'recipients.*.email'                => 'required|email',
+            'recipients.*.position'             => 'required|string'
 		], [
-		    'type.in'   =>  'Only Lynx 360 (individual) types are accepted.'
+		    'type.in'                           =>  'Only Instant Feedback (instant) types are accepted.'
 		]);
+            
+        if ($request->type === SurveyTypes::Instant) {
+            $this->validate($request, [
+                'questions'                         => 'required|array|size:1',
+                'questions.*.text'                  => 'required|string',
+                'questions.*.isNA'                  => 'required|boolean',
+                'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
+                'questions.*.answer.options'        => 'array',
+                'questions.*.answer.*.description'  => 'string',
+                'questions.*.answer.*.value'        => 'string'
+            ]);
+        }
             
         // Convert the string type to our internal representation
         // of a survey type.
         $types = [
-            'individual'    =>  SurveyTypes::Individual,
+            'instant'    =>  SurveyTypes::Instant,
         ];
         $type = $types[$request->type];
         
@@ -164,18 +183,25 @@ class SurveyController extends Controller
         $data->type         = intval($request->type);
         $data->lang         = $request->lang;
         $data->ownerId      = $request->user()->id;
-        $data->startDate    = Carbon::now();
-        $data->endDate      = Carbon::now();
+        $data->startDate    = Carbon::parse($request->startDate);
+        $data->endDate      = Carbon::parse($request->endDate);
         
-        $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText');
-        $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText');
-        $data->questionInfo = $this->getTextOrDefault($request, 'questionInfo', 'defaultQuestionInfoText');
+        $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText', $data->type);
+        $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText', $data->type);
+        $data->questionInfo = $this->getTextOrDefault($request, 'questionInfo', 'defaultQuestionInfoText', $data->type);
         
-        $data->individual   = $this->generate360Data($request);
-        $data->emails       = $this->generateEmails($request);
+        $data->individual   = $this->generate360Data($request, $data->type);
+        $data->emails       = $this->generateEmails($request, $data->type);
         
-        $data->categories   = [];
-        $data->questions    = [];
+        $data->categories = [];
+        if ($data->type == SurveyTypes::Instant) {
+            $data->categories = $this->createDefaultCategory();
+        }
+        
+        $data->questions = [];
+        if ($data->type == SurveyTypes::Instant) {
+            $data->questions = $this->processQuestions($request->questions);
+        }
             
         return $data;
 	}
@@ -184,14 +210,15 @@ class SurveyController extends Controller
      * Generates the data under the "individual" key for survey data.
      *
      * @param   Illuminate\Http\Request $request
+     * @param   int                     $surveyType
      * @return  object
      */
-    protected function generate360Data($request)
+    protected function generate360Data($request, $surveyType)
     {
         $user = $request->user();
         
         $individual = new stdClass();
-        $individual->inviteText = $this->getTextOrDefault($request, 'inviteText', 'defaultInviteOthersInformationText');
+        $individual->inviteText = $this->getTextOrDefault($request, 'inviteText', 'defaultInviteOthersInformationText', $surveyType);
         $individual->candidates = [];
         return $individual;
     }
@@ -200,9 +227,10 @@ class SurveyController extends Controller
      * Generates default emails under the "emails" key for survey data.
      *
      * @param   Illuminate\Http\Request $request
+     * @param   int                     $surveyType
      * @return  object
      */
-    protected function generateEmails($request)
+    protected function generateEmails($request, $surveyType)
     {
         $user = $request->user();
         $lang = $request->lang;
@@ -218,7 +246,7 @@ class SurveyController extends Controller
             // 'toEvaluateRole'        => ''
         ];
         foreach ($types as $key => $method) {
-            $default = $user->{$method}(SurveyTypes::Individual, $lang);
+            $default = $user->{$method}($surveyType, $lang);
             $emails->{$key} = new stdClass();
             $emails->{$key}->subject = $default->subject;
             $emails->{$key}->text = $default->message;
@@ -235,15 +263,26 @@ class SurveyController extends Controller
      * @param   Illuminate\Http\Request $request
      * @param   string                  $field
      * @param   string                  $method
+     * @param   int                     $surveyType
      * @return  string
      */
-    protected function getTextOrDefault(Request $request, $field, $method)
+    protected function getTextOrDefault(Request $request, $field, $method, $surveyType)
     {
         if ($request->has($field)) {
             return $request->input($field);
         } else {
-            return $request->user()->{$method}(SurveyTypes::Individual, $request->lang)->text;
+            return $request->user()->{$method}($surveyType, $request->lang)->text;
         }
+    }
+    
+    protected function createDefaultCategory()
+    {
+        // Create new default category here.
+    }
+
+    protected function processQuestions($value='')
+    {
+        # code...
     }
 
 }
