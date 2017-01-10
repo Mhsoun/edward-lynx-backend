@@ -41,6 +41,7 @@ return [
 	"in"                   => "The selected :attribute is invalid.",
 	"integer"              => "The :attribute must be an integer.",
 	"ip"                   => "The :attribute must be a valid IP address.",
+    "isodate"              => "The :attribute must be a valid ISO 8601 date",
 	"max"                  => [
 		"numeric" => "The :attribute may not be greater than :max.",
 		"file"    => "The :attribute may not be greater than :max kilobytes.",

@@ -75,6 +75,8 @@ class HalResponse extends JsonResponse
     {
         if ($input instanceof LengthAwarePaginator) {
             return $this->encodeLengthAwarePaginator($input);
+        } elseif ($input instanceof JsonHalCollection) {
+            return $this->encodeJsonHalCollection($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
         } elseif (is_array($input)) {
@@ -114,26 +116,30 @@ class HalResponse extends JsonResponse
             '_links'    => $links,
             'total'     => $pager->total(),
             'num'       => $pager->perPage(),
-            'pages'     => ceil($pager->total() / $pager->perPage())
+            'pages'     => ceil($pager->total() / $pager->perPage()),
+            'items'     => []
         ];
         
         if ($pager->isEmpty()) {
-            abort(404, 'Resource does not exist.');
+            return $resp;
         } else {
-            // Generate the pluralized name of the collection
-            $key = class_basename($pager->items()[0]);
-            $key = strtolower(str_plural($key));
-        
             // Process our collection.
-            $collection = [];
             foreach ($pager->items() as $item) {
-                $collection[] = $this->encodeModel($item);
+                $resp['items'][] = $this->encodeModel($item);
             }
-            
-            $resp[$key] = $collection;
-            
             return $resp;
         }
+    }
+    
+    /**
+     * Converts a JsonHalCollection to a valid JSON-HAL response.
+     *
+     * @param   App\Http\JsonHalCollection  $collection
+     * @return  array
+     */
+    public function encodeJsonHalCollection(JsonHalCollection $collection)
+    {
+        return $collection->jsonSerialize();
     }
     
     /**

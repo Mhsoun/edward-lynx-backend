@@ -38,7 +38,21 @@ class Survey extends Model
         'lang',
         'startDate',
         'endDate',
+        'enableAutoReminding',
+        'autoRemindingDate',
         'description',
+        'thankYouText',
+        'questionInfoText'
+    ];
+    
+    /**
+     * List of fields hidden when summary serializing to JSON.
+     *
+    * @var  array
+     */
+    protected $hiddenWhenSummarized = [
+        'enableAutoReminding',
+        'autoRemindingDate',
         'thankYouText',
         'questionInfoText'
     ];
@@ -702,8 +716,9 @@ class Survey extends Model
         if ($options == 0) {
             $data = $this->getEmailsForJson($data);
         } elseif ($options == 1) {
-            unset($data['thankYouText']);
-            unset($data['questionInfoText']);
+            foreach ($this->hiddenWhenSummarized as $field) {
+                unset($data[$field]);
+            }
         }
             
         return $data;
@@ -740,5 +755,20 @@ class Survey extends Model
         }
         
         return $data;
+    }
+    
+    /**
+     * Returns additional links to be appended to this object's
+     * _links JSON-HAL representation.
+     *
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        $questionsUrl = route('api1-survey-questions', ['survey' => $this]);
+        
+        return [
+            'questions' => ['href' => $questionsUrl]
+        ];
     }
 }

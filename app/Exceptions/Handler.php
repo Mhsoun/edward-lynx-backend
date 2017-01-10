@@ -1,6 +1,7 @@
 <?php namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Support\MessageBag;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -85,6 +86,8 @@ class Handler extends ExceptionHandler {
             return $this->unauthenticated($request, $e);
         } elseif ($e instanceof ValidationException) {
             return $this->convertValidationExceptionToResponse($e, $request);
+        } elseif ($e instanceof CustomValidationException) {
+            return $this->convertCustomValidationExceptionToResponse($e, $request);
         } elseif ($e instanceof HttpException && $request->expectsJson()) {
         	return $this->convertHttpExceptionToJsonResponse($e);
         } elseif ($e instanceof ApiException) {
@@ -119,20 +122,37 @@ class Handler extends ExceptionHandler {
 	 */
 	protected function convertValidationExceptionToResponse(ValidationException $e, $request)
 	{
+        $errors = $e->validator->errors()->getMessages();
+        
 		if ($e->response) {
-
 			// If for some reason we already have a response override it.
 			if ($request->expectsJson()) {
-				$e->response = $this->generateValidationErrorJson($e);
+				$e->response = $this->generateValidationErrorJson($errors);
 			}
-
             return $e->response;
         }
 
-        $errors = $e->validator->errors()->getMessages();
         if ($request->expectsJson()) {
-        	$json = $this->generateValidationErrorJson();
+        	$json = $this->generateValidationErrorJson($errors);
             return response()->json($json, 422);
+        }
+
+        return redirect()->back()->withInput($request->input())->withErrors($errors);
+	}
+    
+	/**
+	 * Puts validation errors under the error key so it is easily detectable.
+	 * 
+	 * @param   App\Exceptions\CustomValidationException    $e
+	 * @param   Illuminate\Http\Request                     $request
+	 * @return  Illuminate\Http\Response
+	 */
+	protected function convertCustomValidationExceptionToResponse(CustomValidationException $e, $request)
+	{
+        $errors = $e->errors()->getMessages();
+        
+        if ($request->expectsJson()) {
+        	return $this->generateValidationErrorJson($errors);
         }
 
         return redirect()->back()->withInput($request->input())->withErrors($errors);
@@ -172,14 +192,14 @@ class Handler extends ExceptionHandler {
 	 * Generates the validation error JSON that will be returned
 	 * on error.
 	 * 
-	 * @param ValidationException $e 
-	 * @return JSONResponse
+	 * @param   Illuminate\Support\MessageBag   $messages
+	 * @return  JSONResponse
 	 */
-	protected function generateValidationErrorJson(ValidationException $e)
+	protected function generateValidationErrorJson($messages)
 	{
 		return response()->json([
 			'error'				=> 'validation_error',
-			'validation_errors'	=> $e->validator->errors()->getMessages()
+			'validation_errors'	=> $messages
 		], 422);
 	}
 }

@@ -31,7 +31,6 @@ class User extends Authenticatable implements AuthorizableContract
         4   => 'feedback-provider',
         5   => 'analyst'
     ];
-    
 
     /**
      * The database table used by the model.
@@ -708,7 +707,7 @@ class User extends Authenticatable implements AuthorizableContract
         $accessLevel = strtolower($accessLevel);
         $key = array_search($accessLevel, self::ACCESS_LEVELS);
         if ($key !== FALSE) {
-            return $key;
+            return true;
         } else {
             throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
         }

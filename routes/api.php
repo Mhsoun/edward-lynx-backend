@@ -17,7 +17,12 @@ Route::group(['prefix' => '/surveys'], function() {
         ->middleware('can:view,survey')
         ->name('api1-survey');
     
+    Route::patch('/{survey}', 'SurveyController@update')
+        ->middleware('can:update,survey');
+    
     Route::get('/{survey}/questions', 'SurveyController@questions')
         ->middleware('can:view,survey')
         ->name('api1-survey-questions');
+    
+    Route::post('/{survey}/answers', 'AnswerController@create');
 });
