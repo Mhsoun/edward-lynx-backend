@@ -22,6 +22,16 @@ use App\Models\DefaultText;
 class User extends Authenticatable implements AuthorizableContract
 {
     use Authorizable, HasApiTokens, Notifiable;
+    
+    const ACCESS_LEVELS = [
+        0   => 'superadmin',
+        1   => 'admin',
+        2   => 'supervisor',
+        3   => 'participant',
+        4   => 'feedback-provider',
+        5   => 'analyst'
+    ];
+    
 
     /**
      * The database table used by the model.
@@ -695,14 +705,13 @@ class User extends Authenticatable implements AuthorizableContract
      */
     public function isA($accessLevel)
     {
-		switch ($accessLevel) {
-			case 'superadmin':
-				return $this->attributes['isAdmin'] == 1;
-			case 'admin':
-				return $this->attributes['isAdmin'] != 1;
-			default:
-				throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
-		}
+        $accessLevel = strtolower($accessLevel);
+        $key = array_search($accessLevel, self::ACCESS_LEVELS);
+        if ($key !== FALSE) {
+            return $key;
+        } else {
+            throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
+        }
     }
 
     /**
@@ -734,10 +743,6 @@ class User extends Authenticatable implements AuthorizableContract
 	 */
 	public function getTypeAttribute()
 	{
-		if ($this->isA('superadmin')) {
-			return 'superadmin';
-		} else {
-			return 'admin';
-		}
+		return self::ACCESS_LEVELS[$this->access_level];
 	}
 }
