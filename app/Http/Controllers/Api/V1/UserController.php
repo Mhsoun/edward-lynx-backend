@@ -49,11 +49,6 @@ class UserController extends Controller
         $user = $request->user();
         return response()->jsonHal($user);
     }
-    
-    public function show(Request $request, Survey $survey)
-    {
-        
-    }
 
     /**
      * Updates user information.
