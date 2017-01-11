@@ -131,15 +131,4 @@ class UserController extends Controller
         return response('', 201);
     }
     
-    public function changeParentIds()
-    {
-        DB::table('users')
-            ->where('email', 'participant@edwardlynx.com')
-            ->update(['parent_id' => 1]);
-        DB::table('users')
-            ->where('email', 'feedback.provider@edwardlynx.com')
-            ->update(['parent_id' => 1]);
-        return response('ok');
-    }
-    
 }
