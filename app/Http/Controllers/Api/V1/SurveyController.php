@@ -80,7 +80,7 @@ class SurveyController extends Controller
         // Make sure that the current user can create this survey type.
         $this->authorize('create', [Survey::class, $type]);
             
-        // Instant feedbacks need a special treatment.
+        // Validate question for instant feedbacks.
         if ($request->type === SurveyTypes::Instant) {
             $this->validate($request, [
                 'questions'                         => 'required|array|size:1',
@@ -91,8 +91,6 @@ class SurveyController extends Controller
                 'questions.*.answer.*.description'  => 'string',
                 'questions.*.answer.*.value'        => 'string'
             ]);
-                
-            $this->createInstantFeedback($request->user(), $request->all());
         }
         
         // Create our draft survey.
@@ -169,13 +167,6 @@ class SurveyController extends Controller
     protected function sanitize($str)
     {
         return htmlspecialchars($str);
-    }
-    
-    protected function createInstantFeedback(User $user, array $input)
-    {
-        // Create initial survey info
-        // Fetch default texts
-        // Process questions
     }
 	
     /**
