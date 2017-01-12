@@ -4,9 +4,12 @@ use stdClass;
 use App\Surveys;
 use Carbon\Carbon;
 use App\SurveyTypes;
+use App\Models\User;
 use App\Models\Survey;
+use App\Models\Question;
 use App\Models\EmailText;
 use App\Models\DefaultText;
+use App\Models\QuestionCategory;
 use Illuminate\Http\Request;
 use App\Http\JsonHalCollection;
 use App\Http\Controllers\Controller;
@@ -62,13 +65,22 @@ class SurveyController extends Controller
             'thankYouText'                      => 'string',
             'questionInfo'                      => 'string',
             'recipients'                        => 'required|array',
-            'recipients.*.name'                 => 'required|string',
-            'recipients.*.email'                => 'required|email',
-            'recipients.*.position'             => 'required|string'
+            'recipients.*.id'                   => 'required|integer',
 		], [
 		    'type.in'                           =>  'Only Instant Feedback (instant) types are accepted.'
 		]);
             
+        // Convert the string type to our internal representation
+        // of a survey type.
+        $types = [
+            'instant'    =>  SurveyTypes::Instant,
+        ];
+        $type = $types[$request->type];
+    
+        // Make sure that the current user can create this survey type.
+        $this->authorize('create', [Survey::class, $type]);
+            
+        // Instant feedbacks need a special treatment.
         if ($request->type === SurveyTypes::Instant) {
             $this->validate($request, [
                 'questions'                         => 'required|array|size:1',
@@ -79,20 +91,12 @@ class SurveyController extends Controller
                 'questions.*.answer.*.description'  => 'string',
                 'questions.*.answer.*.value'        => 'string'
             ]);
+                
+            $this->createInstantFeedback($request->user(), $request->all());
         }
-            
-        // Convert the string type to our internal representation
-        // of a survey type.
-        $types = [
-            'instant'    =>  SurveyTypes::Instant,
-        ];
-        $type = $types[$request->type];
-        
-        // Make sure that the current user can create this survey type.
-        $this->authorize('create', [Survey::class, $type]);
         
         // Create our draft survey.
-        $surveyData = $this->generateSurveyData($request);
+        $surveyData = $this->generateSurveyData($type, $request);
         $survey = Surveys::create(app(), $surveyData);
         $url = route('api1-survey', ['survey' => $survey]);
         
@@ -166,20 +170,28 @@ class SurveyController extends Controller
     {
         return htmlspecialchars($str);
     }
+    
+    protected function createInstantFeedback(User $user, array $input)
+    {
+        // Create initial survey info
+        // Fetch default texts
+        // Process questions
+    }
 	
     /**
      * Creates the survey data structure required by Surveys::create().
      *
+     * @param   integer                     $type
      * @param   Illuminate\Http\Request     $input
      * @return  object
      */
-	protected function generateSurveyData(Request $request)
+	protected function generateSurveyData($type, Request $request)
 	{
         $user = $request->user();
         
 		$data               = new stdClass();
         $data->name         = $this->sanitize($request->name);
-        $data->type         = intval($request->type);
+        $data->type         = $type;
         $data->lang         = $request->lang;
         $data->ownerId      = $request->user()->id;
         $data->startDate    = Carbon::parse($request->startDate);
@@ -193,13 +205,20 @@ class SurveyController extends Controller
         $data->emails       = $this->generateEmails($request, $data->type);
         
         $data->categories = [];
-        if ($data->type == SurveyTypes::Instant) {
-            $data->categories = $this->createDefaultCategory();
-        }
-        
         $data->questions = [];
+            
         if ($data->type == SurveyTypes::Instant) {
-            $data->questions = $this->processQuestions($request->questions);
+            $category = $this->findInstantFeedbackCategory($user, $data->lang);
+            $data->categories[] = (object) [
+                'id'    => $category->id,
+                'order' => 0
+            ];
+            
+            $question = $this->processInstantFeedbackQuestion($user, $category, $request->questions[0]);
+            $data->questions[] = (object) [
+                'id'    => $question->id,
+                'order' => 0
+            ];
         }
             
         return $data;
@@ -274,14 +293,57 @@ class SurveyController extends Controller
         }
     }
     
-    protected function createDefaultCategory()
+    /**
+     * Returns the default question category for instant feedbacks.
+     *
+     * @param   App\Models\User     $user
+     * @param   string              $lang
+     * @return  App\Models\QuestionCategory
+     */
+    protected function findInstantFeedbackCategory(User $user, $lang)
     {
-        // Create new default category here.
+        $category = QuestionCategory::where([
+            'title'             => 'Instant Feedback Category',
+            'lang'              => $lang,
+            'ownerId'           => $user->id,
+            'targetSurveyType'  => SurveyTypes::Instant
+        ])->first();
+            
+        if (!$category) {
+            $category = new QuestionCategory();
+            $category->title = 'Instant Feedback Category';
+            $category->lang = $lang;
+            $category->ownerId = $user->id;
+            $category->targetSurveyType = SurveyTypes::Instant;
+            $category->isSurvey = false;
+            $category->save();
+        }
+        
+        return $category;
     }
 
-    protected function processQuestions($value='')
+    /**
+     * Process a question created for instant feedbacks.
+     *
+     * @param   App\Models\User             $user
+     * @param   App\Models\QuestionCategory $category
+     * @param   array                       $question
+     * @return  App\Models\Question
+     */
+    protected function processInstantFeedbackQuestion(User $user, QuestionCategory $category, array $question)
     {
-        # code...
+        $questionObj = new Question();
+        $questionObj->text = $this->sanitize($question['text']);
+        $questionObj->ownerId = $user->id;
+        $questionObj->categoryId = $category->id;
+        $questionObj->answerType = intval($question['answer']);
+        $questionObj->optional = false;
+        $questionObj->isSurvey = false;
+        $questionObj->isNA = boolval($question['isNA']);
+        $questionObj->isFollowUpQuestion = false;
+        $questionObj->save();
+        
+        return $questionObj;
     }
 
 }
