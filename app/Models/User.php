@@ -719,7 +719,9 @@ class User extends Authenticatable implements AuthorizableContract
      */
     public function subUsers()
     {
-        $children = self::where('parent_id', $this->id)->get();
+        $children = self::where('parent_id', $this->id)
+            ->orderBy('name', 'asc')
+            ->get();
         return $children;
     }
 
