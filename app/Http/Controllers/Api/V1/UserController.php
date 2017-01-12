@@ -23,7 +23,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::all();
+        $users = $request->user()->colleagues();
         if ($request->type === 'list') {
             $resp = [];
             foreach ($users as $user) {
@@ -129,17 +129,6 @@ class UserController extends Controller
         $user->devices()->save($device);
         
         return response('', 201);
-    }
-    
-    public function changeParentIds()
-    {
-        DB::table('users')
-            ->where('email', 'participant@edwardlynx.com')
-            ->update(['parent_id' => 1]);
-        DB::table('users')
-            ->where('email', 'feedback.provider@edwardlynx.com')
-            ->update(['parent_id' => 1]);
-        return response('ok');
     }
     
 }
