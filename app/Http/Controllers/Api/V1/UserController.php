@@ -23,7 +23,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::all();
+        $users = $request->user()->colleagues();
         if ($request->type === 'list') {
             $resp = [];
             foreach ($users as $user) {

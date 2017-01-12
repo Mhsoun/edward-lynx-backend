@@ -6,6 +6,7 @@ use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 // use Illuminate\Auth\Authenticatable;
 // use Illuminate\Auth\Passwords\CanResetPassword;
@@ -689,6 +690,37 @@ class User extends Authenticatable implements AuthorizableContract
             $lang,
             'report.resultsPerExtraQuestion',
             'report.resultsPerExtraQuestionText');
+    }
+    
+    /**
+     * Returns all users under the same parent as the current user.
+     *
+     * @param   boolean                                     $includeParent
+     * @return  Illuminate\Database\Eloquent\Collection
+     */
+    public function colleagues($includeParent = true)
+    {
+        $result = new Collection();
+        if ($this->parent_id == null) {
+            $result = $this->subUsers();
+            $result->prepend($this);
+        } else {
+            $parent = self::find($this->parent_id);
+            $result = $parent->subUsers();
+            $result->prepend($parent);
+        }
+        return $result;
+    }
+    
+    /**
+     * Returns all users under the current user.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection
+     */
+    public function subUsers()
+    {
+        $children = self::where('parent_id', $this->id)->get();
+        return $children;
     }
 
     /**
