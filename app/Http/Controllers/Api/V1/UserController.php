@@ -1,8 +1,10 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
+use DB;
 use Auth;
 use Hash;
 use App\Models\User;
+use App\Models\UserDevice;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Password;
@@ -12,6 +14,30 @@ class UserController extends Controller
 {
 
     use SendsPasswordResetEmails;
+
+    /**
+     * Return list of all users.
+     *
+     * @param   Illuminate\Http\Request    $request
+     * @return  App\Htttp\HalResponse
+     */
+    public function index(Request $request)
+    {
+        $users = $request->user()->colleagues();
+        if ($request->type === 'list') {
+            $resp = [];
+            foreach ($users as $user) {
+                $resp['items'][] = [
+                    'id'    => $user->id,
+                    'name'  => $user->name,
+                    'email' => $user->email
+                ];
+            }
+        } else {
+            $resp = $users;
+        }
+        return response()->json($resp);
+    }
 
     /**
      * Returns the current user's info.
@@ -82,5 +108,27 @@ class UserController extends Controller
             ], 400);
         }
     }
+    
+    /**
+     * Adds a device registration token to a user.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @return  Illuminate\Http\Response
+     */
+    public function registrationTokens(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required|string'
+        ]);
+            
+        $user = request()->user();
 
+        $device = new UserDevice();
+        $device->token = $request->token;
+        
+        $user->devices()->save($device);
+        
+        return response('', 201);
+    }
+    
 }
