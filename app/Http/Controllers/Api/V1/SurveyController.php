@@ -60,7 +60,7 @@ class SurveyController extends Controller
 			'lang'	                            => 'required|in:en,fi,sv',
 			'type'	                            => 'required|in:instant',
             'startDate'                         => 'required|isodate',
-            'endDate'                           => 'required|isodate',
+            'endDate'                           => 'isodate',
             'description'                       => 'string',
             'thankYouText'                      => 'string',
             'questionInfo'                      => 'string',
@@ -76,12 +76,19 @@ class SurveyController extends Controller
             'instant'    =>  SurveyTypes::Instant,
         ];
         $type = $types[$request->type];
+        
+        // For non instant feedback surveys, require an end date.
+        if ($type !== SurveyTypes::Instant) {
+            $this->validate($request, [
+                'endDate'   => 'isodate'
+            ]);
+        }
     
         // Make sure that the current user can create this survey type.
         $this->authorize('create', [Survey::class, $type]);
             
         // Validate question for instant feedbacks.
-        if ($request->type === SurveyTypes::Instant) {
+        if ($type === SurveyTypes::Instant) {
             $this->validate($request, [
                 'questions'                         => 'required|array|size:1',
                 'questions.*.text'                  => 'required|string',
