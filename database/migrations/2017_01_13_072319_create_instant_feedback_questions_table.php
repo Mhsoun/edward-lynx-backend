@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateInstantFeedbacksQuestions extends Migration
+class CreateInstantFeedbackQuestions extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateInstantFeedbacksQuestions extends Migration
      */
     public function up()
     {
-        Schema::create('instant_feedbacks_questions', function (Blueprint $table) {
+        Schema::create('instant_feedback_questions', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('instant_feedback_id')->unsigned();
             $table->integer('question_id')->unsigned();
@@ -34,6 +34,6 @@ class CreateInstantFeedbacksQuestions extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('instant_feedbacks_questions');
+        Schema::dropIfExists('instant_feedback_questions');
     }
 }
