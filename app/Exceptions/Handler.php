@@ -1,6 +1,7 @@
 <?php namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -92,6 +93,8 @@ class Handler extends ExceptionHandler {
         	return $this->convertHttpExceptionToJsonResponse($e);
         } elseif ($e instanceof ApiException) {
         	return $this->convertApiExceptionToResponse($e);
+        } elseif ($e instanceof SurveyExpiredException) {
+            return $this->convertSurveyExpiredExceptionToResponse($e);
         }
 
         return $this->prepareResponse($request, $e);
@@ -202,4 +205,22 @@ class Handler extends ExceptionHandler {
 			'validation_errors'	=> $messages
 		], 422);
 	}
+    
+    /**
+     * Generates a response for expired survey exceptions.
+     *
+     * @param   App\Exceptions\SurveyExpiredException   $e
+     * @param   Illuminate\Http\Request                 $request
+     * @param   Illuminate\Http\Response
+     */
+    protected function convertSurveyExpiredExceptionToResponse(SurveyExpiredException $e, Request $request)
+    {
+        $message = "Survey has reached it's end date and answers are not accepted anymore.";
+        if ($request->expectsJson()) {
+            return response()->json([
+                'error'     => 'survey_expired',
+                'message'   => $message
+            ], 400);
+        }
+    }
 }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\SurveyRecipient;
 use App\Http\Controllers\Controller;
+use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 
@@ -43,6 +44,11 @@ class AnswerController extends Controller
             ->where('hasAnswered', 0)
             ->first();
         $questions = $recipient->survey->questions;
+        
+        // Make sure this survey hasn't expired yet.
+        if ($recipient->survey->endDate->isPast()) {
+            throw new SurveyExpiredException();
+        }
         
         // Validate answers.
         $errors = $this->validateAnswers($questions, $answers);

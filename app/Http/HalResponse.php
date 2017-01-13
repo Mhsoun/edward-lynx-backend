@@ -178,7 +178,9 @@ class HalResponse extends JsonResponse
     {
         $apiPrefix = 'api1';
         $key = class_basename($model);
-        $key = strtolower(str_singular($key));
+        $key = str_singular($key);
+        $key = snake_case(str_singular($key));
+        $key = str_replace('_', '-', $key);
         $modelRoute = "{$apiPrefix}-{$key}";
         
         if (Route::has($modelRoute)) {
