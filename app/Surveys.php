@@ -156,7 +156,7 @@ abstract class Surveys
         } else if ($type == SurveyTypes::Normal) {
             Surveys::createNormal($app, $survey, $surveyData);
         } else if ($type == SurveyTypes::Instant) {
-            Surveys::createInstant($survey, $surveyData['recipients']);
+            Surveys::createInstant($survey, $surveyData->recipients);
         }
         
         event(new SurveyCreated($survey));
@@ -372,12 +372,12 @@ abstract class Surveys
     {
         // Create recipients for each submitted user.
         foreach ($recipients as $recipient) {
-            $user = User::find($user['id']);
+            $user = User::find($recipient['id']);
             $recipientObj = Recipient::where([
                 'ownerId'   => $survey->ownerId,
                 'name'      => $user->name,
                 'mail'      => $user->email
-            ]);
+            ])->first();
             
             if (!$recipientObj) {
                 $recipientObj = new Recipient();

@@ -193,7 +193,7 @@ class SurveyController extends Controller
         $data->lang         = $request->lang;
         $data->ownerId      = $request->user()->id;
         $data->startDate    = Carbon::parse($request->startDate);
-        $data->endDate      = Carbon::parse($request->endDate);
+        $data->endDate      = $request->has('endDate') ? Carbon::parse($request->endDate) : null;
         
         $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText', $data->type);
         $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText', $data->type);
@@ -206,6 +206,8 @@ class SurveyController extends Controller
         $data->questions = [];
             
         if ($data->type == SurveyTypes::Instant) {
+            $data->recipients = $request->recipients;
+            
             $category = $this->findInstantFeedbackCategory($user, $data->lang);
             $data->categories[] = (object) [
                 'id'    => $category->id,
