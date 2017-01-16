@@ -4,6 +4,8 @@ use Auth;
 use App\Models\User;
 use App\Models\Survey;
 use App\Models\EmailText;
+use App\Models\Recipient;
+use App\Events\SurveyCreated;
 
 /**
 * Contains functions for surveys
@@ -153,7 +155,11 @@ abstract class Surveys
             Surveys::createGroup($app, $survey, $surveyData);
         } else if ($type == SurveyTypes::Normal) {
             Surveys::createNormal($app, $survey, $surveyData);
+        } else if ($type == SurveyTypes::Instant) {
+            Surveys::createInstant($survey, $surveyData->recipients);
         }
+        
+        event(new SurveyCreated($survey));
 
         return $survey;
     }
@@ -352,6 +358,36 @@ abstract class Surveys
             $extraQuestion = new \App\Models\SurveyExtraQuestion;
             $extraQuestion->extraQuestionId = $extraQuestionId;
             $survey->extraQuestions()->save($extraQuestion);
+        }
+    }
+    
+    /**
+     * Perform specific tasks for instant feedback surveys.
+     *
+     * @param   App\Models\Survey   $survey
+     * @param   array               $recipients
+     * @return  void
+     */
+    private static function createInstant(Survey $survey, array $recipients)
+    {
+        // Create recipients for each submitted user.
+        foreach ($recipients as $recipient) {
+            $user = User::find($recipient['id']);
+            $recipientObj = Recipient::where([
+                'ownerId'   => $survey->ownerId,
+                'name'      => $user->name,
+                'mail'      => $user->email
+            ])->first();
+            
+            if (!$recipientObj) {
+                $recipientObj = new Recipient();
+                $recipientObj->ownerId = $survey->ownerId;
+                $recipientObj->name = $user->name;
+                $recipientObj->mail = $user->email;
+                $recipientObj->save();
+            }
+            
+            $survey->addRecipient($recipientObj->id, null, $survey->ownerId);
         }
     }
 

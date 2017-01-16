@@ -7,6 +7,7 @@ use stdClass;
 use RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -79,6 +80,8 @@ class HalResponse extends JsonResponse
             return $this->encodeJsonHalCollection($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
+        } elseif ($input instanceof Collection) {
+            return $this->encodeEloquentCollection($input);
         } elseif (is_array($input)) {
             return $this->encodeArray($input);
         }
@@ -178,7 +181,9 @@ class HalResponse extends JsonResponse
     {
         $apiPrefix = 'api1';
         $key = class_basename($model);
-        $key = strtolower(str_singular($key));
+        $key = str_singular($key);
+        $key = snake_case(str_singular($key));
+        $key = str_replace('_', '-', $key);
         $modelRoute = "{$apiPrefix}-{$key}";
         
         if (Route::has($modelRoute)) {
@@ -189,6 +194,22 @@ class HalResponse extends JsonResponse
     }
     
     /**
+     * Converts an Eloquent Collection into a proper JSON-HAL response.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection $collection
+     * @return  array
+     */
+    protected function encodeEloquentCollection(Collection $collection)
+    {
+        $result = [];
+        $result['_links'] = [
+            'self' => ['href' => request()->fullUrl()]
+        ];
+        $result['items'] = $collection->toArray();
+        return $result;
+    }
+    
+    /**
      * Converts an array of Models, objects or arrays to a JSON-HAL response.
      *
      * @param   array   $arr
@@ -196,18 +217,25 @@ class HalResponse extends JsonResponse
      */
     protected function encodeArray(array $arr)
     {
-        $result = [];
+        $result = [
+            '_links'    => [
+                'self' => ['href' => request()->fullUrl()]
+            ],
+            'items'     => []
+        ];
+        
         foreach ($arr as $item) {
             if ($item instanceof Model) {
-                $result[] = $this->encodeModel($item);
+                $result['items'][] = $this->encodeModel($item);
             } elseif ($item instanceof stdClass) {
-                $result[] = json_decode(json_encode($item));
+                $result['items'][] = json_decode(json_encode($item));
             } elseif (is_array($item)) {
-                $result[] = $item;
+                $result['items'][] = $item;
             } else {
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
+        
         return $result;
     }
     
