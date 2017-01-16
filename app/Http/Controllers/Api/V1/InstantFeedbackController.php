@@ -36,8 +36,7 @@ class InstantFeedbackController extends Controller
                 ->get();
         }
         
-        return response()->jsonHal($result)
-                         ->summarize();
+        return response()->jsonHal($result);
     }
     
     /**
