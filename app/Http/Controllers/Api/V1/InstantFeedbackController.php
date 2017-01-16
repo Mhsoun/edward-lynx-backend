@@ -99,6 +99,13 @@ class InstantFeedbackController extends Controller
         return response()->jsonHal($instantFeedback);
     }
     
+    /**
+     * Accepts answers to an instant feedback.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  Illuminate\Http\Response
+     */
     public function answer(Request $request, InstantFeedback $instantFeedback)
     {
         $this->validate($request, [
@@ -128,6 +135,12 @@ class InstantFeedbackController extends Controller
         $recipient->save();
         
         return response('', 201);
+    }
+    
+    public function answers(Request $request, InstantFeedback $instantFeedback)
+    {
+        $results = $instantFeedback->calculateAnswers();
+        return response()->jsonHal($results);
     }
     
     /**

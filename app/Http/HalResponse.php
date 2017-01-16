@@ -223,6 +223,34 @@ class HalResponse extends JsonResponse
             'self' => ['href' => request()->fullUrl()]
         ];
         
+        if (is_string(array_keys($arr)[0])) {
+            $result['data'] = $this->encodeAssociativeArray($arr);
+        } else {
+            $result['items'] = $this->encodeIndexedArray($arr);
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Properly encodes an associative array as a JSON-HAL response.
+     *
+     * @param   array   $arr
+     * @return  array
+     */
+    protected function encodeAssociativeArray(array $arr)
+    {
+        return $arr;
+    }
+    
+    /**
+     * Properly encodes an indexed (integer-keyed) array as a JSON-HAL response.
+     *
+     * @param   array   $arr
+     * @return  array
+     */
+    protected function encodeIndexedArray(array $arr)
+    {
         $items = [];
         foreach ($arr as $item) {
             if ($item instanceof Model) {
@@ -235,9 +263,7 @@ class HalResponse extends JsonResponse
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
-        $result['items'] = $items;
-        
-        return $result;
+        return $items;
     }
     
 }

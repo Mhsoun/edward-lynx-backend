@@ -63,6 +63,18 @@ class InstantFeedbackPolicy
     {
         return $this->view($user, $instantFeedback);
     }
+    
+    /**
+     * Determine whether the user can view instant feedback answers.
+     *
+     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  boolean    
+     */
+    public function viewAnswers(User $user, InstantFeedback $instantFeedback)
+    {
+        return $instantFeedback->user_id == $user->id;
+    }
 
     /**
      * Determine whether the user can update the instantFeedback.
