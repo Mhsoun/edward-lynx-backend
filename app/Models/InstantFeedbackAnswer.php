@@ -16,12 +16,12 @@ class InstantFeedbackAnswer extends Model
     /**
      * Calculates frequencies and statistics of a answer set.
      *
+     * @param   App\Models\Question                     $question
      * @param   Illuminate\Database\Eloquent\Collection $answers
      * @return  array
      */
-    public static function calculate(Collection $answers)
+    public static function calculate(Question $question, Collection $answers)
     {
-       $question = $answers->first()->question;
        $possibleValues = $question->answerTypeObject()->valuesFlat();
        $results = [];
        

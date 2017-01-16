@@ -81,8 +81,9 @@ class InstantFeedback extends Model
      */
     public function calculateAnswers()
     {
+        $question = $this->questions[0];
         $answers = $this->answers;
-        return InstantFeedbackAnswer::calculate($answers);
+        return InstantFeedbackAnswer::calculate($question, $answers);
     }
     
     /**
