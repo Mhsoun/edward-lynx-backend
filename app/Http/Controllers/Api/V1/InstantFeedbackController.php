@@ -7,9 +7,11 @@ use App\Models\Question;
 use App\Http\HalResponse;
 use Illuminate\Http\Request;
 use App\Models\InstantFeedback;
+use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
+use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
 
@@ -95,6 +97,37 @@ class InstantFeedbackController extends Controller
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         return response()->jsonHal($instantFeedback);
+    }
+    
+    public function answer(Request $request, InstantFeedback $instantFeedback)
+    {
+        $this->validate($request, [
+            'key'                   => [
+                'required',
+                Rule::exists('instant_feedback_recipients', 'key')->where(function ($query) {
+                    $query->where('answered', 0);
+                })
+            ],
+            'answers'               => 'required|array|size:1',
+            'answers.*.question'    => 'required|integer|exists:questions,id',
+            'answers.*.answer'      => 'required'
+        ]);
+            
+        $currentUser = $request->user();
+        $key = $request->key;
+        $question = Question::find(intval($request->answers[0]['question']));
+        $answer = $request->answers[0]['answer'];
+        
+        InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
+        
+        $recipient = InstantFeedbackRecipient::where([
+            'user_id'   => $currentUser->id,
+            'key'       => $key
+        ])->first();
+        $recipient->markAnswered();
+        $recipient->save();
+        
+        return response('', 201);
     }
     
     /**

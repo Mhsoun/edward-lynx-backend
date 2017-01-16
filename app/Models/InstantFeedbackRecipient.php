@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class InstantFeedbackRecipient extends Model
@@ -15,6 +16,13 @@ class InstantFeedbackRecipient extends Model
     public $timestamps = false;
     
     protected $fillable = [];
+    
+    /**
+     * Attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = ['answered_at'];
     
     /**
      * Creates a new recipient record for a user.
@@ -52,6 +60,18 @@ class InstantFeedbackRecipient extends Model
     public function instantFeedback()
     {
         return $this->belongsTo('App\Models\InstantFeedback');
+    }
+    
+    /**
+     * Marks this recipient as answered.
+     * NOTE: This doesn't save this model!
+     *
+     * @return  void
+     */
+    public function markAnswered()
+    {
+        $this->answered = 1;
+        $this->answered_at = Carbon::now();
     }
     
 }
