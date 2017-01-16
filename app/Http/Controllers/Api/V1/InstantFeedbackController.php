@@ -10,6 +10,7 @@ use App\Models\QuestionCategory;
 use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
 use App\Models\InstantFeedbackQuestion;
+use App\Models\InstantFeedbackRecipient;
 
 class InstantFeedbackController extends Controller
 {
@@ -57,8 +58,8 @@ class InstantFeedbackController extends Controller
             'questions.*.answer.options'        => 'array',
             'questions.*.answer.*.description'  => 'string',
             'questions.*.answer.*.value'        => 'string',
-            'recipients'                        => 'array',
-            'recipients.*.id'                   => 'required|integer'
+            'recipients'                        => 'required|array',
+            'recipients.*.id'                   => 'required|integer|exists:users'
         ]);
             
         $instantFeedback = new InstantFeedback($request->all());
@@ -66,6 +67,7 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
+        // $this->processRecipients($instantFeedback, $request->recipients);
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -116,6 +118,14 @@ class InstantFeedbackController extends Controller
             $questionLink->instant_feedback_id = $instantFeedback->id;
             $questionLink->question_id = $question->id;
             $questionLink->save();
+        }
+    }
+    
+    protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
+    {
+        foreach ($recipients as $r) {
+            $recipient = InstantFeedbackRecipient::create($instantFeedback->id, $r['id']);
+            
         }
     }
     
