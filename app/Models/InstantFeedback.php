@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class InstantFeedback extends Model
@@ -10,6 +11,30 @@ class InstantFeedback extends Model
     protected $fillable = ['user_id', 'lang', 'closed', 'anonymous'];
     
     protected $visible = ['id', 'lang', 'closed', 'anonymous'];
+    
+    /**
+     * Scopes instant feedbacks to the ones owned by the current user.
+     *
+     * @param   Illuminate\Database\Query\Builder   $query
+     * @return  Illuminate\Database\Query\Builder
+     */
+    public function scopeMine(Builder $query)
+    {
+        $user_id = request()->user()->id;
+        return $query->where('user_id', $user_id);
+    }
+    
+    /**
+     * Scopes instant feedbacks to the ones that should be answered
+     * by the current user.
+     *
+     * @param   Illuminate\Database\Query\Builder $query
+     * @return  Illuminate\Database\Query\Builder
+     */
+    public function scopeAnswerable(Builder $query)
+    {
+        
+    }
     
     /**
      * Returns this instant feedback's questions.
