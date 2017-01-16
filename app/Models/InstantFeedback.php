@@ -38,7 +38,10 @@ class InstantFeedback extends Model
         $user_id = $user->id;
         return $query->select('instant_feedbacks.*')
                      ->join('instant_feedback_recipients', 'instant_feedback_recipients.instant_feedback_id', '=', 'instant_feedbacks.id')
-                     ->where('instant_feedback_recipients.user_id', $user_id);
+                     ->where([
+                         'instant_feedback_recipients.user_id'  => $user_id,
+                         'instant_feedback_recipients.answered' => 0
+                     ]);
     }
     
     /**
