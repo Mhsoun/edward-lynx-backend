@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class InstantFeedback extends Model
@@ -15,8 +15,8 @@ class InstantFeedback extends Model
     /**
      * Scopes instant feedbacks to the ones owned by the current user.
      *
-     * @param   Illuminate\Database\Query\Builder   $query
-     * @return  Illuminate\Database\Query\Builder
+     * @param   Illuminate\Database\Eloquent\Builder   $query
+     * @return  Illuminate\Database\Eloquent\Builder
      */
     public function scopeMine(Builder $query)
     {
@@ -28,8 +28,8 @@ class InstantFeedback extends Model
      * Scopes instant feedbacks to the ones that should be answered
      * by the current user.
      *
-     * @param   Illuminate\Database\Query\Builder $query
-     * @return  Illuminate\Database\Query\Builder
+     * @param   Illuminate\Database\Eloquent\Builder $query
+     * @return  Illuminate\Database\Eloquent\Builder
      */
     public function scopeAnswerable(Builder $query)
     {
