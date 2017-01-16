@@ -205,7 +205,11 @@ class HalResponse extends JsonResponse
         $result['_links'] = [
             'self' => ['href' => request()->fullUrl()]
         ];
-        $result['items'] = $collection->toArray();
+        
+        $result['items'] = [];
+        foreach ($collection as $record) {
+            $result['items'][] = $this->encodeModel($record);
+        }
         return $result;
     }
     
