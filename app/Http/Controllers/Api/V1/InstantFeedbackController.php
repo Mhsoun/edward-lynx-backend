@@ -34,13 +34,6 @@ class InstantFeedbackController extends Controller
             $result = InstantFeedback::answerable()
                 ->oldest()
                 ->get();
-        } else {
-            $result['items']['mine'] = InstantFeedback::mine()
-                ->oldest()
-                ->get();
-            $result['items']['to_answer'] = InstantFeedback::answerable()
-                ->oldest()
-                ->get();
         }
         
         return response()->jsonHal($result)
