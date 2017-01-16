@@ -62,6 +62,25 @@ class InstantFeedback extends Model
     }
     
     /**
+     * Returns the answer key of the provided user for this instant feedback.
+     *
+     * @param   App\Models\User $user
+     * @return  string|null
+     */
+    public function answerKeyOf(User $user)
+    {
+        $recipient = InstantFeedbackRecipient::where([
+            'instant_feedback_id'   => $this->id,
+            'user_id'               => $user->id
+        ])->first();
+        if ($recipient) {
+            return $recipient->key;
+        } else {
+            return null;
+        }
+    }
+    
+    /**
      * Overrides our JSON representation and adds a createdAt field
      *
      * @param   integer $options

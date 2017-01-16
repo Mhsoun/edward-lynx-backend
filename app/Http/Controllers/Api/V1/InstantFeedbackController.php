@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\User;
 use App\Models\Question;
+use App\Http\HalResponse;
 use Illuminate\Http\Request;
 use App\Models\InstantFeedback;
 use App\Models\QuestionCategory;
@@ -33,9 +34,19 @@ class InstantFeedbackController extends Controller
                 ->get();
         } elseif ($request->filter == 'to_answer') {
             $currentUser = $request->user();
-            $result = InstantFeedback::answerableBy($currentUser)
+            $instantFeedbacks = InstantFeedback::answerableBy($currentUser)
                 ->oldest()
                 ->get();
+            
+            $result = [];
+            foreach ($instantFeedbacks as $if) {
+                $result[] = array_merge([
+                        '_links'    => HalResponse::generateModelLinks($if)
+                    ],
+                    $if->jsonSerialize(),
+                    [ 'key'   => $if->answerKeyOf($currentUser) ]
+                );
+            }
         }
         
         return response()->jsonHal($result);
