@@ -22,31 +22,42 @@ class InstantFeedbackAnswer extends Model
      */
     public static function calculate(Question $question, Collection $answers)
     {
-       $possibleValues = $question->answerTypeObject()->valuesFlat();
-       $results = [];
-       
-       // If the question allows a N/A option, add a -1 value
-       if ($question->isNA) {
-           $results['frequencies']['-1'] = 0;
-       }
-       
-       // Initialize possible values to zero
-       foreach ($possibleValues as $val) {
-           $key = strval($val);
-           $results['frequencies'][$key] = 0;
-       }
-       
-       // Calculate frequencies of each question value
-       foreach ($answers as $answer) {
-           $key = strval($answer->answer);
-           if (isset($results['frequencies'][$key])) {
-               $results['frequencies'][$key] += 1;
+        $results = [];
+        
+        // Process custom input questions
+        if ($question->answerType == 5) {
+            $results['results'] = [];
+            foreach ($answers as $answer) {
+                $results['results'][] = $answer->answer;
+            }
+    
+        // Questions with fixed values
+        } else {
+           $possibleValues = $question->answerTypeObject()->valuesFlat();
+   
+           // If the question allows a N/A option, add a -1 value
+           if ($question->isNA) {
+               $results['frequencies']['-1'] = 0;
            }
-       }
+
+           // Initialize possible values to zero
+           foreach ($possibleValues as $val) {
+               $key = strval($val);
+               $results['frequencies'][$key] = 0;
+           }
+
+           // Calculate frequencies of each question value
+           foreach ($answers as $answer) {
+               $key = strval($answer->answer);
+               if (isset($results['frequencies'][$key])) {
+                   $results['frequencies'][$key] += 1;
+               }
+           }
+        }
        
-       $results['totalAnswers'] = count($answers);
+        $results['totalAnswers'] = count($answers);
        
-       return $results;
+        return $results;
     }
     
     /**
