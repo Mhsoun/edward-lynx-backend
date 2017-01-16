@@ -39,7 +39,9 @@ class InstantFeedbackAnswer extends Model
        // Calculate frequencies of each question value
        foreach ($answers as $answer) {
            $key = strval($answer->answer);
-           $results['frequencies'][$key] += 1;
+           if (isset($results['frequencies'][$key])) {
+               $results['frequencies'][$key] += 1;
+           }
        }
        
        $results['totalAnswers'] = count($answers);
