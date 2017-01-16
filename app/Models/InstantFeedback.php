@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Http\HalResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class InstantFeedback extends Model
@@ -10,6 +12,30 @@ class InstantFeedback extends Model
     protected $fillable = ['user_id', 'lang', 'closed', 'anonymous'];
     
     protected $visible = ['id', 'lang', 'closed', 'anonymous'];
+    
+    /**
+     * Scopes instant feedbacks to the ones owned by the current user.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder   $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeMine(Builder $query)
+    {
+        $user_id = request()->user()->id;
+        return $query->where('user_id', $user_id);
+    }
+    
+    /**
+     * Scopes instant feedbacks to the ones that should be answered
+     * by the current user.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAnswerable(Builder $query)
+    {
+        
+    }
     
     /**
      * Returns this instant feedback's questions.
@@ -24,13 +50,18 @@ class InstantFeedback extends Model
     /**
      * Overrides our JSON representation and adds a createdAt field
      *
-     * @return array
+     * @param   integer $options
+     * @return  array
      */
-    public function jsonSerialize()
+    public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
         $data['createdAt'] = $this->created_at->toIso8601String();
-        $data['questions'] = $this->questions;
+        
+        if ($options == HalResponse::SERIALIZE_FULL) {
+            $data['questions'] = $this->questions;
+        }
+        
         return $data;
     }
     
