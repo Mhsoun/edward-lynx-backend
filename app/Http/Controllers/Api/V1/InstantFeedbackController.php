@@ -15,6 +15,30 @@ class InstantFeedbackController extends Controller
 {
     
     /**
+     * Returns a list of instant feedbacks.
+     *
+     * @return  App\Http\HalResponse
+     */
+    public function index()
+    {
+        $this->validate($request, [
+            'filter'    => 'string|in:mine,to_answer'
+        ]);
+        
+        $result = [];
+        if ($request->filter == 'mine') {
+            $result['items'] = InstantFeedback::findAllMine();
+        } elseif ($request->filter == 'to_answer') {
+            $result['items'] = InstantFeedback::findAllAnswerable();
+        } else {
+            $result['items']['mine'] = InstantFeedback::findAllMine();
+            $result['items']['to_answer'] = InstantFeedback::findAllAnswerable();
+        }
+        
+        return response()->jsonHal($result);
+    }
+    
+    /**
      * Creates a instant feedback.
      *
      * @param   Illuminate\Http\Request     $request
@@ -31,7 +55,9 @@ class InstantFeedbackController extends Controller
             'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.answer.options'        => 'array',
             'questions.*.answer.*.description'  => 'string',
-            'questions.*.answer.*.value'        => 'string'
+            'questions.*.answer.*.value'        => 'string',
+            'recipients'                        => 'array',
+            'recipients.*.id'                   => 'required|integer'
         ]);
             
         $instantFeedback = new InstantFeedback($request->all());
