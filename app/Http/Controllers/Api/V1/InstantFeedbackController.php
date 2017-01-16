@@ -155,6 +155,7 @@ class InstantFeedbackController extends Controller
     public function answers(Request $request, InstantFeedback $instantFeedback)
     {
         $results = $instantFeedback->calculateAnswers();
+        $results['frequencies'] = (object) $results['frequencies'];
         return response()->jsonHal($results);
     }
     
