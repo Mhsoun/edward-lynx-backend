@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class InstantFeedbackRecipient extends Model
 {
     
+    /**
+     * Disable timestamps for this model.
+     *
+     * @var boolean
+     */
+    public $timestamps = false;
+    
     protected $fillable = [];
     
     /**
@@ -19,11 +26,12 @@ class InstantFeedbackRecipient extends Model
     public static function make(InstantFeedback $instantFeedback, User $user)
     {
         $key = str_random(32);
-        return $instantFeedback->recipients()->create([
-            'user_id'   => $user->id,
-            'key'       => $key
-        ]);
-        return $ifRecipient;
+        $recipient = new self;
+        $recipient->instant_feedback_id = $instantFeedback->id;
+        $recipient->user_id = $user->id;
+        $recipient->key = $key;
+        $recipient->save();
+        return $recipient;
     }
     
     /**

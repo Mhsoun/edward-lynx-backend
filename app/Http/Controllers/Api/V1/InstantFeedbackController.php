@@ -67,7 +67,7 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        // $this->processRecipients($instantFeedback, $request->recipients);
+        $this->processRecipients($instantFeedback, $request->recipients);
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -132,7 +132,7 @@ class InstantFeedbackController extends Controller
     {
         foreach ($recipients as $r) {
             $user = User::find($r['id']);
-            $recipient = InstantFeedbackRecipient::make($instantFeedback, $user);     
+            $recipient = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
     }
     
