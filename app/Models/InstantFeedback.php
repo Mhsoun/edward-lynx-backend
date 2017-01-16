@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Query\Builder;
+use App\Http\HalResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class InstantFeedback extends Model
@@ -15,8 +16,8 @@ class InstantFeedback extends Model
     /**
      * Scopes instant feedbacks to the ones owned by the current user.
      *
-     * @param   Illuminate\Database\Query\Builder   $query
-     * @return  Illuminate\Database\Query\Builder
+     * @param   Illuminate\Database\Eloquent\Builder   $query
+     * @return  Illuminate\Database\Eloquent\Builder
      */
     public function scopeMine(Builder $query)
     {
@@ -28,8 +29,8 @@ class InstantFeedback extends Model
      * Scopes instant feedbacks to the ones that should be answered
      * by the current user.
      *
-     * @param   Illuminate\Database\Query\Builder $query
-     * @return  Illuminate\Database\Query\Builder
+     * @param   Illuminate\Database\Eloquent\Builder $query
+     * @return  Illuminate\Database\Eloquent\Builder
      */
     public function scopeAnswerable(Builder $query)
     {
@@ -49,13 +50,18 @@ class InstantFeedback extends Model
     /**
      * Overrides our JSON representation and adds a createdAt field
      *
-     * @return array
+     * @param   integer $options
+     * @return  array
      */
-    public function jsonSerialize()
+    public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
         $data['createdAt'] = $this->created_at->toIso8601String();
-        $data['questions'] = $this->questions;
+        
+        if ($options == HalResponse::SERIALIZE_FULL) {
+            $data['questions'] = $this->questions;
+        }
+        
         return $data;
     }
     
