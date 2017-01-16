@@ -7,6 +7,7 @@ use stdClass;
 use RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -79,6 +80,8 @@ class HalResponse extends JsonResponse
             return $this->encodeJsonHalCollection($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
+        } elseif ($input instanceof Collection) {
+            return $this->encodeEloquentCollection($input);
         } elseif (is_array($input)) {
             return $this->encodeArray($input);
         }
@@ -193,6 +196,23 @@ class HalResponse extends JsonResponse
         } else {
             return null;
         }
+    }
+    
+    /**
+     * Converts an Eloquent Collection into a proper JSON-HAL response.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection $collection
+     * @return  array
+     */
+    protected function encodeEloquentCollection(Collection $collection)
+    {
+        $result = [
+            '_links'    => [
+                'self' => ['href' => request()->fullUrl()]
+            ],
+            'items'     => $collection->toArray()
+        ];
+        return $result;
     }
     
     /**
