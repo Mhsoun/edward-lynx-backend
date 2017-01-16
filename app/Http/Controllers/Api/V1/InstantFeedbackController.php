@@ -10,6 +10,7 @@ use App\Models\QuestionCategory;
 use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
 use App\Models\InstantFeedbackQuestion;
+use App\Models\InstantFeedbackRecipient;
 
 class InstantFeedbackController extends Controller
 {
@@ -31,7 +32,8 @@ class InstantFeedbackController extends Controller
                 ->oldest()
                 ->get();
         } elseif ($request->filter == 'to_answer') {
-            $result = InstantFeedback::answerable()
+            $currentUser = $request->user();
+            $result = InstantFeedback::answerableBy($currentUser)
                 ->oldest()
                 ->get();
         }
@@ -57,8 +59,8 @@ class InstantFeedbackController extends Controller
             'questions.*.answer.options'        => 'array',
             'questions.*.answer.*.description'  => 'string',
             'questions.*.answer.*.value'        => 'string',
-            'recipients'                        => 'array',
-            'recipients.*.id'                   => 'required|integer'
+            'recipients'                        => 'required|array',
+            'recipients.*.id'                   => 'required|integer|exists:users'
         ]);
             
         $instantFeedback = new InstantFeedback($request->all());
@@ -66,6 +68,7 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
+        $this->processRecipients($instantFeedback, $request->recipients);
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -116,6 +119,21 @@ class InstantFeedbackController extends Controller
             $questionLink->instant_feedback_id = $instantFeedback->id;
             $questionLink->question_id = $question->id;
             $questionLink->save();
+        }
+    }
+    
+    /**
+     * Processes each recipient and creates recipient records for each.
+     *
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   array                       $recipients
+     * @return  void
+     */
+    protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
+    {
+        foreach ($recipients as $r) {
+            $user = User::find($r['id']);
+            $recipient = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
     }
     
