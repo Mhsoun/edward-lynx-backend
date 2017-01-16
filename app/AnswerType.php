@@ -118,6 +118,13 @@ class AnswerType implements JsonSerializable
     {
         return $this->values;
     }
+    
+    public function valuesFlat()
+    {
+        return array_map(function($val) {
+            return $val->value;
+        }, $this->values());
+    }
 
     /**
     * Returns the maximum value

@@ -99,6 +99,13 @@ class InstantFeedbackController extends Controller
         return response()->jsonHal($instantFeedback);
     }
     
+    /**
+     * Accepts answers to an instant feedback.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  Illuminate\Http\Response
+     */
     public function answer(Request $request, InstantFeedback $instantFeedback)
     {
         $this->validate($request, [
@@ -131,6 +138,19 @@ class InstantFeedbackController extends Controller
     }
     
     /**
+     * Returns answer frequencies and statistics.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  App\Http\HalResponse
+     */
+    public function answers(Request $request, InstantFeedback $instantFeedback)
+    {
+        $results = $instantFeedback->calculateAnswers();
+        return response()->jsonHal($results);
+    }
+    
+    /**
      * Processes submitted questions and creates the appropriate
      * records in the database for each.
      *
@@ -148,6 +168,7 @@ class InstantFeedbackController extends Controller
             $question->ownerId = $user->id;
             $question->categoryId = $category->id;
             $question->answerType = $q['answer']['type'];
+            $question->isNA = $q['isNA'];
             $question->save();
             
             if ($q['answer']['type'] == 8) {

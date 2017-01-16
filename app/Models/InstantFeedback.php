@@ -65,6 +65,27 @@ class InstantFeedback extends Model
     }
     
     /**
+     * Returns the answers to this instant feedback.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function answers()
+    {
+        return $this->hasMany('App\Models\InstantFeedbackAnswer');
+    }
+    
+    /**
+     * Returns statistics and frequencies of this instant feedback's answers.
+     *
+     * @return  array
+     */
+    public function calculateAnswers()
+    {
+        $answers = $this->answers;
+        return InstantFeedbackAnswer::calculate($answers);
+    }
+    
+    /**
      * Returns the answer key of the provided user for this instant feedback.
      *
      * @param   App\Models\User $user
@@ -108,6 +129,8 @@ class InstantFeedback extends Model
      */
     public function jsonHalLinks()
     {
-        return [];
+        return [
+            'answers'   => ['href' => route('api1-instant-feedback-answers', $this)]
+        ];
     }
 }
