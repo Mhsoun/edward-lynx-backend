@@ -9,6 +9,7 @@ use App\Models\InstantFeedback;
 use App\Models\QuestionCategory;
 use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
+use App\Models\InstantFeedbackQuestion;
 
 class InstantFeedbackController extends Controller
 {
@@ -43,6 +44,13 @@ class InstantFeedbackController extends Controller
         return response('', 201, ['Location' => $url]);
     }
     
+    /**
+     * Shows instant feedback details.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  App\Http\HalResponse
+     */
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         return response()->jsonHal($instantFeedback);
@@ -76,6 +84,11 @@ class InstantFeedbackController extends Controller
                     $value->save();
                 }
             }
+            
+            $questionLink = new InstantFeedbackQuestion();
+            $questionLink->instant_feedback_id = $instantFeedback->id;
+            $questionLink->question_id = $question->id;
+            $questionLink->save();
         }
     }
     
