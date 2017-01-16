@@ -137,6 +137,13 @@ class InstantFeedbackController extends Controller
         return response('', 201);
     }
     
+    /**
+     * Returns answer frequencies and statistics.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  App\Http\HalResponse
+     */
     public function answers(Request $request, InstantFeedback $instantFeedback)
     {
         $results = $instantFeedback->calculateAnswers();
