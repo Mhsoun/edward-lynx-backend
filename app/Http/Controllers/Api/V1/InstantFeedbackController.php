@@ -168,6 +168,7 @@ class InstantFeedbackController extends Controller
             $question->ownerId = $user->id;
             $question->categoryId = $category->id;
             $question->answerType = $q['answer']['type'];
+            $question->isNA = $q['isNA'];
             $question->save();
             
             if ($q['answer']['type'] == 8) {
