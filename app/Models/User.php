@@ -741,7 +741,7 @@ class User extends Authenticatable implements AuthorizableContract
         $accessLevel = strtolower($accessLevel);
         $key = array_search($accessLevel, self::ACCESS_LEVELS);
         if ($key !== FALSE) {
-            return true;
+            return $this->access_level == $key;
         } else {
             throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
         }
