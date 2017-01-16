@@ -1,10 +1,12 @@
 <?php namespace App\Models;
 
 use Carbon\Carbon;
+use App\Models\UserDevice;
 use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 // use Illuminate\Auth\Authenticatable;
 // use Illuminate\Auth\Passwords\CanResetPassword;
@@ -21,6 +23,15 @@ use App\Models\DefaultText;
 class User extends Authenticatable implements AuthorizableContract
 {
     use Authorizable, HasApiTokens, Notifiable;
+    
+    const ACCESS_LEVELS = [
+        0   => 'superadmin',
+        1   => 'admin',
+        2   => 'supervisor',
+        3   => 'participant',
+        4   => 'feedback-provider',
+        5   => 'analyst'
+    ];
 
     /**
      * The database table used by the model.
@@ -65,6 +76,16 @@ class User extends Authenticatable implements AuthorizableContract
         }
 
         return false;
+    }
+    
+    /**
+     * Returns the devices registered to this user.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function devices()
+    {
+        return $this->hasMany(UserDevice::class);
     }
 
     /**
@@ -670,6 +691,39 @@ class User extends Authenticatable implements AuthorizableContract
             'report.resultsPerExtraQuestion',
             'report.resultsPerExtraQuestionText');
     }
+    
+    /**
+     * Returns all users under the same parent as the current user.
+     *
+     * @param   boolean                                     $includeParent
+     * @return  Illuminate\Database\Eloquent\Collection
+     */
+    public function colleagues($includeParent = true)
+    {
+        $result = new Collection();
+        if ($this->parent_id == null) {
+            $result = $this->subUsers();
+            $result->prepend($this);
+        } else {
+            $parent = self::find($this->parent_id);
+            $result = $parent->subUsers();
+            $result->prepend($parent);
+        }
+        return $result;
+    }
+    
+    /**
+     * Returns all users under the current user.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection
+     */
+    public function subUsers()
+    {
+        $children = self::where('parent_id', $this->id)
+            ->orderBy('name', 'asc')
+            ->get();
+        return $children;
+    }
 
     /**
      * Returns TRUE if the current user has the provided type/access level.
@@ -684,14 +738,13 @@ class User extends Authenticatable implements AuthorizableContract
      */
     public function isA($accessLevel)
     {
-		switch ($accessLevel) {
-			case 'superadmin':
-				return $this->attributes['isAdmin'] == 1;
-			case 'admin':
-				return $this->attributes['isAdmin'] != 1;
-			default:
-				throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
-		}
+        $accessLevel = strtolower($accessLevel);
+        $key = array_search($accessLevel, self::ACCESS_LEVELS);
+        if ($key !== FALSE) {
+            return true;
+        } else {
+            throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
+        }
     }
 
     /**
@@ -723,10 +776,6 @@ class User extends Authenticatable implements AuthorizableContract
 	 */
 	public function getTypeAttribute()
 	{
-		if ($this->isA('superadmin')) {
-			return 'superadmin';
-		} else {
-			return 'admin';
-		}
+		return self::ACCESS_LEVELS[$this->access_level];
 	}
 }

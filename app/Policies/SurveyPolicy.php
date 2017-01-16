@@ -59,6 +59,10 @@ class SurveyPolicy
      */
     public function create(User $user, $type)
     {
+        if ($type === SurveyTypes::Instant) {
+            return true;
+        }
+        
         return SurveyTypes::canCreate($user->allowedSurveyTypes, $type);
     }
 
