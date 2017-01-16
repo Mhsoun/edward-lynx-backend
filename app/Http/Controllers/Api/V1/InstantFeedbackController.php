@@ -32,7 +32,8 @@ class InstantFeedbackController extends Controller
                 ->oldest()
                 ->get();
         } elseif ($request->filter == 'to_answer') {
-            $result = InstantFeedback::answerable()
+            $currentUser = $request->user();
+            $result = InstantFeedback::answerableBy($currentUser)
                 ->oldest()
                 ->get();
         }
@@ -67,7 +68,7 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        // $this->processRecipients($instantFeedback, $request->recipients);
+        $this->processRecipients($instantFeedback, $request->recipients);
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -121,11 +122,18 @@ class InstantFeedbackController extends Controller
         }
     }
     
+    /**
+     * Processes each recipient and creates recipient records for each.
+     *
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   array                       $recipients
+     * @return  void
+     */
     protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
     {
         foreach ($recipients as $r) {
-            $recipient = InstantFeedbackRecipient::create($instantFeedback->id, $r['id']);
-            
+            $user = User::find($r['id']);
+            $recipient = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
     }
     

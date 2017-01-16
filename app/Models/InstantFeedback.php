@@ -29,12 +29,16 @@ class InstantFeedback extends Model
      * Scopes instant feedbacks to the ones that should be answered
      * by the current user.
      *
-     * @param   Illuminate\Database\Eloquent\Builder $query
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @param   App\Models\User                         $user
      * @return  Illuminate\Database\Eloquent\Builder
      */
-    public function scopeAnswerable(Builder $query)
+    public function scopeAnswerableBy(Builder $query, User $user)
     {
-        
+        $user_id = $user->id;
+        return $query->select('instant_feedbacks.*')
+                     ->join('instant_feedback_recipients', 'instant_feedback_recipients.instant_feedback_id', '=', 'instant_feedbacks.id')
+                     ->where('instant_feedback_recipients.user_id', $user_id);
     }
     
     /**
@@ -45,6 +49,16 @@ class InstantFeedback extends Model
     public function questions()
     {
         return $this->belongsToMany('App\Models\Question', 'instant_feedback_questions');
+    }
+    
+    /**
+     * Returns the recipients of this instant feedback.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function recipients()
+    {
+        return $this->belongsToMany('App\Models\User', 'instant_feedback_recipients', 'instant_feedback_id', 'user_id');
     }
     
     /**
