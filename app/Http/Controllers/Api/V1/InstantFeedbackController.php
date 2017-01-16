@@ -32,7 +32,8 @@ class InstantFeedbackController extends Controller
                 ->oldest()
                 ->get();
         } elseif ($request->filter == 'to_answer') {
-            $result = InstantFeedback::answerable()
+            $currentUser = $request->user();
+            $result = InstantFeedback::answerableBy($currentUser)
                 ->oldest()
                 ->get();
         }
