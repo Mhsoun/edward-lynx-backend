@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\HalResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -49,13 +50,18 @@ class InstantFeedback extends Model
     /**
      * Overrides our JSON representation and adds a createdAt field
      *
-     * @return array
+     * @param   integer $options
+     * @return  array
      */
-    public function jsonSerialize()
+    public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
         $data['createdAt'] = $this->created_at->toIso8601String();
-        $data['questions'] = $this->questions;
+        
+        if ($options == HalResponse::SERIALIZE_FULL) {
+            $data['questions'] = $this->questions;
+        }
+        
         return $data;
     }
     
