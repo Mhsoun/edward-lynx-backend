@@ -224,7 +224,7 @@ class HalResponse extends JsonResponse
         ];
         
         if (is_string(array_keys($arr)[0])) {
-            $result['data'] = $this->encodeAssociativeArray($arr);
+            $result = array_merge($result, $this->encodeAssociativeArray($arr));
         } else {
             $result['items'] = $this->encodeIndexedArray($arr);
         }
