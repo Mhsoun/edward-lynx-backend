@@ -32,6 +32,7 @@ Route::group(['prefix' => '/surveys'], function() {
 
 // /instant-feedbacks Endpoints
 Route::group(['prefix' => '/instant-feedbacks'], function() {
+    Route::get('/', 'InstantFeedbackController@index');
     Route::post('/', 'InstantFeedbackController@create');
     Route::get('/{instantFeedback}', 'InstantFeedbackController@show')
         ->middleware('can:view,instantFeedback')
