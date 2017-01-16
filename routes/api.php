@@ -40,5 +40,6 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
         ->name('api1-instant-feedback');
     
     Route::post('/{instantFeedback}/answers', 'InstantFeedbackController@answer')
+        ->middleware('can:answer,instantFeedback')
         ->name('api1-answer-instant-feedback');
 });
