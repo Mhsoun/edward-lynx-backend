@@ -48,6 +48,16 @@ class InstantFeedback extends Model
     }
     
     /**
+     * Returns the recipients of this instant feedback.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function recipients()
+    {
+        return $this->belongsToMany('App\Models\User', 'instant_feedback_recipients', 'instant_feedback_id', 'user_id');
+    }
+    
+    /**
      * Overrides our JSON representation and adds a createdAt field
      *
      * @param   integer $options
