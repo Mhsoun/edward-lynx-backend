@@ -129,6 +129,8 @@ class InstantFeedback extends Model
      */
     public function jsonHalLinks()
     {
-        return [];
+        return [
+            'answers'   => ['href' => route('api1-instant-feedback-answers', $this)]
+        ];
     }
 }
