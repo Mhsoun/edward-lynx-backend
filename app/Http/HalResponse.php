@@ -7,6 +7,7 @@ use stdClass;
 use RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -79,6 +80,8 @@ class HalResponse extends JsonResponse
             return $this->encodeJsonHalCollection($input);
         } elseif ($input instanceof Model) {
             return $this->encodeModel($input);
+        } elseif ($input instanceof Collection) {
+            return $this->encodeEloquentCollection($input);
         } elseif (is_array($input)) {
             return $this->encodeArray($input);
         }
@@ -191,6 +194,22 @@ class HalResponse extends JsonResponse
     }
     
     /**
+     * Converts an Eloquent Collection into a proper JSON-HAL response.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection $collection
+     * @return  array
+     */
+    protected function encodeEloquentCollection(Collection $collection)
+    {
+        $result = [];
+        $result['_links'] = [
+            'self' => ['href' => request()->fullUrl()]
+        ];
+        $result['items'] = $collection->toArray();
+        return $result;
+    }
+    
+    /**
      * Converts an array of Models, objects or arrays to a JSON-HAL response.
      *
      * @param   array   $arr
@@ -199,17 +218,24 @@ class HalResponse extends JsonResponse
     protected function encodeArray(array $arr)
     {
         $result = [];
+        $result['_links'] = [
+            'self' => ['href' => request()->fullUrl()]
+        ];
+        
+        $items = [];
         foreach ($arr as $item) {
             if ($item instanceof Model) {
-                $result[] = $this->encodeModel($item);
+                $items[] = $this->encodeModel($item);
             } elseif ($item instanceof stdClass) {
-                $result[] = json_decode(json_encode($item));
+                $items[] = json_decode(json_encode($item));
             } elseif (is_array($item)) {
-                $result[] = $item;
+                $items[] = $item;
             } else {
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
+        $result['items'] = $items;
+        
         return $result;
     }
     

@@ -36,7 +36,7 @@ class UserController extends Controller
         } else {
             $resp = $users;
         }
-        return response()->json($resp);
+        return response()->jsonHal($resp);
     }
 
     /**
