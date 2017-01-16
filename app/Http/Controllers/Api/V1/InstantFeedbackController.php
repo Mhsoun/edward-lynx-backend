@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Question;
 use App\Http\HalResponse;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 use App\Models\InstantFeedback;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
+use App\Exceptions\CustomValidationException;
 
 class InstantFeedbackController extends Controller
 {
@@ -125,7 +127,13 @@ class InstantFeedbackController extends Controller
         $question = Question::find(intval($request->answers[0]['question']));
         $answer = $request->answers[0]['answer'];
         
-        InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
+        try {
+            InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
+        } catch (InvalidArgumentException $e) {
+            throw new CustomValidationException([
+                'answers.0.answer'  => $e->getMessage()
+            ]);
+        }
         
         $recipient = InstantFeedbackRecipient::where([
             'user_id'   => $currentUser->id,

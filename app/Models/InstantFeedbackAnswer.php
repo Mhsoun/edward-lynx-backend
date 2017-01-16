@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -15,12 +16,12 @@ class InstantFeedbackAnswer extends Model
     /**
      * Calculates frequencies and statistics of a answer set.
      *
+     * @param   App\Models\Question                     $question
      * @param   Illuminate\Database\Eloquent\Collection $answers
      * @return  array
      */
-    public static function calculate(Collection $answers)
+    public static function calculate(Question $question, Collection $answers)
     {
-       $question = $answers->first()->question;
        $possibleValues = $question->answerTypeObject()->valuesFlat();
        $results = [];
        
@@ -89,7 +90,16 @@ class InstantFeedbackAnswer extends Model
      */
     public static function make(InstantFeedback $instantFeedback, User $user, Question $question, $answer)
     {
-        if ($question->answerTypeObject()->isNumeric()) {
+        $answerType = $question->answerTypeObject();
+        if (!$question->isNA && $answer == -1) {
+            throw new InvalidArgumentException('Question does not accept N/A answers.');
+        }
+        
+        if (!$answerType->isValidValue($answer)) {
+            throw new InvalidArgumentException('Invalid answer.');
+        }
+        
+        if ($answerType->isNumeric()) {
             $answer = intval($answer);
         }
         
