@@ -31,7 +31,10 @@ class InstantFeedbackAnswer extends Model
        
        // Initialize possible values to zero
        foreach ($possibleValues as $val) {
-           $results['frequencies'][strval($val)] = 0;
+           $key = strval($val);
+           if (isset($results['frequencies'][$key])) {
+               $results['frequencies'][$key] = 0;
+           }
        }
        
        // Calculate frequencies of each question value
