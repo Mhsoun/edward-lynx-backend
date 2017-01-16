@@ -201,12 +201,11 @@ class HalResponse extends JsonResponse
      */
     protected function encodeEloquentCollection(Collection $collection)
     {
-        $result = [
-            '_links'    => [
-                'self' => ['href' => request()->fullUrl()]
-            ],
-            'items'     => $collection->toArray()
+        $result = [];
+        $result['_links'] = [
+            'self' => ['href' => request()->fullUrl()]
         ];
+        $result['items'] = $collection->toArray();
         return $result;
     }
     
@@ -218,18 +217,25 @@ class HalResponse extends JsonResponse
      */
     protected function encodeArray(array $arr)
     {
-        $result = [];
+        $result = [
+            '_links'    => [
+                'self' => ['href' => request()->fullUrl()]
+            ],
+            'items'     => []
+        ];
+        
         foreach ($arr as $item) {
             if ($item instanceof Model) {
-                $result[] = $this->encodeModel($item);
+                $result['items'][] = $this->encodeModel($item);
             } elseif ($item instanceof stdClass) {
-                $result[] = json_decode(json_encode($item));
+                $result['items'][] = json_decode(json_encode($item));
             } elseif (is_array($item)) {
-                $result[] = $item;
+                $result['items'][] = $item;
             } else {
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
+        
         return $result;
     }
     
