@@ -27,7 +27,7 @@ class UserController extends Controller
         if ($request->type === 'list') {
             $resp = [];
             foreach ($users as $user) {
-                $resp['items'][] = [
+                $resp[] = [
                     'id'    => $user->id,
                     'name'  => $user->name,
                     'email' => $user->email
