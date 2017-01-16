@@ -19,23 +19,32 @@ class InstantFeedbackController extends Controller
      *
      * @return  App\Http\HalResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->validate($request, [
-            'filter'    => 'string|in:mine,to_answer'
+            'filter'    => 'required|string|in:mine,to_answer'
         ]);
         
         $result = [];
         if ($request->filter == 'mine') {
-            $result['items'] = InstantFeedback::findAllMine();
+            $result = InstantFeedback::mine()
+                ->oldest()
+                ->get();
         } elseif ($request->filter == 'to_answer') {
-            $result['items'] = InstantFeedback::findAllAnswerable();
+            $result = InstantFeedback::answerable()
+                ->oldest()
+                ->get();
         } else {
-            $result['items']['mine'] = InstantFeedback::findAllMine();
-            $result['items']['to_answer'] = InstantFeedback::findAllAnswerable();
+            $result['items']['mine'] = InstantFeedback::mine()
+                ->oldest()
+                ->get();
+            $result['items']['to_answer'] = InstantFeedback::answerable()
+                ->oldest()
+                ->get();
         }
         
-        return response()->jsonHal($result);
+        return response()->jsonHal($result)
+                         ->summarize();
     }
     
     /**
