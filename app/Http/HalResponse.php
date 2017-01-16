@@ -35,6 +35,31 @@ class HalResponse extends JsonResponse
     protected $serializationOptions = 0;
     
     /**
+     * Generate the _links field for JSON-HAL responses.
+     * Returns null if it cannot find a route for the model.
+     *
+     * @param   Illuminate\Database\Eloquent\Model
+     * @return  array|null
+     */
+    public static function generateModelLinks(Model $model)
+    {
+        $apiPrefix = 'api1';
+        $key = class_basename($model);
+        $key = str_singular($key);
+        $key = snake_case(str_singular($key));
+        $key = str_replace('_', '-', $key);
+        $modelRoute = "{$apiPrefix}-{$key}";
+        
+        if (Route::has($modelRoute)) {
+            return [
+                'self' => ['href' => route($modelRoute, $model)]
+            ];
+        } else {
+            return null;
+        } 
+    }
+    
+    /**
      * Constructor.
      *
      * @param   mixed   $input
@@ -153,15 +178,9 @@ class HalResponse extends JsonResponse
      */
     protected function encodeModel(Model $model)
     {
-        $links = [];
-        if ($modelUrl = $this->modelUrl($model)) {
-            $links = [
-                'self' => ['href' => $modelUrl]
-            ];
-            
-            if (is_callable([$model, 'jsonHalLinks'])) {
-                $links = array_merge($links, $model->jsonHalLinks($links));
-            }
+        $links = self::generateModelLinks($model);
+        if ($links && is_callable([$model, 'jsonHalLinks'])) {
+            $links = array_merge($links, $model->jsonHalLinks($links));
         }
         
         $modelJson = $model->jsonSerialize($this->serializationOptions);
@@ -169,28 +188,6 @@ class HalResponse extends JsonResponse
         return array_merge([
             '_links' => $links
         ], $modelJson);
-    }
-    
-    /**
-     * Generates the URL to a model/resource.
-     *
-     * @param   Illuminate\Database\Eloquent\Model  $model
-     * @return  string
-     */
-    protected function modelUrl(Model $model)
-    {
-        $apiPrefix = 'api1';
-        $key = class_basename($model);
-        $key = str_singular($key);
-        $key = snake_case(str_singular($key));
-        $key = str_replace('_', '-', $key);
-        $modelRoute = "{$apiPrefix}-{$key}";
-        
-        if (Route::has($modelRoute)) {
-            return route($modelRoute, $model);
-        } else {
-            return null;
-        }
     }
     
     /**
@@ -205,7 +202,11 @@ class HalResponse extends JsonResponse
         $result['_links'] = [
             'self' => ['href' => request()->fullUrl()]
         ];
-        $result['items'] = $collection->toArray();
+        
+        $result['items'] = [];
+        foreach ($collection as $record) {
+            $result['items'][] = $this->encodeModel($record);
+        }
         return $result;
     }
     
@@ -217,24 +218,24 @@ class HalResponse extends JsonResponse
      */
     protected function encodeArray(array $arr)
     {
-        $result = [
-            '_links'    => [
-                'self' => ['href' => request()->fullUrl()]
-            ],
-            'items'     => []
+        $result = [];
+        $result['_links'] = [
+            'self' => ['href' => request()->fullUrl()]
         ];
         
+        $items = [];
         foreach ($arr as $item) {
             if ($item instanceof Model) {
-                $result['items'][] = $this->encodeModel($item);
+                $items[] = $this->encodeModel($item);
             } elseif ($item instanceof stdClass) {
-                $result['items'][] = json_decode(json_encode($item));
+                $items[] = json_decode(json_encode($item));
             } elseif (is_array($item)) {
-                $result['items'][] = $item;
+                $items[] = $item;
             } else {
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
+        $result['items'] = $items;
         
         return $result;
     }
