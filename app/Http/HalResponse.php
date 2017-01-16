@@ -217,24 +217,24 @@ class HalResponse extends JsonResponse
      */
     protected function encodeArray(array $arr)
     {
-        $result = [
-            '_links'    => [
-                'self' => ['href' => request()->fullUrl()]
-            ],
-            'items'     => []
+        $result = [];
+        $result['_links'] = [
+            'self' => ['href' => request()->fullUrl()]
         ];
         
+        $items = [];
         foreach ($arr as $item) {
             if ($item instanceof Model) {
-                $result['items'][] = $this->encodeModel($item);
+                $items[] = $this->encodeModel($item);
             } elseif ($item instanceof stdClass) {
-                $result['items'][] = json_decode(json_encode($item));
+                $items[] = json_decode(json_encode($item));
             } elseif (is_array($item)) {
-                $result['items'][] = $item;
+                $items[] = $item;
             } else {
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
+        $result['items'] = $items;
         
         return $result;
     }
