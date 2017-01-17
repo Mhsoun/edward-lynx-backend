@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
+use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
@@ -155,8 +156,51 @@ class InstantFeedbackController extends Controller
     public function answers(Request $request, InstantFeedback $instantFeedback)
     {
         $results = $instantFeedback->calculateAnswers();
-
         return response()->jsonHal($results);
+    }
+    
+    /**
+     * Shares instant answer results to other users.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  Illuminate\Http\Response
+     */
+    public function share(Request $request, InstantFeedback $instantFeedback)
+    {
+        $this->validate($request, [
+            'users'     => 'required|array',
+            'users.*'   => 'integer|exists:users,id'
+        ]);
+        
+        $users = $request->users;
+        $currentUser = $request->user();
+        
+        // Make sure the users are colleagues of the current user.
+        $errors = [];
+        $colleagues = array_map(function($user) {
+            return $user->id;
+        }, $currentUser->colleagues());
+        foreach ($users as $index => $user) {
+            if (!in_array($user, $colleagues)) {
+                $errors["users.{$index}"] = "User {$user} is not in the same company as the current user.";
+            }
+        }
+        
+        // If we have errors, throw it early.
+        if (!empty($errors)) {
+            throw new CustomValidationException($errors);
+        }
+        
+        // Create the records.
+        foreach ($users as $user) {
+            InstantFeedbackShare::firstOrCreate([
+                'instant_feedback_id'   => $instantFeedback->id,
+                'user_id'               => $user->id
+            ]);
+        }
+        
+        return response('', 201);
     }
     
     /**
