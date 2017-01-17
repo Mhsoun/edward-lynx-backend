@@ -138,11 +138,7 @@ class InstantFeedback extends Model
         
         $data['questions'] = $this->questions;
         $data['shares'] = $this->shares->map(function($user) {
-            return [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email
-            ];
+            return $user->id;
         });
         
         return $data;
