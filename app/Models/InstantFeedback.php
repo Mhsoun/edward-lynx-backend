@@ -61,7 +61,8 @@ class InstantFeedback extends Model
      */
     public function recipients()
     {
-        return $this->belongsToMany('App\Models\User', 'instant_feedback_recipients', 'instant_feedback_id', 'user_id');
+        return $this->belongsToMany('App\Models\User', 'instant_feedback_recipients', 'instant_feedback_id', 'user_id')
+                    ->withPivot('key', 'answered', 'answered_at');
     }
     
     /**
@@ -97,25 +98,6 @@ class InstantFeedback extends Model
     }
     
     /**
-     * Returns the answer key of the provided user for this instant feedback.
-     *
-     * @param   App\Models\User $user
-     * @return  string|null
-     */
-    public function answerKeyOf(User $user)
-    {
-        $recipient = InstantFeedbackRecipient::where([
-            'instant_feedback_id'   => $this->id,
-            'user_id'               => $user->id
-        ])->first();
-        if ($recipient) {
-            return $recipient->key;
-        } else {
-            return null;
-        }
-    }
-    
-    /**
      * Returns TRUE if this instant feedback is shared to the provided user.
      *
      * @param   App\Models\User $user
@@ -124,6 +106,26 @@ class InstantFeedback extends Model
     public function isSharedTo(User $user)
     {
         return InstantFeedbackShare::isShared($this, $user);
+    }
+    
+    /**
+     * Returns the answer key of the provided user. Returns NULL
+     * if the user hasn't been invited or the invite has been
+     * answered already.
+     *
+     * @param   App\Models\User $user
+     * @return  string|null
+     */
+    public function answerKeyOf(User $user)
+    {
+        $invite = $this->recipients()
+                       ->where('user_id', $user->id)
+                       ->first();
+        if ($invite && !$invite->pivot->answered) {
+            return $invite->pivot->key;
+        } else {
+            return null;
+        }
     }
     
     /**

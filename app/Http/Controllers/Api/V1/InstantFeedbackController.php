@@ -101,7 +101,12 @@ class InstantFeedbackController extends Controller
      */
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
-        return response()->jsonHal($instantFeedback);
+        $currentUser = $request->user();
+        
+        $json = $instantFeedback->jsonSerialize();
+        $json['key'] = $instantFeedback->answerKeyOf($currentUser);
+        
+        return response()->jsonHal($json);
     }
     
     /**
