@@ -10,12 +10,14 @@ use InvalidArgumentException;
 use App\Models\InstantFeedback;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
+use Illuminate\Support\Collection;
 use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
 use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
+use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
 
 class InstantFeedbackController extends Controller
@@ -178,9 +180,9 @@ class InstantFeedbackController extends Controller
         
         // Make sure the users are colleagues of the current user.
         $errors = [];
-        $colleagues = array_map(function($user) {
+        $colleagues = $currentUser->colleagues()->map(function($user) {
             return $user->id;
-        }, $currentUser->colleagues());
+        })->toArray();
         foreach ($users as $index => $user) {
             if (!in_array($user, $colleagues)) {
                 $errors["users.{$index}"] = "User {$user} is not in the same company as the current user.";
@@ -193,12 +195,14 @@ class InstantFeedbackController extends Controller
         }
         
         // Create the records.
-        foreach ($users as $user) {
-            InstantFeedbackShare::firstOrCreate([
-                'instant_feedback_id'   => $instantFeedback->id,
-                'user_id'               => $user->id
-            ]);
+        $userObjects = new Collection;
+        foreach ($users as $userId) {
+            $user = User::find($userId);
+            InstantFeedbackShare::make($instantFeedback, $user);
+            $userObjects->push($user);
         }
+        
+        event(new InstantFeedbackResultsShared($instantFeedback, $userObjects));
         
         return response('', 201);
     }
