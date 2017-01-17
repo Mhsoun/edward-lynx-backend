@@ -34,24 +34,33 @@ class InstantFeedbackAnswer extends Model
         // Questions with fixed values
         } else {
            $possibleValues = $question->answerTypeObject()->valuesFlat();
+           $counts = [];
    
            // If the question allows a N/A option, add a -1 value
            if ($question->isNA) {
-               $results['frequencies']['-1'] = 0;
+               $counts['-1'] = 0;
            }
 
            // Initialize possible values to zero
            foreach ($possibleValues as $val) {
                $key = strval($val);
-               $results['frequencies'][$key] = 0;
+               $counts[$key] = 0;
            }
 
            // Calculate frequencies of each question value
            foreach ($answers as $answer) {
                $key = strval($answer->answer);
-               if (isset($results['frequencies'][$key])) {
-                   $results['frequencies'][$key] += 1;
+               if (isset($counts[$key])) {
+                   $counts[$key] += 1;
                }
+           }
+           
+           // Build a proper result array
+           foreach ($counts as $key => $count) {
+               $results['frequencies'][] = [
+                   'value'  => $key,
+                   'count'  => $count
+               ];
            }
         }
        
