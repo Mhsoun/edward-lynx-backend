@@ -31,4 +31,22 @@ class InstantFeedbackShare extends Model
         return $share;
     }
     
+    /**
+     * Returns TRUE if the provided instant feedback has been shared to the
+     * provided user.
+     *
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   App\Models\User             $user
+     * @return  boolean
+     */
+    public static function isShared(InstantFeedback $instantFeedback, User $user)
+    {
+        $share = self::where([
+            'instant_feedback_id'   => $instantFeedback->id,
+            'user_id'               => $user->id
+        ])->first();
+            
+        return !is_null($share);
+    }
+    
 }
