@@ -75,6 +75,18 @@ class InstantFeedbackPolicy
     {
         return $instantFeedback->user_id == $user->id;
     }
+    
+    /**
+     * Determine whether the user can share instant feedback answers.
+     *
+     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  boolean   
+     */
+    public function share(User $user, InstantFeedback $instantFeedback)
+    {
+        return $instantFeedback->user_id == $user->id;
+    }
 
     /**
      * Determine whether the user can update the instantFeedback.
