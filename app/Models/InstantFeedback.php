@@ -106,6 +106,17 @@ class InstantFeedback extends Model
     }
     
     /**
+     * Returns TRUE if this instant feedback is shared to the provided user.
+     *
+     * @param   App\Models\User $user
+     * @return  boolean
+     */
+    public function isSharedTo(User $user)
+    {
+        return InstantFeedbackShare::isShared($this, $user);
+    }
+    
+    /**
      * Overrides our JSON representation and adds a createdAt field
      *
      * @param   integer $options

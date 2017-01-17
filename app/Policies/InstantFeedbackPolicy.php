@@ -36,6 +36,8 @@ class InstantFeedbackPolicy
             return true;
         } elseif ($instantFeedback->recipients()->where('user_id', $user->id)->count() > 0) {
             return true;
+        } elseif ($instantFeedback->isSharedTo($user)) {
+            return true;
         } else {
             return false;
         }
@@ -73,7 +75,13 @@ class InstantFeedbackPolicy
      */
     public function viewAnswers(User $user, InstantFeedback $instantFeedback)
     {
-        return $instantFeedback->user_id == $user->id;
+        if ($instantFeedback->user_id == $user->id) {
+            return true;
+        } elseif ($instantFeedback->isSharedTo($user)) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
