@@ -36,35 +36,37 @@ class InstantFeedbackAnswer extends Model
     
         // Questions with fixed values
         } else {
-           $possibleValues = $question->answerTypeObject()->valuesFlat();
-           $counts = [];
+            $answerObj = $question->answerTypeObject();
+            $possibleValues = $answerObj->valuesFlat();
+            $counts = [];
    
-           // If the question allows a N/A option, add a -1 value
-           if ($question->isNA) {
+            // If the question allows a N/A option, add a -1 value
+            if ($question->isNA) {
                $counts['-1'] = 0;
-           }
+            }
 
-           // Initialize possible values to zero
-           foreach ($possibleValues as $val) {
+            // Initialize possible values to zero
+            foreach ($possibleValues as $val) {
                $key = strval($val);
                $counts[$key] = 0;
-           }
+            }
 
-           // Calculate frequencies of each question value
-           foreach ($answers as $answer) {
+            // Calculate frequencies of each question value
+            foreach ($answers as $answer) {
                $key = strval($answer->answer);
                if (isset($counts[$key])) {
                    $counts[$key] += 1;
                }
-           }
-           
-           // Build a proper result array
-           foreach ($counts as $key => $count) {
+            }
+
+            // Build a proper result array
+            foreach ($counts as $key => $count) {
                $results['frequencies'][] = [
-                   'value'  => strval($key),
-                   'count'  => $count
+                   'value'          => $key,
+                   'description'    => strval($answerObj->descriptionOfValue($key)),
+                   'count'          => $count
                ];
-           }
+            }
         }
        
         $results['totalAnswers'] = count($answers);
