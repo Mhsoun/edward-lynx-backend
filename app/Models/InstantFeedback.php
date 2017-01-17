@@ -75,6 +75,16 @@ class InstantFeedback extends Model
     }
     
     /**
+     * Returns the users this instant feedback has been shared to.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function shares()
+    {
+        return $this->belongsToMany('App\Models\User', 'instant_feedback_shares', 'instant_feedback_id', 'user_id');
+    }
+    
+    /**
      * Returns statistics and frequencies of this instant feedback's answers.
      *
      * @return  array
@@ -119,17 +129,21 @@ class InstantFeedback extends Model
     /**
      * Overrides our JSON representation and adds a createdAt field
      *
-     * @param   integer $options
      * @return  array
      */
-    public function jsonSerialize($options = 0)
+    public function jsonSerialize()
     {
         $data = parent::jsonSerialize();
         $data['createdAt'] = $this->created_at->toIso8601String();
         
-        if ($options == HalResponse::SERIALIZE_FULL) {
-            $data['questions'] = $this->questions;
-        }
+        $data['questions'] = $this->questions;
+        $data['shares'] = $this->shares->map(function($user) {
+            return [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email
+            ];
+        });
         
         return $data;
     }
