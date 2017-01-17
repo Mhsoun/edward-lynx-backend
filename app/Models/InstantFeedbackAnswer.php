@@ -61,7 +61,7 @@ class InstantFeedbackAnswer extends Model
            // Build a proper result array
            foreach ($counts as $key => $count) {
                $results['frequencies'][] = [
-                   'value'  => $key,
+                   'value'  => strval($key),
                    'count'  => $count
                ];
            }
