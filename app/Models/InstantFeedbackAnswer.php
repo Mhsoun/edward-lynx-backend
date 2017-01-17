@@ -26,9 +26,12 @@ class InstantFeedbackAnswer extends Model
         
         // Process custom input questions
         if ($question->answerType == 5) {
-            $results['results'] = [];
+            $results['frequencies'] = [];
             foreach ($answers as $answer) {
-                $results['results'][] = $answer->answer;
+                $results['frequencies'][] = [
+                    'value' =>  $answer->answer,
+                    'count' =>  1
+                ];
             }
     
         // Questions with fixed values
