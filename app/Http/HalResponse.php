@@ -223,6 +223,12 @@ class HalResponse extends JsonResponse
             'self' => ['href' => request()->fullUrl()]
         ];
         
+        // If we have no items to encode, exit early.
+        if (empty($arr)) {
+            $result['items'] = [];
+            return $result;
+        }
+        
         if (is_string(array_keys($arr)[0])) {
             $result = array_merge($result, $this->encodeAssociativeArray($arr));
         } else {
