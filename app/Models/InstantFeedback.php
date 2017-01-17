@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Http\HalResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -126,6 +127,30 @@ class InstantFeedback extends Model
         } else {
             return null;
         }
+    }
+    
+    /**
+     * Makes the instant feedback as closed for answers.
+     *
+     * @return  this
+     */
+    public function close()
+    {
+        $this->closed = true;
+        $this->closed_at = Carbon::now();
+        return $this;
+    }
+    
+    /**
+     * Makes the instant feedback as open for answers.
+     *
+     * @return  this
+     */
+    public function open()
+    {
+        $this->closed = false;
+        $this->closed_at = null;
+        return $this;
     }
     
     /**

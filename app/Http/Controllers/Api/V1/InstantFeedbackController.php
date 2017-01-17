@@ -109,6 +109,19 @@ class InstantFeedbackController extends Controller
         return response()->jsonHal($json);
     }
     
+    public function update(Request $request, InstantFeedback $instantFeedback)
+    {   
+        if ($request->closed) {
+            $instantFeedback->close()
+                            ->save();
+        } else {
+            $instantFeedback->open()
+                            ->save();
+        }
+        
+        return response()->jsonHal($instantFeedback);
+    }
+    
     /**
      * Accepts answers to an instant feedback.
      *
