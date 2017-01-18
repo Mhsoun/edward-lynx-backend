@@ -15,7 +15,6 @@ use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
 use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
-use App\Events\InstantFeedbackCreated;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
 use App\Events\InstantFeedbackResultsShared;
@@ -88,8 +87,6 @@ class InstantFeedbackController extends Controller
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
         $recipients = $this->processRecipients($instantFeedback, $request->recipients);
-        
-        event(new InstantFeedbackCreated($instantFeedback, $recipients));
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
