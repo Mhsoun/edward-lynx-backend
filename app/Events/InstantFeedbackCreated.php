@@ -24,21 +24,23 @@ class InstantFeedbackCreated
     
     
     /**
-     * The receiving recipient.
+     * Target recipients.
      *
-     * @var App\Models\InstantFeedbackRecipient
+     * @var array
      */
-    public $recipient;
+    public $recipients;
 
     /**
      * Create a new event instance.
      *
-     * @return void
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   array                       $recipients
+     * @return  void
      */
-    public function __construct(InstantFeedback $instantFeedback, InstantFeedbackRecipient $recipient);
+    public function __construct(InstantFeedback $instantFeedback, array $recipients = []);
     {
         $this->instantFeedback = $instantFeedback;
-        $this->recipient = $recipient;
+        $this->recipients = $recipients;
     }
 
     /**

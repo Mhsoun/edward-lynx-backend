@@ -15,6 +15,7 @@ use App\Models\QuestionCustomValue;
 use App\Http\Controllers\Controller;
 use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
+use App\Events\InstantFeedbackCreated;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
 use App\Events\InstantFeedbackResultsShared;
@@ -86,7 +87,9 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        $this->processRecipients($instantFeedback, $request->recipients);
+        $recipients = $this->processRecipients($instantFeedback, $request->recipients);
+        
+        event(new InstantFeedbackCreated($instantFeedback, $recipients));
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -283,14 +286,18 @@ class InstantFeedbackController extends Controller
      *
      * @param   App\Models\InstantFeedback  $instantFeedback
      * @param   array                       $recipients
-     * @return  void
+     * @return  array
      */
     protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
     {
+        $results = [];
+        
         foreach ($recipients as $r) {
             $user = User::find($r['id']);
-            $recipient = InstantFeedbackRecipient::make($instantFeedback, $user);
+            $results[] = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
+        
+        return $results;
     }
     
 }
