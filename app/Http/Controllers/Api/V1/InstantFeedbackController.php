@@ -258,7 +258,7 @@ class InstantFeedbackController extends Controller
             if ($q['answer']['type'] == 8) {
                 foreach ($q['answer']['options'] as $o) {
                     $value = new QuestionCustomValue;
-                    $value->name = $o['value'];
+                    $value->name = $o;
                     $value->questionId = $question->id;
                     $value->save();
                 }
