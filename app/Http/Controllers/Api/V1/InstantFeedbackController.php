@@ -109,6 +109,13 @@ class InstantFeedbackController extends Controller
         return response()->jsonHal($json);
     }
     
+    /**
+     * Updates an instant feedback.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  App\Http\HalResponse
+     */
     public function update(Request $request, InstantFeedback $instantFeedback)
     {   
         if ($request->closed) {
