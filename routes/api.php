@@ -51,4 +51,6 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
     Route::post('/{instantFeedback}/shares', 'InstantFeedbackController@share')
         ->middleware('can:share,instantFeedback')
         ->name('api1-instant-feedback-share');
+    
+    Route::get('/test', 'InstantFeedbackController@test');
 });
