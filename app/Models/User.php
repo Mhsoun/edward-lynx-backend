@@ -85,7 +85,7 @@ class User extends Authenticatable implements AuthorizableContract
      */
     public function devices()
     {
-        return $this->hasMany(UserDevice::class);
+        return $this->hasMany('App\Models\UserDevice');
     }
 
     /**
