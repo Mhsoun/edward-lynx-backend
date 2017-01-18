@@ -355,7 +355,8 @@ class AnswerType implements JsonSerializable
 
         $i = 1;
         foreach ($question->customValues as $customValue) {
-            array_push($values, new AnswerValue($i, $customValue->name));
+            array_push($values, new AnswerValue($customValue->id, $customValue->name));
+            // Should be $i++?
         }
 
         return new AnswerType(
