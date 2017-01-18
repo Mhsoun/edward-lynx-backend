@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class UserDevice extends Model
 {
     
+    public $fillable = ['token'];
+    
     /**
      * Returns the user that owns this device.
      *

@@ -122,11 +122,9 @@ class UserController extends Controller
         ]);
             
         $user = request()->user();
-
-        $device = new UserDevice();
-        $device->token = $request->token;
-        
-        $user->devices()->save($device);
+        $user->devices()->firstOrCreate([
+            'token' => $request->token
+        ]);
         
         return response('', 201);
     }
