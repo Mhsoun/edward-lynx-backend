@@ -115,7 +115,7 @@ class UserController extends Controller
      * @param   Illuminate\Http\Request $request
      * @return  Illuminate\Http\Response
      */
-    public function registrationTokens(Request $request)
+    public function registerDevice(Request $request)
     {
         $this->validate($request, [
             'token' => 'required|string'
