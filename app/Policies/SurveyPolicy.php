@@ -101,16 +101,12 @@ class SurveyPolicy
     /**
      * Determine whether the user can answer the survey.
      * 
-     * @param  User   $user
-     * @param  Survey $survey
-     * @return boolean
+     * @param   App\Models\User     $user
+     * @param   App\Models\Survey   $survey
+     * @return  boolean
      */
     public function answer(User $user, Survey $survey)
     {
-        if ($user->isAn('admin')) {
-            return true;
-        }
-
-        return false;
+        return true; // Validate key in the controller.
     }
 }
