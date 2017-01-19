@@ -170,6 +170,13 @@ class Handler extends ExceptionHandler {
 	protected function convertHttpExceptionToJsonResponse(HttpException $e)
 	{
 		$code = $e->getStatusCode();
+        $message = $e->getMessage();
+        
+        // Do not expose namespaces if we have a 404
+        if ($code == 404) {
+            $message = preg_replace('/\[App\\+Models\\+[^\]]+\]\./', '', $message);
+        }
+        
 		return response()->json([
 			'error'		=> $this->codeToText[$code],
 			'message'	=> $e->getMessage()
