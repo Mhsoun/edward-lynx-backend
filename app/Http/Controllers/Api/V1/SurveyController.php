@@ -64,8 +64,6 @@ class SurveyController extends Controller
             'description'                       => 'string',
             'thankYouText'                      => 'string',
             'questionInfo'                      => 'string',
-            'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required|integer',
             'questions'                         => 'required|array',
             'questions.*.category.title'        => 'required|string',
             'questions.*.category.description'  => 'string',
@@ -74,8 +72,8 @@ class SurveyController extends Controller
             'questions.*.items.*.isNA'          => 'required|boolean',
             'questions.*.items.*.answer.type'   => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.items.*.answer.options'=> 'array',
-            'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required|integer'
+            'candidates'                        => 'required|array',
+            'candidates.*.id'                   => 'required|integer'
 		], [
 		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
@@ -193,6 +191,7 @@ class SurveyController extends Controller
         $data->emails       = $this->generateEmails($request, $data->type);
         
         $this->processQuestions($data, $request->questions);
+        $this->processCandidates($data, $request->candidates);
             
         return $data;
 	}
@@ -307,6 +306,33 @@ class SurveyController extends Controller
                 ];
             }
         }
+    }
+    
+    /**
+     * Converts user IDs to valid objects that are accepted by
+     * Surveys::create().
+     *
+     * @param   object  $data
+     * @param   array   $candidates
+     * @return  array
+     */
+    protected function processCandidates($data, array $candidates)
+    {
+        $results = [];
+        foreach ($candidates as $candidate) {
+            $user = User::find($candidate['id']);
+            
+            if (!$user) {
+                continue;
+            }
+            
+            $results[] = (object) [
+               'name'       => $user->name,
+               'email'      => $user->email,
+               'position'   => ''
+            ];
+        }
+        $data->individual->candidates = $results;
     }
 
 }
