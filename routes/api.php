@@ -27,7 +27,8 @@ Route::group(['prefix' => '/surveys'], function() {
         ->middleware('can:view,survey')
         ->name('api1-survey-questions');
     
-    Route::post('/{survey}/answers', 'AnswerController@create');
+    Route::post('/{survey}/answers', 'SurveyController@answer')
+        ->middleware('can:answer,survey');
 });
 
 // /instant-feedbacks Endpoints
