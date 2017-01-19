@@ -13,7 +13,6 @@ abstract class SurveyTypes
     const Progress = 2;
     const Normal = 3;
     const LTT = 4;
-    const Instant = 5;
 
     /**
     * Creates the bit pattern for the given type
