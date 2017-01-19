@@ -778,4 +778,17 @@ class User extends Authenticatable implements AuthorizableContract
 	{
 		return self::ACCESS_LEVELS[$this->access_level];
 	}
+    
+    /**
+     * Returns this user's registered firebase device tokens, used for
+     * sending notifications.
+     *
+     * @return  array
+     */
+    public function routeNotificationForFirebase()
+    {
+        return $this->devices->map(function($device) {
+            return $device->token;
+        });
+    }
 }

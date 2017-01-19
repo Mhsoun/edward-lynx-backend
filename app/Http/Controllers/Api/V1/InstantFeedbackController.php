@@ -19,6 +19,7 @@ use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
+use App\Notifications\InstantFeedbackRequested;
 
 class InstantFeedbackController extends Controller
 {
@@ -87,6 +88,11 @@ class InstantFeedbackController extends Controller
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
         $recipients = $this->processRecipients($instantFeedback, $request->recipients);
+        
+        // Notify each recipient of the instant feedback.
+        foreach ($recipients as $recipient) {
+            $recipient->user->notify(new InstantFeedbackRequested($instantFeedback));
+        }
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);

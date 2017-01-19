@@ -46,6 +46,16 @@ class InstantFeedback extends Model
     }
     
     /**
+     * Returns the owner of this instant feedback.
+     *
+     * @return  App\Models\User
+     */
+    public function user()
+    {
+        return $this->belongsTo('App\Models\User');
+    }
+    
+    /**
      * Returns this instant feedback's questions.
      *
      * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
