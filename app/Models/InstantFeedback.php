@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Http\HalResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +43,16 @@ class InstantFeedback extends Model
                          'instant_feedback_recipients.user_id'  => $user_id,
                          'instant_feedback_recipients.answered' => 0
                      ]);
+    }
+    
+    /**
+     * Returns the owner of this instant feedback.
+     *
+     * @return  App\Models\User
+     */
+    public function user()
+    {
+        return $this->belongsTo('App\Models\User');
     }
     
     /**
@@ -126,6 +137,30 @@ class InstantFeedback extends Model
         } else {
             return null;
         }
+    }
+    
+    /**
+     * Makes the instant feedback as closed for answers.
+     *
+     * @return  this
+     */
+    public function close()
+    {
+        $this->closed = true;
+        $this->closed_at = Carbon::now();
+        return $this;
+    }
+    
+    /**
+     * Makes the instant feedback as open for answers.
+     *
+     * @return  this
+     */
+    public function open()
+    {
+        $this->closed = false;
+        $this->closed_at = null;
+        return $this;
     }
     
     /**

@@ -19,6 +19,7 @@ use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
+use App\Notifications\InstantFeedbackRequested;
 
 class InstantFeedbackController extends Controller
 {
@@ -86,7 +87,12 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        $this->processRecipients($instantFeedback, $request->recipients);
+        $recipients = $this->processRecipients($instantFeedback, $request->recipients);
+        
+        // Notify each recipient of the instant feedback.
+        foreach ($recipients as $recipient) {
+            $recipient->user->notify(new InstantFeedbackRequested($instantFeedback));
+        }
         
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -107,6 +113,26 @@ class InstantFeedbackController extends Controller
         $json['key'] = $instantFeedback->answerKeyOf($currentUser);
         
         return response()->jsonHal($json);
+    }
+    
+    /**
+     * Updates an instant feedback.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  App\Http\HalResponse
+     */
+    public function update(Request $request, InstantFeedback $instantFeedback)
+    {   
+        if ($request->closed) {
+            $instantFeedback->close()
+                            ->save();
+        } else {
+            $instantFeedback->open()
+                            ->save();
+        }
+        
+        return response()->jsonHal($instantFeedback);
     }
     
     /**
@@ -245,7 +271,7 @@ class InstantFeedbackController extends Controller
             if ($q['answer']['type'] == 8) {
                 foreach ($q['answer']['options'] as $o) {
                     $value = new QuestionCustomValue;
-                    $value->name = $o['value'];
+                    $value->name = $o;
                     $value->questionId = $question->id;
                     $value->save();
                 }
@@ -263,14 +289,18 @@ class InstantFeedbackController extends Controller
      *
      * @param   App\Models\InstantFeedback  $instantFeedback
      * @param   array                       $recipients
-     * @return  void
+     * @return  array
      */
     protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
     {
+        $results = [];
+        
         foreach ($recipients as $r) {
             $user = User::find($r['id']);
-            $recipient = InstantFeedbackRecipient::make($instantFeedback, $user);
+            $results[] = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
+        
+        return $results;
     }
     
 }
