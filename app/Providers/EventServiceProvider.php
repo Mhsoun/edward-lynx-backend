@@ -10,11 +10,7 @@ class EventServiceProvider extends ServiceProvider {
 	 *
 	 * @var array
 	 */
-	protected $listen = [
-		'App\Events\SurveyCreated' => [
-			'App\Listeners\NotifyRecipients'
-		],
-	];
+	protected $listen = [];
 
 	/**
 	 * Register any other events for your application.
