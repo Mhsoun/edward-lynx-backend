@@ -58,47 +58,35 @@ class SurveyController extends Controller
 		$this->validate($request, [
 			'name'	                            => 'required|max:255',
 			'lang'	                            => 'required|in:en,fi,sv',
-			'type'	                            => 'required|in:instant',
+			'type'	                            => 'required|in:individual',
             'startDate'                         => 'required|isodate',
-            'endDate'                           => 'isodate',
+            'endDate'                           => 'required|isodate',
             'description'                       => 'string',
             'thankYouText'                      => 'string',
             'questionInfo'                      => 'string',
-            'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required|integer',
+            'questions'                         => 'required|array',
+            'questions.*.category.title'        => 'required|string',
+            'questions.*.category.description'  => 'string',
+            'questions.*.items'                 => 'required|array',
+            'questions.*.items.*.text'          => 'required|string',
+            'questions.*.items.*.isNA'          => 'required|boolean',
+            'questions.*.items.*.answer.type'   => 'required|in:0,1,2,3,4,5,6,7,8',
+            'questions.*.items.*.answer.options'=> 'array',
+            'candidates'                        => 'required|array',
+            'candidates.*.id'                   => 'required|integer'
 		], [
-		    'type.in'                           =>  'Only Instant Feedback (instant) types are accepted.'
+		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
             
         // Convert the string type to our internal representation
         // of a survey type.
         $types = [
-            'instant'    =>  SurveyTypes::Instant,
+            'individual'    => SurveyTypes::Individual
         ];
         $type = $types[$request->type];
-        
-        // For non instant feedback surveys, require an end date.
-        if ($type !== SurveyTypes::Instant) {
-            $this->validate($request, [
-                'endDate'   => 'isodate'
-            ]);
-        }
     
         // Make sure that the current user can create this survey type.
         $this->authorize('create', [Survey::class, $type]);
-            
-        // Validate question for instant feedbacks.
-        if ($type === SurveyTypes::Instant) {
-            $this->validate($request, [
-                'questions'                         => 'required|array|size:1',
-                'questions.*.text'                  => 'required|string',
-                'questions.*.isNA'                  => 'required|boolean',
-                'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
-                'questions.*.answer.options'        => 'array',
-                'questions.*.answer.*.description'  => 'string',
-                'questions.*.answer.*.value'        => 'string'
-            ]);
-        }
         
         // Create our draft survey.
         $surveyData = $this->generateSurveyData($type, $request);
@@ -202,24 +190,8 @@ class SurveyController extends Controller
         $data->individual   = $this->generate360Data($request, $data->type);
         $data->emails       = $this->generateEmails($request, $data->type);
         
-        $data->categories = [];
-        $data->questions = [];
-            
-        if ($data->type == SurveyTypes::Instant) {
-            $data->recipients = $request->recipients;
-            
-            $category = $this->findInstantFeedbackCategory($user, $data->lang);
-            $data->categories[] = (object) [
-                'id'    => $category->id,
-                'order' => 0
-            ];
-            
-            $question = $this->processInstantFeedbackQuestion($user, $category, $request->questions[0]);
-            $data->questions[] = (object) [
-                'id'    => $question->id,
-                'order' => 0
-            ];
-        }
+        $this->processQuestions($data, $request->questions);
+        $this->processCandidates($data, $request->candidates);
             
         return $data;
 	}
@@ -294,56 +266,73 @@ class SurveyController extends Controller
     }
     
     /**
-     * Returns the default question category for instant feedbacks.
+     * Converts submitted questions into data understood by
+     * Surveys::create()
      *
-     * @param   App\Models\User     $user
-     * @param   string              $lang
-     * @return  App\Models\QuestionCategory
+     * @param   object  $data
+     * @param   array   $questions
+     * @return  void
      */
-    protected function findInstantFeedbackCategory(User $user, $lang)
+    protected function processQuestions($data, array $questions)
     {
-        $category = QuestionCategory::where([
-            'title'             => 'Instant Feedback Category',
-            'lang'              => $lang,
-            'ownerId'           => $user->id,
-            'targetSurveyType'  => SurveyTypes::Instant
-        ])->first();
+        foreach ($questions as $index => $set) {
+            $c = $set['category'];
             
-        if (!$category) {
-            $category = new QuestionCategory();
-            $category->title = 'Instant Feedback Category';
-            $category->lang = $lang;
-            $category->ownerId = $user->id;
-            $category->targetSurveyType = SurveyTypes::Instant;
-            $category->isSurvey = false;
+            $category = new QuestionCategory;
+            $category->title = $this->sanitize($c['title']);
+            $category->lang = $data->lang;
+            $category->description = empty($c['description']) ? '' : $this->sanitize($c['description']);
+            $category->ownerId = $data->ownerId;
+            $category->targetSurveyType = $data->type;
             $category->save();
+            
+            $data->categories[] = (object) [
+                'id'    => $category->id,
+                'order' => $index
+            ];
+            
+            foreach ($set['items'] as $qIndex => $q) {
+                $question = new Question;
+                $question->text = $this->sanitize($q['text']);
+                $question->ownerId = $data->ownerId;
+                $question->categoryId = $category->id;
+                $question->answerType = intval($q['answer']['type']);
+                $question->isNA = $q['isNA'];
+                $question->save();
+                
+                $data->questions[] = (object) [
+                    'id'    => $question->id,
+                    'order' => $qIndex
+                ];
+            }
         }
-        
-        return $category;
     }
-
+    
     /**
-     * Process a question created for instant feedbacks.
+     * Converts user IDs to valid objects that are accepted by
+     * Surveys::create().
      *
-     * @param   App\Models\User             $user
-     * @param   App\Models\QuestionCategory $category
-     * @param   array                       $question
-     * @return  App\Models\Question
+     * @param   object  $data
+     * @param   array   $candidates
+     * @return  array
      */
-    protected function processInstantFeedbackQuestion(User $user, QuestionCategory $category, array $question)
+    protected function processCandidates($data, array $candidates)
     {
-        $questionObj = new Question();
-        $questionObj->text = $this->sanitize($question['text']);
-        $questionObj->ownerId = $user->id;
-        $questionObj->categoryId = $category->id;
-        $questionObj->answerType = intval($question['answer']);
-        $questionObj->optional = false;
-        $questionObj->isSurvey = false;
-        $questionObj->isNA = boolval($question['isNA']);
-        $questionObj->isFollowUpQuestion = false;
-        $questionObj->save();
-        
-        return $questionObj;
+        $results = [];
+        foreach ($candidates as $candidate) {
+            $user = User::find($candidate['id']);
+            
+            if (!$user) {
+                continue;
+            }
+            
+            $results[] = (object) [
+               'name'       => $user->name,
+               'email'      => $user->email,
+               'position'   => ''
+            ];
+        }
+        $data->individual->candidates = $results;
     }
 
 }
