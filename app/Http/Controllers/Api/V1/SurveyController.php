@@ -9,10 +9,12 @@ use App\Models\Survey;
 use App\Models\Question;
 use App\Models\EmailText;
 use App\Models\DefaultText;
-use App\Models\QuestionCategory;
 use Illuminate\Http\Request;
 use App\Http\JsonHalCollection;
+use Illuminate\Validation\Rule;
+use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use App\Exceptions\CustomValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class SurveyController extends Controller
@@ -40,7 +42,9 @@ class SurveyController extends Controller
             $surveys = Survey::where('ownerId', $user->id);
         }
 
-        $surveys = $surveys->latest('startDate')
+        $surveys = $surveys->valid()
+                           ->where('type', SurveyTypes::Individual)
+                           ->latest('startDate')
                            ->paginate($num);
         
         return response()->jsonHal($surveys)
@@ -58,47 +62,35 @@ class SurveyController extends Controller
 		$this->validate($request, [
 			'name'	                            => 'required|max:255',
 			'lang'	                            => 'required|in:en,fi,sv',
-			'type'	                            => 'required|in:instant',
+			'type'	                            => 'required|in:individual',
             'startDate'                         => 'required|isodate',
-            'endDate'                           => 'isodate',
+            'endDate'                           => 'required|isodate',
             'description'                       => 'string',
             'thankYouText'                      => 'string',
             'questionInfo'                      => 'string',
-            'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required|integer',
+            'questions'                         => 'required|array',
+            'questions.*.category.title'        => 'required|string',
+            'questions.*.category.description'  => 'string',
+            'questions.*.items'                 => 'required|array',
+            'questions.*.items.*.text'          => 'required|string',
+            'questions.*.items.*.isNA'          => 'required|boolean',
+            'questions.*.items.*.answer.type'   => 'required|in:0,1,2,3,4,5,6,7,8',
+            'questions.*.items.*.answer.options'=> 'array',
+            'candidates'                        => 'required|array',
+            'candidates.*.id'                   => 'required|integer'
 		], [
-		    'type.in'                           =>  'Only Instant Feedback (instant) types are accepted.'
+		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
             
         // Convert the string type to our internal representation
         // of a survey type.
         $types = [
-            'instant'    =>  SurveyTypes::Instant,
+            'individual'    => SurveyTypes::Individual
         ];
         $type = $types[$request->type];
-        
-        // For non instant feedback surveys, require an end date.
-        if ($type !== SurveyTypes::Instant) {
-            $this->validate($request, [
-                'endDate'   => 'isodate'
-            ]);
-        }
     
         // Make sure that the current user can create this survey type.
         $this->authorize('create', [Survey::class, $type]);
-            
-        // Validate question for instant feedbacks.
-        if ($type === SurveyTypes::Instant) {
-            $this->validate($request, [
-                'questions'                         => 'required|array|size:1',
-                'questions.*.text'                  => 'required|string',
-                'questions.*.isNA'                  => 'required|boolean',
-                'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
-                'questions.*.answer.options'        => 'array',
-                'questions.*.answer.*.description'  => 'string',
-                'questions.*.answer.*.value'        => 'string'
-            ]);
-        }
         
         // Create our draft survey.
         $surveyData = $this->generateSurveyData($type, $request);
@@ -166,6 +158,85 @@ class SurveyController extends Controller
     }
     
     /**
+     * Answers a survey.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
+     * @return  Illuminate\Http\Response
+     */
+    public function answer(Request $request, Survey $survey)
+    {
+        $this->validate($request, [
+            'key'                   => [
+                'required',
+                Rule::exists('survey_recipients', 'link')->where(function ($query) {
+                    $query->where('hasAnswered', 0);
+                })
+            ],
+            'answers'               => 'required|array'
+        ]);
+        
+        // Input items
+        $key = $request->key;
+        $answers = [];
+        foreach ($request->answers as $answer) {
+            $answers[$answer['question']] = $answer['answer'];
+        }
+        $user = $request->user();
+        
+        // Make sure the current user owns the key.
+        $surveyRecipient = $survey->recipients()->where('link', $key)->first();
+        $recipient = $surveyRecipient->recipient;
+        if ($recipient->name != $user->name || $recipient->email != $user->email) {
+            throw new CustomValidationException([
+                'key'   => ['Invalid answer key.']
+            ]);
+        }
+        
+        // Make sure this survey hasn't expired yet.
+        if ($survey->endDate->isPast()) {
+            throw new SurveyExpiredException();
+        }
+        
+        // Validate answers.
+        $errors = $this->validateAnswers($questions, $answers);
+        if (!empty($errors)) {
+            throw new CustomValidationException($errors);
+        }
+        
+        // Save our answers.
+        foreach ($questions as $q) {
+            $question = $q->question;
+            $answer = empty($answers[$question->id]) ? null : $answers1[$question->id];
+            
+            // Skip if we don't have an answer.
+            if ($answer === null) {
+                continue;
+            }
+            
+            // Create our answer.
+            $surveyAnswer = new SurveyAnswer();
+            $surveyAnswer->surveyId = $recipient->survey->id;
+            $surveyAnswer->answeredById = $recipient->recipient->id;
+            $surveyAnswer->questionId = $question->id;
+            $surveyAnswer->invitedById = $recipient->invitedById;
+            if ($question->answerTypeObject()->isNumeric()) {
+                $surveyAnswer->answerValue = $answer;
+            } else {
+                $surveyAnswer->answerText = $answer;
+            }
+            
+            $surveyAnswer->save();
+        }
+        
+        // Mark the invite as answered.
+        $recipient->hasAnswered = 1;
+        $recipient->save();
+        
+        return response('', 201);
+    }
+    
+    /**
      * Cleans up strings.
      *
      * @param   string  $str
@@ -202,24 +273,8 @@ class SurveyController extends Controller
         $data->individual   = $this->generate360Data($request, $data->type);
         $data->emails       = $this->generateEmails($request, $data->type);
         
-        $data->categories = [];
-        $data->questions = [];
-            
-        if ($data->type == SurveyTypes::Instant) {
-            $data->recipients = $request->recipients;
-            
-            $category = $this->findInstantFeedbackCategory($user, $data->lang);
-            $data->categories[] = (object) [
-                'id'    => $category->id,
-                'order' => 0
-            ];
-            
-            $question = $this->processInstantFeedbackQuestion($user, $category, $request->questions[0]);
-            $data->questions[] = (object) [
-                'id'    => $question->id,
-                'order' => 0
-            ];
-        }
+        $this->processQuestions($data, $request->questions);
+        $this->processCandidates($data, $request->candidates);
             
         return $data;
 	}
@@ -294,56 +349,111 @@ class SurveyController extends Controller
     }
     
     /**
-     * Returns the default question category for instant feedbacks.
+     * Converts submitted questions into data understood by
+     * Surveys::create()
      *
-     * @param   App\Models\User     $user
-     * @param   string              $lang
-     * @return  App\Models\QuestionCategory
+     * @param   object  $data
+     * @param   array   $questions
+     * @return  void
      */
-    protected function findInstantFeedbackCategory(User $user, $lang)
+    protected function processQuestions($data, array $questions)
     {
-        $category = QuestionCategory::where([
-            'title'             => 'Instant Feedback Category',
-            'lang'              => $lang,
-            'ownerId'           => $user->id,
-            'targetSurveyType'  => SurveyTypes::Instant
-        ])->first();
+        foreach ($questions as $index => $set) {
+            $c = $set['category'];
             
-        if (!$category) {
-            $category = new QuestionCategory();
-            $category->title = 'Instant Feedback Category';
-            $category->lang = $lang;
-            $category->ownerId = $user->id;
-            $category->targetSurveyType = SurveyTypes::Instant;
-            $category->isSurvey = false;
+            $category = new QuestionCategory;
+            $category->title = $this->sanitize($c['title']);
+            $category->lang = $data->lang;
+            $category->description = empty($c['description']) ? '' : $this->sanitize($c['description']);
+            $category->ownerId = $data->ownerId;
+            $category->targetSurveyType = $data->type;
             $category->save();
+            
+            $data->categories[] = (object) [
+                'id'    => $category->id,
+                'order' => $index
+            ];
+            
+            foreach ($set['items'] as $qIndex => $q) {
+                $question = new Question;
+                $question->text = $this->sanitize($q['text']);
+                $question->ownerId = $data->ownerId;
+                $question->categoryId = $category->id;
+                $question->answerType = intval($q['answer']['type']);
+                $question->isNA = $q['isNA'];
+                $question->save();
+                
+                $data->questions[] = (object) [
+                    'id'    => $question->id,
+                    'order' => $qIndex
+                ];
+            }
+        }
+    }
+    
+    /**
+     * Converts user IDs to valid objects that are accepted by
+     * Surveys::create().
+     *
+     * @param   object  $data
+     * @param   array   $candidates
+     * @return  array
+     */
+    protected function processCandidates($data, array $candidates)
+    {
+        $results = [];
+        foreach ($candidates as $candidate) {
+            $user = User::find($candidate['id']);
+            
+            if (!$user) {
+                continue;
+            }
+            
+            $results[] = (object) [
+               'name'       => $user->name,
+               'email'      => $user->email,
+               'position'   => ''
+            ];
+        }
+        $data->individual->candidates = $results;
+    }
+    
+    /**
+     * Ensures that the submitted answers are valid for each question.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection $questions
+     * @param   array                                   $answers
+     * @return  array
+     */
+    protected function validateAnswers(Collection $questions, array $answers)
+    {
+        $errors = [];
+        
+        foreach ($questions as $q) {
+            $question = $q->question;
+            $answer = $question->answerTypeObject();
+            $key = "questions.{$question->id}";
+            
+            // Validate answers
+            if (empty($answers[$question->id])) {
+                // Make sure non-optional questions have an answer.
+                if (!$question->optional) {
+                    $errors[$key][] = "Missing answer for question with ID {$question->id}.";
+                }
+            } else {
+                $ans = $answers[$question->id];
+                
+                // Questions that does not accept N/A should not receive one.
+                if ($ans === -1 && !$question->isNA) {
+                    $errors[$key][] = "N/A answer is not accepted.";
+                // Ensure that the answer is a valid one.
+                } elseif (!$answer->isValidValue($ans)) {
+                    $errors[$key][] = "'{$ans}' is not a valid answer.";
+                }
+            }
         }
         
-        return $category;
-    }
-
-    /**
-     * Process a question created for instant feedbacks.
-     *
-     * @param   App\Models\User             $user
-     * @param   App\Models\QuestionCategory $category
-     * @param   array                       $question
-     * @return  App\Models\Question
-     */
-    protected function processInstantFeedbackQuestion(User $user, QuestionCategory $category, array $question)
-    {
-        $questionObj = new Question();
-        $questionObj->text = $this->sanitize($question['text']);
-        $questionObj->ownerId = $user->id;
-        $questionObj->categoryId = $category->id;
-        $questionObj->answerType = intval($question['answer']);
-        $questionObj->optional = false;
-        $questionObj->isSurvey = false;
-        $questionObj->isNA = boolval($question['isNA']);
-        $questionObj->isFollowUpQuestion = false;
-        $questionObj->save();
-        
-        return $questionObj;
+        return $errors;
     }
 
 }

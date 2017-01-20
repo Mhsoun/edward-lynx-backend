@@ -27,7 +27,8 @@ Route::group(['prefix' => '/surveys'], function() {
         ->middleware('can:view,survey')
         ->name('api1-survey-questions');
     
-    Route::post('/{survey}/answers', 'AnswerController@create');
+    Route::post('/{survey}/answers', 'SurveyController@answer')
+        ->middleware('can:answer,survey');
 });
 
 // /instant-feedbacks Endpoints
@@ -38,7 +39,19 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
     Route::get('/{instantFeedback}', 'InstantFeedbackController@show')
         ->middleware('can:view,instantFeedback')
         ->name('api1-instant-feedback');
+    Route::patch('/{instantFeedback}', 'InstantFeedbackController@update')
+        ->middleware('can:update,instantFeedback');
     
+    Route::get('/{instantFeedback}/answers', 'InstantFeedbackController@answers')
+        ->middleware('can:viewAnswers,instantFeedback')
+        ->name('api1-instant-feedback-answers');
     Route::post('/{instantFeedback}/answers', 'InstantFeedbackController@answer')
+        ->middleware('can:answer,instantFeedback')
         ->name('api1-answer-instant-feedback');
+    
+    Route::post('/{instantFeedback}/shares', 'InstantFeedbackController@share')
+        ->middleware('can:share,instantFeedback')
+        ->name('api1-instant-feedback-share');
+    
+    Route::get('/test', 'InstantFeedbackController@test');
 });

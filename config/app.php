@@ -150,6 +150,7 @@ return [
         //'Illuminate\Html\HtmlServiceProvider',
 
         AltThree\Bus\BusServiceProvider::class,
+        Alfa6661\Firebase\FirebaseServiceProvider::class,
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
 
