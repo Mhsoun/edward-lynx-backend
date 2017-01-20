@@ -785,5 +785,3 @@ class Survey extends Model
         ];
     }
 }
-
-die('testing');
