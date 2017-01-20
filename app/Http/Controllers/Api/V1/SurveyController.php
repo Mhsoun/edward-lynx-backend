@@ -110,22 +110,8 @@ class SurveyController extends Controller
      */
     public function show(Request $request, Survey $survey)
     {
-        $user = $request->user();
         $json = $survey->jsonSerialize();
-        
-        // Retrieve the answer key of the current user
-        $recipient = Recipient::where([
-            'name'  => $user->name,
-            'mail'  => $user->email
-        ])->first();
-        
-        if ($recipient) {
-            $surveyRecipient = $this->recipients()->where('recipientId', $recipient->id)->first();
-            $json['key'] = $surveyRecipient->hasAnswered ? null : $survey->answerKeyOf($user);
-        } else {
-            $json['key'] = null;
-        }
-        
+        $json['key'] = $survey->answerKeyOf($request->user());
         return response()->jsonHal($json);
     }
     
@@ -203,9 +189,7 @@ class SurveyController extends Controller
         $user = $request->user();
         
         // Make sure the current user owns the key.
-        $surveyRecipient = $survey->recipients()->where('link', $key)->first();
-        $recipient = $surveyRecipient->recipient;
-        if ($recipient->name != $user->name || $recipient->email != $user->email) {
+        if ($key !== $survey->answerKeyOf($user)) {
             throw new CustomValidationException([
                 'key'   => ['Invalid answer key.']
             ]);
@@ -428,9 +412,10 @@ class SurveyController extends Controller
             }
             
             $results[] = (object) [
-               'name'       => $user->name,
-               'email'      => $user->email,
-               'position'   => ''
+                'userId'    => $user->id,
+                'name'      => $user->name,
+                'email'     => $user->email,
+                'position'  => ''
             ];
         }
         $data->individual->candidates = $results;

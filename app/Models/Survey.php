@@ -712,6 +712,32 @@ class Survey extends Model
     }
     
     /**
+     * Returns the answer key of the provided user.
+     * Returns NULL if the provided user has already answered the survey.
+     *
+     * @param   App\Models\User $user
+     * @return  string|null
+     */
+    public function answerKeyOf(User $user)
+    {
+        $recipient = Recipient::where([
+            'ownerId'   => $this->ownerId,
+            'user_id'   => $user->id
+        ])->first();
+        
+        if ($recipient) {
+            $surveyRecipient = $this->recipients()->where('recipientId', $recipient->id)->first();
+            if ($surveyRecipient && !$surveyRecipient->hasAnswered) {
+                return $surveyRecipient->link;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+    
+    /**
      * Directly override JSON serialization for this model
      * so we can change attributes without overwriting attribute
      * values through accessors.
@@ -725,6 +751,7 @@ class Survey extends Model
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
+        $data['key'] = $this->answerKeyOf(request()->user());
         
         if ($options == 0) {
             $data = $this->getEmailsForJson($data);
