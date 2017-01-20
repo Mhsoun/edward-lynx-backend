@@ -31,8 +31,6 @@ class SurveyController extends Controller
         $this->validate($request, [
             'num'   => 'integer|between:1,50'
         ]);
-            
-            dd($request);
         
         $num = intval($request->input('num', 10));
         $user = $request->user();
