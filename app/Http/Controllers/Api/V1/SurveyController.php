@@ -28,6 +28,7 @@ class SurveyController extends Controller
      */
     public function index(Request $request)
     {
+        dd($request);
         $this->validate($request, [
             'num'   => 'integer|between:1,50'
         ]);
