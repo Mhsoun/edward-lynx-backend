@@ -748,10 +748,12 @@ class Survey extends Model
     public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
+        $currentUser = request()->user();
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
-        $data['key'] = $this->answerKeyOf(request()->user());
+        $data['key'] = $this->answerKeyOf($currentUser);
+        $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
         
         if ($options == 0) {
             $data = $this->getEmailsForJson($data);

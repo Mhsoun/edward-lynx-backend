@@ -1,5 +1,6 @@
 <?php namespace App\Models;
 
+use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -7,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 */
 class SurveyRecipient extends Model
 {
+    const NO_ANSWERS = 0;
+    const PENDING_ANSWERS = 1;
+    const COMPLETE_ANSWERS = 2;
+    
     /**
     * The database table used by the model
     */
@@ -20,6 +25,35 @@ class SurveyRecipient extends Model
     public $timestamps = false;
 
     protected $dates = ['lastReminder'];
+    
+    /**
+     * Returns the status of a recipient for a given survey.
+     *
+     * @param   App\Models\Survey       $survey
+     * @param   App\Models\User|string  $user
+     * @param   string|null             $email
+     * @return  int
+     */
+    public static function surveyStatus(Survey $survey, User $user, $email = null)
+    {
+        if ($user instanceof User) {
+            $recipient = Recipient::where([
+                'ownerId' => $survey->ownerId,
+                'user_id' => $user->id
+            ])->first();
+            
+            if (!$recipient) {
+                throw new InvalidArgumentException("Cannot find a recipient for the given user.")
+            }
+            
+        } elseif (is_string($user) && !is_null($email)) {
+            $recipient = Recipient::where([
+                'ownerId'   => $survey->ownerId,
+                'name'      => $user,
+                'mail'      => $email
+            ])->first();
+        }
+    }
 
     /**
     * Returns the survey that the recipient belongs to

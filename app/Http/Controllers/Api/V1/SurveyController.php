@@ -111,7 +111,6 @@ class SurveyController extends Controller
     public function show(Request $request, Survey $survey)
     {
         $json = $survey->jsonSerialize();
-        $json['key'] = $survey->answerKeyOf($request->user());
         return response()->jsonHal($json);
     }
     
@@ -178,6 +177,7 @@ class SurveyController extends Controller
                 })
             ],
             'answers'               => 'required|array'
+            'final'                 => 'boolean',
         ]);
         
         // Input items
@@ -186,6 +186,7 @@ class SurveyController extends Controller
         foreach ($request->answers as $answer) {
             $answers[$answer['question']] = $answer['answer'];
         }
+        $final = $request->input('final', true);
         $user = $request->user();
         
         // Make sure the current user owns the key.
@@ -232,10 +233,13 @@ class SurveyController extends Controller
         }
         
         // Mark the invite as answered.
-        $recipient->hasAnswered = 1;
-        $recipient->save();
+        // TODO: reenable
+        if ($final) {
+            // $recipient->hasAnswered = 1;
+            // $recipient->save();
+        }
         
-        return response('', 201);
+        return response()->jsonHal($this->recipientAnswers($recipient));
     }
     
     /**
@@ -457,6 +461,20 @@ class SurveyController extends Controller
         }
         
         return $errors;
+    }
+    
+    protected function recipientAnswers(SurveyRecipient $recipient)
+    {
+        $survey = $recipient->survey;
+        $result = [
+            'key'       => $recipient->link,
+            'final'     => $recipient->hasAnswered,
+            'answers'   => []
+        ];
+        
+        foreach ($recipient->answers as $answer) {
+            
+        }
     }
 
 }
