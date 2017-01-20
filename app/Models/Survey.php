@@ -1,8 +1,10 @@
 <?php namespace App\Models;
 
 use Lang;
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
 * Represents a survey
@@ -56,6 +58,17 @@ class Survey extends Model
         'thankYouText',
         'questionInfoText'
     ];
+    
+    /**
+     * Limits surveys returned to non-expired surveys.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeValid(Builder $query)
+    {
+        return $query->where('endDate', '>', Carbon::now());
+    }
 
 	/**
 	* Returns name of the type

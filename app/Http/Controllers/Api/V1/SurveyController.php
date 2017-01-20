@@ -37,15 +37,14 @@ class SurveyController extends Controller
 
         // Fetch all surveys if we are a superadmin.
         if ($user->can('viewAll', Survey::class)) {
-            $surveys = Survey::where('type', SurveyTypes::Individual);
+            $surveys = Survey::select('*');
         } else {
-            $surveys = Survey::where([
-                'type'      => SurveyTypes::Individual,
-                'ownerId'   => $user->id
-            ]);
+            $surveys = Survey::where('ownerId', $user->id);
         }
 
-        $surveys = $surveys->latest('startDate')
+        $surveys = $surveys->valid()
+                           ->where('type', SurveyTypes::Individual)
+                           ->latest('startDate')
                            ->paginate($num);
         
         return response()->jsonHal($surveys)
