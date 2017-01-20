@@ -746,10 +746,6 @@ class Survey extends Model
             $method = "{$text}Text";
             $emailText = $this->{$method};
             
-            if (!is_object($emailText)) {
-                dd($emailText);
-            }
-            
             if ($emailText->exists) {
                 $data['emails'][$text] = [
                     'subject'   => $emailText->subject,
@@ -776,3 +772,5 @@ class Survey extends Model
         ];
     }
 }
+
+die('testing');
