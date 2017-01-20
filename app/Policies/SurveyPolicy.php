@@ -12,8 +12,8 @@ class SurveyPolicy
     /**
      * Before hook. Superadmins can do everything.
      * 
-     * @param  User $user
-     * @return boolean
+     * @param   App\Models\User     $user
+     * @return  boolean
      */
     public function before(User $user)
     {
@@ -25,9 +25,9 @@ class SurveyPolicy
     /**
      * Determine whether the user can view the survey.
      *
-     * @param  \App\User  $user
-     * @param  \App\Survey  $survey
-     * @return boolean
+     * @param   App\User    $user
+     * @param   App\Survey  $survey
+     * @return  boolean
      */
     public function view(User $user, Survey $survey)
     {
@@ -59,10 +59,6 @@ class SurveyPolicy
      */
     public function create(User $user, $type)
     {
-        if ($type === SurveyTypes::Instant) {
-            return true;
-        }
-        
         return SurveyTypes::canCreate($user->allowedSurveyTypes, $type);
     }
 

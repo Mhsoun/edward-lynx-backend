@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Survey;
 use App\Models\Question;
 use App\Models\EmailText;
+use App\Models\Recipient;
 use App\Models\DefaultText;
 use Illuminate\Http\Request;
 use App\Http\JsonHalCollection;
@@ -103,12 +104,29 @@ class SurveyController extends Controller
     /**
      * Returns survey information.
      * 
-     * @param  Survey       $survey
-     * @return JSONResponse 
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
+     * @return  App\Http\HalResponse
      */
-    public function show(Survey $survey)
+    public function show(Request $request, Survey $survey)
     {
-        return response()->jsonHal($survey);
+        $user = $request->user();
+        $json = $survey->jsonSerialize();
+        
+        // Retrieve the answer key of the current user
+        $recipient = Recipient::where([
+            'name'  => $user->name,
+            'mail'  => $user->email
+        ])->first();
+        
+        if ($recipient) {
+            $surveyRecipient = $this->recipients()->where('recipientId', $recipient->id)->first();
+            $json['key'] = $surveyRecipient->hasAnswered ? null : $survey->answerKeyOf($user);
+        } else {
+            $json['key'] = null;
+        }
+        
+        return response()->jsonHal($json);
     }
     
     /**
