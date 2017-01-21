@@ -43,7 +43,7 @@ class SurveyRecipient extends Model
             ])->first();
             
             if (!$recipient) {
-                throw new InvalidArgumentException("Cannot find a recipient for the given user.")
+                throw new InvalidArgumentException("Cannot find a recipient for the given user.");
             }
             
         } elseif (is_string($user) && !is_null($email)) {
@@ -68,7 +68,7 @@ class SurveyRecipient extends Model
     */
     public function recipient()
     {
-        return $this->belongsTo('\App\Models\Recipient', 'recipientId');
+        return $this->morphTo('recipient', 'recipientType', 'recipientId');
     }
 
     /**
