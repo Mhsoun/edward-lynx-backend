@@ -721,20 +721,17 @@ class Survey extends Model
      */
     public function answerKeyOf(User $user)
     {
-        $recipient = Recipient::where([
-            'ownerId'   => $this->ownerId,
-            'user_id'   => $user->id
-        ])->first();
-        
+        $recipient = $this->recipients()
+                          ->where([
+                              'recipientId'   => $user->id,
+                              'recipientType' => 'users',
+                              'hasAnswered'   => false
+                          ])
+                          ->first();
         if ($recipient) {
-            $surveyRecipient = $this->recipients()->where('recipientId', $recipient->id)->first();
-            if ($surveyRecipient && !$surveyRecipient->hasAnswered) {
-                return $surveyRecipient->link;
-            } else {
-                return null;
-            }
+          return $recipient->link;
         } else {
-            return null;
+          return null;
         }
     }
     
