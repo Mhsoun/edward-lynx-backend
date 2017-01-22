@@ -142,7 +142,7 @@ class Survey extends Model
 	/**
 	* Adds the recipient to the survey
 	*/
-	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null)
+	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null, $recipientType = 'recipients')
 	{
 		$surveyRecipient = new \App\Models\SurveyRecipient;
 		$surveyRecipient->recipientId = $recipientId;
@@ -150,6 +150,7 @@ class Survey extends Model
 		$surveyRecipient->roleId = $roleId;
 		$surveyRecipient->invitedById = $invitedById;
 		$surveyRecipient->groupId = $groupId;
+        $surveyRecipient->recipientType = $recipientType;
 		$this->recipients()->save($surveyRecipient);
 		return $surveyRecipient;
 	}

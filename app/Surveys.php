@@ -400,18 +400,31 @@ abstract class Surveys
         $surveyEmailer = $app->app->make('SurveyEmailer');
 
         foreach ($candidates as $candidate) {
-            $userId = isset($candidate->userId) ? $candidate->userId : null;
-            $recipient = \App\Models\Recipient::make(
-                $survey->ownerId,
-                $candidate->name,
-                $candidate->email,
-                $candidate->position,
-                $userId);
+            $recipient = !empty($candidate->userId) ? User::find($candidate->userId) : null;
+            
+            // Make a recipient record if the candidate is not a
+            // registered user.
+            if (!$recipient) {
+                $recipient = \App\Models\Recipient::make(
+                    $survey->ownerId,
+                    $candidate->name,
+                    $candidate->email,
+                    $candidate->position);
+            }
 
             //If the recipient already is added as candidate, continue.
             $isAlreadyCandidate = $survey->candidates()
-                ->where('recipientId', '=', $recipient->id)
-                ->where('surveyId', '=', $survey->id)
+                ->where('surveyId', $survey->id)
+                ->where(function ($query) use ($recipient) {
+                    $query->where([
+                            'recipientId'   => $recipient->id,
+                            'recipientType' => 'recipients'
+                          ])
+                          ->orWhere([
+                            'recipientId'   => $recipient->id,
+                            'recipientType' => 'users'
+                          ]);
+                })
                 ->first() != null;
 
             if ($isAlreadyCandidate) {
@@ -419,14 +432,18 @@ abstract class Surveys
             }
 
             //Create the recipient
+            $userType = $recipient instanceof User ? 'users' : 'recipients';
             $surveyRecipient = $survey->addRecipient(
                 $recipient->id,
                 \App\Roles::selfRoleId(),
-                $recipient->id);
+                $recipient->id,
+                null,
+                $userType);
 
             //Create the candidate
             $surveyInviteRecipient = new \App\Models\SurveyCandidate;
             $surveyInviteRecipient->recipientId = $recipient->id;
+            $surveyInviteRecipient->recipientType = $userType;
             $surveyInviteRecipient->link = $surveyRecipient->link;
 
             $endDate = $survey->endDate;
