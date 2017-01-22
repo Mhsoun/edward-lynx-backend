@@ -11,6 +11,7 @@ class SurveyRecipient extends Model
     const NO_ANSWERS = 0;
     const PENDING_ANSWERS = 1;
     const COMPLETE_ANSWERS = 2;
+    const NO_INVITE = 3;
     
     /**
     * The database table used by the model
@@ -30,28 +31,41 @@ class SurveyRecipient extends Model
      * Returns the status of a recipient for a given survey.
      *
      * @param   App\Models\Survey       $survey
-     * @param   App\Models\User|string  $user
-     * @param   string|null             $email
+     * @param   App\Models\User|array   $user
      * @return  int
      */
-    public static function surveyStatus(Survey $survey, User $user, $email = null)
+    public static function surveyStatus(Survey $survey, $user)
     {
         if ($user instanceof User) {
-            $recipient = Recipient::where([
-                'ownerId' => $survey->ownerId,
-                'user_id' => $user->id
-            ])->first();
-            
-            if (!$recipient) {
-                throw new InvalidArgumentException("Cannot find a recipient for the given user.");
+            $recipient = $survey->recipients()
+                                ->where([
+                                    'surveyId'      => $survey->id,
+                                    'recipientId'   => $user->id,
+                                    'recipientType' => 'users'
+                                ])->first();
+        } elseif (is_array($user)) {
+            // Make sure we have the correct keys.
+            if (empty($user['name']) || empty($user['email'])) {
+                throw new InvalidArgumentException('Missing user name and email details.');
             }
             
-        } elseif (is_string($user) && !is_null($email)) {
-            $recipient = Recipient::where([
+            $recipientRecord = Recipient::where([
                 'ownerId'   => $survey->ownerId,
-                'name'      => $user,
-                'mail'      => $email
-            ])->first();
+                'name'      => $user['name'],
+                'mail'      => $user['email']
+            ]);
+            $recipient = $survey->recipients()
+                                ->where([
+                                    'surveyId'      => $survey->id,
+                                    'recipientId'   => $recipientRecord->id,
+                                    'recipientType' => 'recipients'
+                                ])->first();
+        }
+        
+        // If we can't find an invite, then the user is not
+        // invited to answer the survey.
+        if (!$recipient) {
+            return self::NO_INVITE;
         }
     }
 
