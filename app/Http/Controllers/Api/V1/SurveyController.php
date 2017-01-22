@@ -10,11 +10,13 @@ use App\Models\Question;
 use App\Models\EmailText;
 use App\Models\Recipient;
 use App\Models\DefaultText;
+use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -172,9 +174,9 @@ class SurveyController extends Controller
         $this->validate($request, [
             'key'                   => [
                 'required',
-                Rule::exists('survey_recipients', 'link')->where(function ($query) {
-                    $query->where('hasAnswered', 0);
-                })
+                // Rule::exists('survey_recipients', 'link')->where(function ($query) {
+                //    $query->where('hasAnswered', 0);
+                // })
             ],
             'answers'               => 'required|array'
             'final'                 => 'boolean',
@@ -188,13 +190,15 @@ class SurveyController extends Controller
         }
         $final = $request->input('final', true);
         $user = $request->user();
+        $questions = $survey->questions;
         
         // Make sure the current user owns the key.
-        if ($key !== $survey->answerKeyOf($user)) {
-            throw new CustomValidationException([
-                'key'   => ['Invalid answer key.']
-            ]);
-        }
+        // TODO: reenable
+        // if ($key !== $survey->answerKeyOf($user)) {
+            // throw new CustomValidationException([
+                // 'key'   => ['Invalid answer key.']
+            // ]);
+        // }
         
         // Make sure this survey hasn't expired yet.
         if ($survey->endDate->isPast()) {
@@ -210,7 +214,7 @@ class SurveyController extends Controller
         // Save our answers.
         foreach ($questions as $q) {
             $question = $q->question;
-            $answer = empty($answers[$question->id]) ? null : $answers1[$question->id];
+            $answer = empty($answers[$question->id]) ? null : $answers[$question->id];
             
             // Skip if we don't have an answer.
             if ($answer === null) {
@@ -218,11 +222,14 @@ class SurveyController extends Controller
             }
             
             // Create our answer.
+            // TODO: reenable
             $surveyAnswer = new SurveyAnswer();
-            $surveyAnswer->surveyId = $recipient->survey->id;
-            $surveyAnswer->answeredById = $recipient->recipient->id;
+            $surveyAnswer->surveyId = $survey->id;
+            // $surveyAnswer->answeredById = $recipient->recipient->id;
+            $surveyAnswer->answeredById = 1;
             $surveyAnswer->questionId = $question->id;
-            $surveyAnswer->invitedById = $recipient->invitedById;
+            // $surveyAnswer->invitedById = $recipient->invitedById;
+            $surveyAnswer->invitedById = 1;
             if ($question->answerTypeObject()->isNumeric()) {
                 $surveyAnswer->answerValue = $answer;
             } else {

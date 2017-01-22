@@ -786,7 +786,7 @@ class Survey extends Model
             $method = "{$text}Text";
             $emailText = $this->{$method};
             
-            if ($emailText instanceof EmailText && $emailText->exists) {
+            if ($emailText->exists) {
                 $data['emails'][$text] = [
                     'subject'   => $emailText->subject,
                     'text'      => $emailText->text
