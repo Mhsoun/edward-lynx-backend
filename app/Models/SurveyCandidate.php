@@ -34,7 +34,7 @@ class SurveyCandidate extends Model
     */
     public function recipient()
     {
-        return $this->belongsTo('\App\Models\Recipient', 'recipientId');
+        return $this->morphTo('recipient', 'recipientType', 'recipientId');
     }
 
     /**

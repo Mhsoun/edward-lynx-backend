@@ -142,7 +142,7 @@ class Survey extends Model
 	/**
 	* Adds the recipient to the survey
 	*/
-	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null)
+	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null, $recipientType = 'recipients')
 	{
 		$surveyRecipient = new \App\Models\SurveyRecipient;
 		$surveyRecipient->recipientId = $recipientId;
@@ -150,6 +150,7 @@ class Survey extends Model
 		$surveyRecipient->roleId = $roleId;
 		$surveyRecipient->invitedById = $invitedById;
 		$surveyRecipient->groupId = $groupId;
+        $surveyRecipient->recipientType = $recipientType;
 		$this->recipients()->save($surveyRecipient);
 		return $surveyRecipient;
 	}
@@ -720,20 +721,17 @@ class Survey extends Model
      */
     public function answerKeyOf(User $user)
     {
-        $recipient = Recipient::where([
-            'ownerId'   => $this->ownerId,
-            'user_id'   => $user->id
-        ])->first();
-        
+        $recipient = $this->recipients()
+                          ->where([
+                              'recipientId'   => $user->id,
+                              'recipientType' => 'users',
+                              'hasAnswered'   => false
+                          ])
+                          ->first();
         if ($recipient) {
-            $surveyRecipient = $this->recipients()->where('recipientId', $recipient->id)->first();
-            if ($surveyRecipient && !$surveyRecipient->hasAnswered) {
-                return $surveyRecipient->link;
-            } else {
-                return null;
-            }
+          return $recipient->link;
         } else {
-            return null;
+          return null;
         }
     }
     
@@ -748,10 +746,12 @@ class Survey extends Model
     public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
+        $currentUser = request()->user();
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
-        $data['key'] = $this->answerKeyOf(request()->user());
+        $data['key'] = $this->answerKeyOf($currentUser);
+        $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
         
         if ($options == 0) {
             $data = $this->getEmailsForJson($data);
