@@ -178,8 +178,8 @@ class SurveyController extends Controller
                 //    $query->where('hasAnswered', 0);
                 // })
             ],
-            'answers'               => 'required|array'
-            'final'                 => 'boolean',
+            'answers'               => 'required|array',
+            'final'                 => 'boolean'
         ]);
         
         // Input items
