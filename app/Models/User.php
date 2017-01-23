@@ -721,6 +721,21 @@ class User extends Authenticatable implements AuthorizableContract
             ->get();
         return $children;
     }
+    
+    /**
+     * Returns true if the provided user is a colleague of
+     * this user.
+     *
+     * @param   App\Models\User $user
+     * @return  boolean
+     */
+    public function colleagueOf(User $user)
+    {
+        $colleagues = $this->colleagues()->map(function($user) {
+            return $user->id;
+        });
+        return in_array($user->id, $colleagues);
+    }
 
     /**
      * Returns TRUE if the current user has the provided type/access level.

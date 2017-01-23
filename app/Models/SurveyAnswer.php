@@ -56,4 +56,18 @@ class SurveyAnswer extends Model
     		->where('invitedById', '=', $this->invitedById)
     		->first();
     }
+    
+    /**
+     * Returns the JSON representation of this model.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $answerType = $this->question->answerTypeObject();
+        return [
+            'question'  => $this->questionId,
+            'answer'    => $this->answerValue ? $this->answerValue : $this->answerText
+        ];
+    }
 }

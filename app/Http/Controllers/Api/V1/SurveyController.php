@@ -163,93 +163,6 @@ class SurveyController extends Controller
     }
     
     /**
-     * Answers a survey.
-     *
-     * @param   Illuminate\Http\Request $request
-     * @param   App\Models\Survey       $survey
-     * @return  Illuminate\Http\Response
-     */
-    public function answer(Request $request, Survey $survey)
-    {
-        $this->validate($request, [
-            'key'                   => [
-                'required',
-                // Rule::exists('survey_recipients', 'link')->where(function ($query) {
-                //    $query->where('hasAnswered', 0);
-                // })
-            ],
-            'answers'               => 'required|array',
-            'final'                 => 'boolean'
-        ]);
-        
-        // Input items
-        $key = $request->key;
-        $answers = [];
-        foreach ($request->answers as $answer) {
-            $answers[$answer['question']] = $answer['answer'];
-        }
-        $final = $request->input('final', true);
-        $user = $request->user();
-        $questions = $survey->questions;
-        
-        // Make sure the current user owns the key.
-        // TODO: reenable
-        // if ($key !== $survey->answerKeyOf($user)) {
-            // throw new CustomValidationException([
-                // 'key'   => ['Invalid answer key.']
-            // ]);
-        // }
-        
-        // Make sure this survey hasn't expired yet.
-        if ($survey->endDate->isPast()) {
-            throw new SurveyExpiredException();
-        }
-        
-        // Validate answers.
-        $errors = $this->validateAnswers($questions, $answers);
-        if (!empty($errors)) {
-            throw new CustomValidationException($errors);
-        }
-        
-        // Save our answers.
-        foreach ($questions as $q) {
-            $question = $q->question;
-            $answer = empty($answers[$question->id]) ? null : $answers[$question->id];
-            
-            // Skip if we don't have an answer.
-            if ($answer === null) {
-                continue;
-            }
-            
-            // Create our answer.
-            // TODO: reenable
-            $surveyAnswer = new SurveyAnswer();
-            $surveyAnswer->surveyId = $survey->id;
-            // $surveyAnswer->answeredById = $recipient->recipient->id;
-            $surveyAnswer->answeredById = 1;
-            $surveyAnswer->questionId = $question->id;
-            // $surveyAnswer->invitedById = $recipient->invitedById;
-            $surveyAnswer->invitedById = 1;
-            if ($question->answerTypeObject()->isNumeric()) {
-                $surveyAnswer->answerValue = $answer;
-            } else {
-                $surveyAnswer->answerText = $answer;
-            }
-            
-            $surveyAnswer->save();
-        }
-        
-        // Mark the invite as answered.
-        // TODO: reenable
-        if ($final) {
-            // $recipient->hasAnswered = 1;
-            // $recipient->save();
-        }
-        
-        return response()->jsonHal($this->recipientAnswers($recipient));
-    }
-    
-    /**
      * Cleans up strings.
      *
      * @param   string  $str
@@ -480,7 +393,13 @@ class SurveyController extends Controller
         ];
         
         foreach ($recipient->answers as $answer) {
-            
+            $result['answers'][] = [
+                'question'  => $answer->questionId,
+                'answer'    =>
+            ];
+            if (!is_null($answer->answerValue)) {
+                
+            }
         }
     }
 
