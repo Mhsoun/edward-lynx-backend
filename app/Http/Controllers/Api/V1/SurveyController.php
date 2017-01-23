@@ -366,43 +366,5 @@ class SurveyController extends Controller
         }
         $data->individual->candidates = $results;
     }
-    
-    /**
-     * Ensures that the submitted answers are valid for each question.
-     *
-     * @param   Illuminate\Database\Eloquent\Collection $questions
-     * @param   array                                   $answers
-     * @return  array
-     */
-    protected function validateAnswers(Collection $questions, array $answers)
-    {
-        $errors = [];
-        
-        foreach ($questions as $q) {
-            $question = $q->question;
-            $answer = $question->answerTypeObject();
-            $key = "questions.{$question->id}";
-            
-            // Validate answers
-            if (empty($answers[$question->id])) {
-                // Make sure non-optional questions have an answer.
-                if (!$question->optional) {
-                    $errors[$key][] = "Missing answer for question with ID {$question->id}.";
-                }
-            } else {
-                $ans = $answers[$question->id];
-                
-                // Questions that does not accept N/A should not receive one.
-                if ($ans === -1 && !$question->isNA) {
-                    $errors[$key][] = "N/A answer is not accepted.";
-                // Ensure that the answer is a valid one.
-                } elseif (!$answer->isValidValue($ans)) {
-                    $errors[$key][] = "'{$ans}' is not a valid answer.";
-                }
-            }
-        }
-        
-        return $errors;
-    }
 
 }

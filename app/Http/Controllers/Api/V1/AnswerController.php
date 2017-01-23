@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Survey;
+use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Collection;
+use App\Exceptions\CustomValidationException;
 use App\Exceptions\SurveyAnswersFinalException;
 
 class AnswerController extends Controller
@@ -61,8 +64,17 @@ class AnswerController extends Controller
         $user = $request->user();
         $questions = $survey->questions;
         
-        if (!$user->can('administer', $survey)) {
-            $this->validate(['key'   => 'exists:survey_recipients,link']);
+        if (empty($key)) {
+            if (!$user->can('administer', $survey)) {
+                throw new CustomValidationException([
+                    'key'   => ['Missing answer key.']
+                ]);
+            }
+            
+            $recipient = SurveyRecipient::make($survey, $user);
+            $key = $recipient->link;
+        } else {
+            $this->validate($request, ['key' => 'exists:survey_recipients,link']);
             $recipient = SurveyRecipient::where([
                 'surveyId'      => $survey->id,
                 'link'          => $key,
@@ -75,8 +87,7 @@ class AnswerController extends Controller
                     'key'   => ['Invalid answer key.']
                 ]);
             }
-        } elseif ($user->can('administer', $survey) && empty($key)) {
-            $recipient = SurveyRecipient::make($survey, $user);
+            
             $key = $recipient->link;
         }
         
@@ -91,7 +102,7 @@ class AnswerController extends Controller
         }
         
         // Validate answers.
-        $errors = $this->validateAnswers($questions, $answers);
+        $errors = $this->validateAnswers($questions, $answers, $final);
         if (!empty($errors)) {
             throw new CustomValidationException($errors);
         }
@@ -104,21 +115,34 @@ class AnswerController extends Controller
             // Skip if we don't have an answer.
             if ($answer === null) {
                 continue;
-            }            
+            }
             
-            // Create our answer.
-            $surveyAnswer = new SurveyAnswer();
-            $surveyAnswer->surveyId = $survey->id;
-            $surveyAnswer->answeredById = $recipient->recipient->id;
-            $surveyAnswer->questionId = $question->id;
-            $surveyAnswer->invitedById = $recipient->invitedById;
-            if ($question->answerTypeObject()->isNumeric()) {
+            // Try to check if we have an answer to the question
+            $surveyAnswer = SurveyAnswer::where([
+                'answeredById'      => $user->id,
+                'answeredByType'    => 'users',
+                'questionId'        => $question->id,
+                'invitedById'       => $recipient->invitedById
+            ])->first();
+            
+            // Create our answer if there is none.
+            if (!$surveyAnswer) {
+                $surveyAnswer = new SurveyAnswer();
+                $surveyAnswer->answeredById = $user->id;
+                $surveyAnswer->answeredByType = 'users';
+                $surveyAnswer->questionId = $question->id;
+                $surveyAnswer->invitedById = $recipient->invitedById;
+            }
+            
+            // For some reason, agreement scales are treated as text
+            $numerics = [0, 1, 2, 3, 4, 6, 7];
+            if (in_array($question->answerType, $numerics)) {
                 $surveyAnswer->answerValue = $answer;
             } else {
                 $surveyAnswer->answerText = $answer;
             }
-            
-            $surveyAnswer->save();
+
+            $survey->answers()->save($surveyAnswer);
         }
         
         // Mark the invite as answered.
@@ -128,6 +152,45 @@ class AnswerController extends Controller
         }
         
         return response()->jsonHal($recipient);
+    }
+    
+    /**
+     * Ensures that the submitted answers are valid for each question.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection $questions
+     * @param   array                                   $answers
+     * @param   boolean                                 $complete
+     * @return  array
+     */
+    protected function validateAnswers(Collection $questions, array $answers, $complete = true)
+    {
+        $errors = [];
+        
+        foreach ($questions as $q) {
+            $question = $q->question;
+            $answer = $question->answerTypeObject();
+            $key = "questions.{$question->id}";
+            
+            // Validate answers
+            if (empty($answers[$question->id])) {
+                // Make sure non-optional questions have an answer.
+                if ($complete && !$question->optional) {
+                    $errors[$key][] = "Missing answer for question with ID {$question->id}.";
+                }
+            } else {
+                $ans = $answers[$question->id];
+                
+                // Questions that does not accept N/A should not receive one.
+                if ($ans === -1 && !$question->isNA) {
+                    $errors[$key][] = "N/A answer is not accepted.";
+                // Ensure that the answer is a valid one.
+                } elseif (!$answer->isValidValue($ans)) {
+                    $errors[$key][] = "'{$ans}' is not a valid answer.";
+                }
+            }
+        }
+        
+        return $errors;
     }
     
 }

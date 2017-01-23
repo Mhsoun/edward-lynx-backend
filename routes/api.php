@@ -30,7 +30,7 @@ Route::group(['prefix' => '/surveys'], function() {
     Route::get('/{survey}/answers', 'AnswerController@index')
         ->middleware('can:answer,survey')
         ->name('api1-survey-answers');
-    Route::post('/{survey}/answers', 'SurveyController@answer')
+    Route::post('/{survey}/answers', 'AnswerController@answer')
         ->middleware('can:answer,survey');
 });
 
