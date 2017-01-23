@@ -151,15 +151,37 @@ class SurveyController extends Controller
     /**
      * Returns the survey's questions.
      *
-     * @param   App\Models\Survey   $survey
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
      * @return  App\Http\HalResponse
      */
-    public function questions(Survey $survey)
+    public function questions(Request $request, Survey $survey)
     {
         $url = route('api1-survey-questions', $survey);
-        $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
         
-        return response()->jsonHal($categories);
+        // Fetch the user's answers
+        $questionToAnswers = [];
+        $answers = $survey->answers()->where([
+            'answeredById'      => $request->user()->id,
+            'answeredByType'    => 'users'
+        ])->getResults();
+        foreach ($answers as $answer) {
+            $questionToAnswers[$answer->questionId] = $answer->answerValue ? $answer->answerValue : $answer->answerText;
+        }
+         
+        // Include the user's answer to each question 
+        $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
+        $json = $categories->map(function($item) use ($questionToAnswers) {
+            $json = $item->jsonSerialize();
+            $json['questions'] = array_map(function($question) use ($questionToAnswers) {
+                $questionId = $question['id'];
+                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId] : null;
+                return $question;
+            }, $json['questions']);
+            return $json;
+        });
+        
+        return response()->jsonHal($json);
     }
     
     /**
