@@ -382,25 +382,5 @@ class SurveyController extends Controller
         
         return $errors;
     }
-    
-    protected function recipientAnswers(SurveyRecipient $recipient)
-    {
-        $survey = $recipient->survey;
-        $result = [
-            'key'       => $recipient->link,
-            'final'     => $recipient->hasAnswered,
-            'answers'   => []
-        ];
-        
-        foreach ($recipient->answers as $answer) {
-            $result['answers'][] = [
-                'question'  => $answer->questionId,
-                'answer'    =>
-            ];
-            if (!is_null($answer->answerValue)) {
-                
-            }
-        }
-    }
 
 }
