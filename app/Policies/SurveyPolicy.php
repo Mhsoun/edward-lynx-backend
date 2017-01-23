@@ -3,6 +3,7 @@
 use App\SurveyTypes;
 use App\Models\User;
 use App\Models\Survey;
+use App\Models\SurveyRecipient;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SurveyPolicy
@@ -103,6 +104,28 @@ class SurveyPolicy
      */
     public function answer(User $user, Survey $survey)
     {
-        return true; // Validate key in the controller.
+        if ($this->administer($user, $survey)) {
+            return true;
+        }
+        
+        $recipient = SurveyRecipient::where([
+            'surveyId'      => $survey->id,
+            'recipientId'   => $user->id,
+            'recipientType' => 'users'
+        ]);
+            
+        return $recipient->count() > 0;
+    }
+    
+    /**
+     * Determine whether the user can administer the survey.
+     * 
+     * @param   App\Models\User     $user
+     * @param   App\Models\Survey   $survey
+     * @return  boolean
+     */
+    public function administer(User $user, Survey $survey)
+    {
+        return $user->isAn('admin') && $user->colleagueOf($survey->owner);
     }
 }

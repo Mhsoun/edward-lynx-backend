@@ -39,7 +39,6 @@ class SurveyRecipient extends Model
         if ($user instanceof User) {
             $recipient = $survey->recipients()
                                 ->where([
-                                    'surveyId'      => $survey->id,
                                     'recipientId'   => $user->id,
                                     'recipientType' => 'users'
                                 ])->first();
@@ -56,7 +55,6 @@ class SurveyRecipient extends Model
             ]);
             $recipient = $survey->recipients()
                                 ->where([
-                                    'surveyId'      => $survey->id,
                                     'recipientId'   => $recipientRecord->id,
                                     'recipientType' => 'recipients'
                                 ])->first();
@@ -67,6 +65,37 @@ class SurveyRecipient extends Model
         if (!$recipient) {
             return self::NO_INVITE;
         }
+        
+        // If this invite has been marked answered then it is complete.
+        if ($recipient->hasAnswered) {
+            return self::COMPLETE_ANSWERS;
+        }
+        
+        if ($recipient->answers()->count() > 0) {
+            return self::PENDING_ANSWERS;
+        } else {
+            return self::NO_ANSWERS;
+        }
+    }
+    
+    /**
+     * Creates an invite for a given user.
+     *
+     * @param   App\Models\Survey   $survey
+     * @param   App\Models\User     $user
+     * @param   App\Models\User     $invitedBy
+     * @return  App\Models\SurveyRecipient
+     */
+    public static function make(Survey $survey, User $user, User $invitedBy = null)
+    {
+        $surveyRecipient = new self;
+        $surveyRecipient->recipientId = $user->id;
+        $surveyRecipient->link = str_random(32);
+        $surveyRecipient->invitedById = $invitedBy ? $invitedBy->id : $user->id;
+        $surveyRecipient->recipientType = 'users';
+        $survey->recipients()->save($surveyRecipient);
+        
+        return $surveyRecipient;
     }
 
     /**
@@ -91,6 +120,19 @@ class SurveyRecipient extends Model
     public function invitedByObj()
     {
         return $this->belongsTo('\App\Models\Recipient', 'invitedById');
+    }
+    
+    /**
+     * Returns the recipient's answers to this survey.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function answers()
+    {
+        return $this->survey->answers()->where([
+            'answeredById'      => $this->recipientId,
+            'answeredByType'    => $this->recipientType
+        ]);
     }
 
     /**
@@ -132,5 +174,19 @@ class SurveyRecipient extends Model
             ->candidates()
             ->where('recipientId', '=', $this->invitedById)
             ->first();
+    }
+    
+    /**
+     * Returns the JSON representation of this model.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'key'       => $this->link,
+            'final'     => $this->hasAnswered ? true : false,
+            'answers'   => $this->answers
+        ];
     }
 }
