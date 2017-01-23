@@ -130,8 +130,8 @@ class SurveyRecipient extends Model
     public function answers()
     {
         return $this->survey->answers()->where([
-            'answeredById'   => $this->recipientId,
-            'recipientType'  => $this->recipientType
+            'answeredById'      => $this->recipientId,
+            'answeredByType'    => $this->recipientType
         ]);
     }
 
