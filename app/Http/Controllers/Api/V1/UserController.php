@@ -73,7 +73,7 @@ class UserController extends Controller
             'country'           => 'max:255'
         ]);
 
-        $fields = ['name', 'info', 'lang'];
+        $fields = ['name', 'info', 'lang', 'position', 'department', 'city', 'country'];
         foreach ($fields as $field) {
             if ($request->has($field)) {
                 $user->{$field} = $request->input($field);
