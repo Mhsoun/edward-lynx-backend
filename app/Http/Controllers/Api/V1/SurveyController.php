@@ -47,7 +47,7 @@ class SurveyController extends Controller
 
         $surveys = $surveys->valid()
                            ->where('type', SurveyTypes::Individual)
-                           ->latest('startDate')
+                           ->latest('endDate')
                            ->paginate($num);
         
         return response()->jsonHal($surveys)
