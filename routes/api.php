@@ -58,3 +58,9 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
     
     Route::get('/test', 'InstantFeedbackController@test');
 });
+
+// /dev-plans Endpoints
+Route::group(['prefix' => '/dev-plans'], function() {
+    Route::get('/', 'DevelopmentPlanController@index');
+    Route::post('/', 'DevelopmentPlanController@create');
+});
