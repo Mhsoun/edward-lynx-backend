@@ -18,9 +18,9 @@ class CreateDevelopmentPlanGoalsTable extends Migration
             $table->integer('developmentPlanId')->unsigned();
             $table->string('title');
             $table->text('description');
-            $table->boolean('checked');
+            $table->boolean('checked')->default(false);
             $table->integer('position')->unsigned();
-            $table->dateTimeTz('dueDate');
+            $table->dateTimeTz('dueDate')->nullable();
             
             $table->foreign('developmentPlanId')
                   ->references('id')->on('development_plans')
