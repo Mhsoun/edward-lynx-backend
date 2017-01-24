@@ -27,7 +27,10 @@ Route::group(['prefix' => '/surveys'], function() {
         ->middleware('can:view,survey')
         ->name('api1-survey-questions');
     
-    Route::post('/{survey}/answers', 'SurveyController@answer')
+    Route::get('/{survey}/answers', 'AnswerController@index')
+        ->middleware('can:answer,survey')
+        ->name('api1-survey-answers');
+    Route::post('/{survey}/answers', 'AnswerController@answer')
         ->middleware('can:answer,survey');
 });
 

@@ -8,12 +8,15 @@ use App\Models\User;
 use App\Models\Survey;
 use App\Models\Question;
 use App\Models\EmailText;
+use App\Models\Recipient;
 use App\Models\DefaultText;
+use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -103,12 +106,14 @@ class SurveyController extends Controller
     /**
      * Returns survey information.
      * 
-     * @param  Survey       $survey
-     * @return JSONResponse 
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
+     * @return  App\Http\HalResponse
      */
-    public function show(Survey $survey)
+    public function show(Request $request, Survey $survey)
     {
-        return response()->jsonHal($survey);
+        $json = $survey->jsonSerialize();
+        return response()->jsonHal($json);
     }
     
     /**
@@ -146,94 +151,37 @@ class SurveyController extends Controller
     /**
      * Returns the survey's questions.
      *
-     * @param   App\Models\Survey   $survey
-     * @return  App\Http\HalResponse
-     */
-    public function questions(Survey $survey)
-    {
-        $url = route('api1-survey-questions', $survey);
-        $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
-        
-        return response()->jsonHal($categories);
-    }
-    
-    /**
-     * Answers a survey.
-     *
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
-     * @return  Illuminate\Http\Response
+     * @return  App\Http\HalResponse
      */
-    public function answer(Request $request, Survey $survey)
+    public function questions(Request $request, Survey $survey)
     {
-        $this->validate($request, [
-            'key'                   => [
-                'required',
-                Rule::exists('survey_recipients', 'link')->where(function ($query) {
-                    $query->where('hasAnswered', 0);
-                })
-            ],
-            'answers'               => 'required|array'
-        ]);
+        $url = route('api1-survey-questions', $survey);
         
-        // Input items
-        $key = $request->key;
-        $answers = [];
-        foreach ($request->answers as $answer) {
-            $answers[$answer['question']] = $answer['answer'];
+        // Fetch the user's answers
+        $questionToAnswers = [];
+        $answers = $survey->answers()->where([
+            'answeredById'      => $request->user()->id,
+            'answeredByType'    => 'users'
+        ])->getResults();
+        foreach ($answers as $answer) {
+            $questionToAnswers[$answer->questionId] = $answer->answerValue ? $answer->answerValue : $answer->answerText;
         }
-        $user = $request->user();
+         
+        // Include the user's answer to each question 
+        $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
+        $json = $categories->map(function($item) use ($questionToAnswers) {
+            $json = $item->jsonSerialize();
+            $json['questions'] = array_map(function($question) use ($questionToAnswers) {
+                $questionId = $question['id'];
+                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId] : null;
+                return $question;
+            }, $json['questions']);
+            return $json;
+        });
         
-        // Make sure the current user owns the key.
-        $surveyRecipient = $survey->recipients()->where('link', $key)->first();
-        $recipient = $surveyRecipient->recipient;
-        if ($recipient->name != $user->name || $recipient->email != $user->email) {
-            throw new CustomValidationException([
-                'key'   => ['Invalid answer key.']
-            ]);
-        }
-        
-        // Make sure this survey hasn't expired yet.
-        if ($survey->endDate->isPast()) {
-            throw new SurveyExpiredException();
-        }
-        
-        // Validate answers.
-        $errors = $this->validateAnswers($questions, $answers);
-        if (!empty($errors)) {
-            throw new CustomValidationException($errors);
-        }
-        
-        // Save our answers.
-        foreach ($questions as $q) {
-            $question = $q->question;
-            $answer = empty($answers[$question->id]) ? null : $answers1[$question->id];
-            
-            // Skip if we don't have an answer.
-            if ($answer === null) {
-                continue;
-            }
-            
-            // Create our answer.
-            $surveyAnswer = new SurveyAnswer();
-            $surveyAnswer->surveyId = $recipient->survey->id;
-            $surveyAnswer->answeredById = $recipient->recipient->id;
-            $surveyAnswer->questionId = $question->id;
-            $surveyAnswer->invitedById = $recipient->invitedById;
-            if ($question->answerTypeObject()->isNumeric()) {
-                $surveyAnswer->answerValue = $answer;
-            } else {
-                $surveyAnswer->answerText = $answer;
-            }
-            
-            $surveyAnswer->save();
-        }
-        
-        // Mark the invite as answered.
-        $recipient->hasAnswered = 1;
-        $recipient->save();
-        
-        return response('', 201);
+        return response()->jsonHal($json);
     }
     
     /**
@@ -410,50 +358,13 @@ class SurveyController extends Controller
             }
             
             $results[] = (object) [
-               'name'       => $user->name,
-               'email'      => $user->email,
-               'position'   => ''
+                'userId'    => $user->id,
+                'name'      => $user->name,
+                'email'     => $user->email,
+                'position'  => ''
             ];
         }
         $data->individual->candidates = $results;
-    }
-    
-    /**
-     * Ensures that the submitted answers are valid for each question.
-     *
-     * @param   Illuminate\Database\Eloquent\Collection $questions
-     * @param   array                                   $answers
-     * @return  array
-     */
-    protected function validateAnswers(Collection $questions, array $answers)
-    {
-        $errors = [];
-        
-        foreach ($questions as $q) {
-            $question = $q->question;
-            $answer = $question->answerTypeObject();
-            $key = "questions.{$question->id}";
-            
-            // Validate answers
-            if (empty($answers[$question->id])) {
-                // Make sure non-optional questions have an answer.
-                if (!$question->optional) {
-                    $errors[$key][] = "Missing answer for question with ID {$question->id}.";
-                }
-            } else {
-                $ans = $answers[$question->id];
-                
-                // Questions that does not accept N/A should not receive one.
-                if ($ans === -1 && !$question->isNA) {
-                    $errors[$key][] = "N/A answer is not accepted.";
-                // Ensure that the answer is a valid one.
-                } elseif (!$answer->isValidValue($ans)) {
-                    $errors[$key][] = "'{$ans}' is not a valid answer.";
-                }
-            }
-        }
-        
-        return $errors;
     }
 
 }
