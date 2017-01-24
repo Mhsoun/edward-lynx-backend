@@ -49,7 +49,7 @@ class User extends Authenticatable implements AuthorizableContract
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated', 'parent_id', 'companyId'];
+    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated', 'parent_id', 'access_level'];
 
 	/**
 	 * Additional attributes added into the model's JSON.
