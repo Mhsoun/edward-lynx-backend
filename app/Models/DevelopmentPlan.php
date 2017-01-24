@@ -34,7 +34,8 @@ class DevelopmentPlan extends Model
      */
     public function goals()
     {
-        return $this->hasMany(DevelopmentPlanGoal::class, 'developmentPlanId');
+        return $this->hasMany(DevelopmentPlanGoal::class, 'developmentPlanId')
+                    ->orderBy('position', 'asc');
     }
     
 }
