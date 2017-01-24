@@ -14,12 +14,10 @@ class AddAdditionalFieldsToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            //$table->string('role')->nullable();
             $table->string('department');
             $table->string('gender');
             $table->string('city');
             $table->string('country');
-            $table->string('position')->nullable(false)->change();
         });
     }
 
@@ -31,12 +29,10 @@ class AddAdditionalFieldsToUsersTable extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            // $table->dropColumn('role');
             $table->dropColumn('department');
             $table->dropColumn('gender');
             $table->dropColumn('city');
             $table->dropColumn('country');
-            $table->string('position')->nullable(true)->change();
         });
     }
 }
