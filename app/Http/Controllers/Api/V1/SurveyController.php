@@ -127,7 +127,11 @@ class SurveyController extends Controller
     {
         $rules = [
             'enableAutoReminding'   => 'boolean',
-            'autoRemindingDate'     => 'isodate|after:today'
+            'autoRemindingDate'     => 'isodate|after:today',
+            'department'            => 'string|max:255',
+            'gender'                => 'string|max:255',
+            'city'                  => 'string|max:255',
+            'country'               => 'string|max:255',
         ];
         $dates = ['autoRemindingDate'];
         $this->validate($request, $rules);
