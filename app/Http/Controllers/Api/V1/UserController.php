@@ -66,7 +66,11 @@ class UserController extends Controller
             'info'              => 'max:255',
             'lang'              => 'in:en,fi,sv',
             'password'          => 'required_with:currentPassword|min:6',
-            'currentPassword'   => 'required_with:password|min:6|same_password:' . $user->id
+            'currentPassword'   => 'required_with:password|min:6|same_password:' . $user->id,
+            'position'          => 'max:255',
+            'department'        => 'max:255',
+            'city'              => 'max:255',
+            'country'           => 'max:255'
         ]);
 
         $fields = ['name', 'info', 'lang'];
