@@ -105,7 +105,7 @@ class DevelopmentPlanController extends Controller
      * @param   App\Models\DevelopmentPlanGoal  $goal
      * @return  Illuminate\Http\Response
      */
-    public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
+    public function deleteGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
     {
         $goal->delete();
         return response('', 204);
