@@ -66,4 +66,7 @@ Route::group(['prefix' => '/dev-plans'], function() {
     Route::get('/{devPlan}', 'DevelopmentPlanController@show')
         ->middleware('can:view,devPlan')
         ->name('api1-dev-plan');
+    
+    Route::patch('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@updateGoal')
+        ->middleware('can:update,devPlan');
 });

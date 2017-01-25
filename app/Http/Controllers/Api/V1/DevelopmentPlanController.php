@@ -6,6 +6,7 @@ use App\Sanitizer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
+use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
 
 class DevelopmentPlanController extends Controller
@@ -71,5 +72,20 @@ class DevelopmentPlanController extends Controller
     public function show(Request $request, DevelopmentPlan $devPlan)
     {
         return response()->jsonHal($devPlan);
+    }
+    
+    public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
+    {
+        $this->validate($request, [
+            'title'         => 'string|max:255',
+            'description'   => 'string',
+            'checked'       => 'boolean',
+            'position'      => 'integer|min:0'
+        ]);
+            
+        $goal->fill($request->all());
+        $goal->save();
+        
+        return response()->jsonHal($goal);
     }
 }
