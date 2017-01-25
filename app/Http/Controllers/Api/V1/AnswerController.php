@@ -159,6 +159,13 @@ class AnswerController extends Controller
             $recipient->save();
         }
         
+        $recipient = SurveyRecipient::where([
+            'surveyId'      => $recipient->survey->id,
+            'recipientId'   => $recipient->recipientId,
+            'invitedById'   => $recipient->invitedById,
+            'recipientType' => $recipient->recipientType
+        ])->first();
+        
         return response()->jsonHal($recipient);
     }
     
@@ -183,7 +190,7 @@ class AnswerController extends Controller
             if ($answer == -1 && !$question->isNA) {
                 $errors[$key][] = "N/A answer is not accepted.";
             } elseif (!$answerType->isValidValue($answer)) {
-                $errors[$key][] = "'{$ans}' is not a valid answer.";
+                $errors[$key][] = "'{$answer}' is not a valid answer.";
             }
         }
         
@@ -199,16 +206,22 @@ class AnswerController extends Controller
      */
     protected function validateAnswerCompleteness(Survey $survey, Collection $answers, array $newAnswers)
     {
+        
+        $answerVals = [];
         foreach ($answers as $answer) {
             if (!isset($answers[$answer->questionId])) {
-                $answers[$answer->questionId] = $answer->value;
+                $answerVals[$answer->questionId] = $answer->value;
             }
+        }
+        
+        foreach ($newAnswers as $questionId => $answer) {
+            $answerVals[$questionId] = $answer;
         }
         
         $errors = [];
         foreach ($survey->questions as $question) {
             $questionId = $question->questionId;
-            if (!isset($answers[$questionId]) && !$question->optional) {
+            if (!isset($answerVals[$questionId]) && !$question->optional) {
                 $errors[] = [
                     'question'  => $questionId,
                     'message'   => "Question with ID {$questionId} is missing an answer."     ];
