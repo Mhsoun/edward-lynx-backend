@@ -96,7 +96,7 @@ class Handler extends ExceptionHandler {
         } elseif ($e instanceof SurveyExpiredException) {
             return $this->convertSurveyExpiredExceptionToResponse($e);
         } elseif ($e instanceof SurveyAnswersFinalException) {
-            return $this->convertSurveyAnswersFinalExceptionToResponse($e);
+            return $this->convertSurveyAnswersFinalExceptionToResponse($e, $request);
         }
 
         return $this->prepareResponse($request, $e);
