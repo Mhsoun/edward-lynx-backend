@@ -63,4 +63,7 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
 Route::group(['prefix' => '/dev-plans'], function() {
     Route::get('/', 'DevelopmentPlanController@index');
     Route::post('/', 'DevelopmentPlanController@create');
+    Route::get('/{devPlan}', 'DevelopmentPlanController@show')
+        ->middleware('can:view,devPlan')
+        ->name('api1-dev-plan');
 });
