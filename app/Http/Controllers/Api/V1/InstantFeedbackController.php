@@ -76,8 +76,6 @@ class InstantFeedbackController extends Controller
             'questions.*.isNA'                  => 'required|boolean',
             'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.answer.options'        => 'array',
-            'questions.*.answer.*.description'  => 'string',
-            'questions.*.answer.*.value'        => 'string',
             'recipients'                        => 'required|array',
             'recipients.*.id'                   => 'required|integer|exists:users'
         ]);
