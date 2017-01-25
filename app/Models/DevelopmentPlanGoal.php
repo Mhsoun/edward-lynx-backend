@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Model as BaseModel;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Builder;
 
 
-class DevelopmentPlanGoal extends Model implements Scope
+class DevelopmentPlanGoal extends BaseModel implements Scope
 {
     
     public $fillable = ['title', 'description', 'checked', 'position', 'dueDate'];
     
     public $timestamps = false;
+    
+    protected $dates = ['dueDate'];
     
     /**
      * Returns the development plan this goal is under.
@@ -31,7 +34,7 @@ class DevelopmentPlanGoal extends Model implements Scope
      * @param   Illuminate\Database\Eloquent\Model      $model
      * @return  void
      */
-    public function apply(Builder $builder, Model $model)
+    public function apply(Builder $builder, EloquentModel $model)
     {
         $builder->orderBy('position', 'asc');
     }
