@@ -43,4 +43,16 @@ class DevelopmentPlan extends Model
                     ->orderBy('position', 'asc');
     }
     
+    /**
+     * Include this development plan's goals when serializing to JSON.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $json = parent::jsonSerialize();
+        $json['goals'] = $this->goals;
+        return $json;
+    }
+    
 }
