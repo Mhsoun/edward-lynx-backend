@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Model as BaseModel;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Builder;

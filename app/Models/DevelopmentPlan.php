@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Model;
+use App\Models\BaseModel;
 
-class DevelopmentPlan extends Model
+class DevelopmentPlan extends BaseModel
 {
     
     const CREATED_AT = 'createdAt';
