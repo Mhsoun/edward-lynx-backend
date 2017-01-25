@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class DevelopmentPlan extends Model
 {
     
+    public $fillable = ['name'];
+    
     /**
      * Returns the user who owns this development plan.
      *

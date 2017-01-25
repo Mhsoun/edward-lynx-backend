@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class DevelopmentPlanGoal extends Model
 {
     
+    public $fillable = ['title', 'description', 'checked', 'position', 'dueDate'];
+    
     public $timestamps = false;
     
     /**
