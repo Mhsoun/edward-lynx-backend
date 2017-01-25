@@ -58,6 +58,22 @@ class SurveyAnswer extends Model
     }
     
     /**
+     * Returns the value of this answer.
+     *
+     * @return  int|string
+     */
+    public function getValueAttribute()
+    {
+        $numerics = [0, 1, 2, 3, 4, 6, 7];
+        $answerType = $this->question->answerType;
+        if (in_array($answerType, $numerics)) {
+            return intval($this->attributes['answerValue']);
+        } else {
+            return $this->answerText;
+        }
+    }
+    
+    /**
      * Returns the JSON representation of this model.
      *
      * @return  array
@@ -67,7 +83,7 @@ class SurveyAnswer extends Model
         $answerType = $this->question->answerTypeObject();
         return [
             'question'  => $this->questionId,
-            'answer'    => $this->answerValue ? $this->answerValue : $this->answerText
+            'answer'    => $this->value
         ];
     }
 }
