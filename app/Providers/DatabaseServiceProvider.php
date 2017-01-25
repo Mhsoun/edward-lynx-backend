@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\DevelopmentPlanGoal;
 use Illuminate\Support\ServiceProvider;
 
 class DatabaseServiceProvider extends ServiceProvider
@@ -9,7 +10,7 @@ class DatabaseServiceProvider extends ServiceProvider
     /**
      * Bootstrap the application services.
      *
-     * @return void
+     * @return  void
      */
     public function boot()
     {
@@ -18,15 +19,29 @@ class DatabaseServiceProvider extends ServiceProvider
             'users'         => \App\Models\User::class,
             'recipients'    => \App\Models\Recipient::class
         ]);
+        
+        $this->registerModelHooks();
     }
 
     /**
      * Register the application services.
      *
-     * @return void
+     * @return  void
      */
     public function register()
     {
         //
+    }
+    
+    /**
+     * Registers model hooks.
+     *
+     * @return  void
+     */
+    protected function registerModelHooks()
+    {
+        DevelopmentPlanGoal::deleted(function ($goal) {
+            $goal->developmentPlan->updateGoalPositions();
+        });
     }
 }

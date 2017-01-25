@@ -44,6 +44,20 @@ class DevelopmentPlan extends Model
     }
     
     /**
+     * Updates goal positions, used when the position attributes
+     * are not in sequence.
+     *
+     * @return  void
+     */
+    public function updateGoalPositions()
+    {
+        foreach ($this->goals as $index => $goal) {
+            $goal->position = $index;
+            $goal->save();
+        }
+    }
+    
+    /**
      * Include this development plan's goals when serializing to JSON.
      *
      * @return  array

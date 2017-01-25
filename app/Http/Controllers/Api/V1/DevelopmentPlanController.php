@@ -96,4 +96,18 @@ class DevelopmentPlanController extends Controller
         
         return response()->jsonHal($goal);
     }
+    
+    /**
+     * Delete a development plan goal.
+     *
+     * @param   Illuminate\Http\Request         $request
+     * @param   App\Models\DevelopmentPlan      $devPlan
+     * @param   App\Models\DevelopmentPlanGoal  $goal
+     * @return  Illuminate\Http\Response
+     */
+    public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
+    {
+        $goal->delete();
+        return response('', 204);
+    }
 }
