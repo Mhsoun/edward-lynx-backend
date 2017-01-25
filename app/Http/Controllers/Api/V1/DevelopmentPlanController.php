@@ -74,6 +74,14 @@ class DevelopmentPlanController extends Controller
         return response()->jsonHal($devPlan);
     }
     
+    /**
+     * Updates a development plan goal's details.
+     *
+     * @param   Illuminate\Http\Request         $request
+     * @param   App\Models\DevelopmentPlan      $devPlan
+     * @param   App\Models\DevelopmentPlanGoal  $goal
+     * @return  App\Http\HalResponse
+     */
     public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
     {
         $this->validate($request, [
