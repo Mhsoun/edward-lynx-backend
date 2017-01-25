@@ -7,6 +7,9 @@ use App\Models\Model;
 class DevelopmentPlan extends Model
 {
     
+    const CREATED_AT = 'createdAt';
+    const UPDATED_AT = 'updatedAt';
+    
     public $fillable = ['name'];
     
     /**

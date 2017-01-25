@@ -18,7 +18,8 @@ class CreateDevelopmentPlansTable extends Migration
             $table->integer('ownerId')->unsigned();
             $table->integer('targetId')->unsigned();
             $table->string('name');
-            $table->timestamps();
+            $table->dateTimeTz('createdAt');
+            $table->dateTimeTz('updatedAt');
             
             $table->foreign('ownerId')
                 ->references('id')->on('users')
