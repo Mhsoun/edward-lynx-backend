@@ -21,6 +21,7 @@ class CreateDevelopmentPlanGoalsTable extends Migration
             $table->boolean('checked')->default(false);
             $table->integer('position')->unsigned();
             $table->dateTimeTz('dueDate')->nullable();
+            $table->boolean('reminderSent')->default(false);
             
             $table->foreign('developmentPlanId')
                   ->references('id')->on('development_plans')
