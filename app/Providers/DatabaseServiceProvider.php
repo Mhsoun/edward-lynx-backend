@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\DevelopmentPlanGoal;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class DatabaseServiceProvider extends ServiceProvider
 {
