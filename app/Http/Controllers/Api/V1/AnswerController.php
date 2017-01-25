@@ -110,7 +110,7 @@ class AnswerController extends Controller
         // Save our answers.
         foreach ($questions as $q) {
             $question = $q->question;
-            $answer = empty($answers[$question->id]) ? null : $answers[$question->id];
+            $answer = isset($answers[$question->id]) ? $answers[$question->id] : null;
             
             // Skip if we don't have an answer.
             if ($answer === null) {
