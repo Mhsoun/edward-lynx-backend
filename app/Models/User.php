@@ -94,6 +94,16 @@ class User extends Authenticatable implements AuthorizableContract
     {
         return $this->hasMany(DevelopmentPlan::class, 'ownerId');
     }
+    
+    /**
+     * Returns development plans for this user.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function myDevelopmentPlans()
+    {
+        return $this->hasMany(DevelopmentPlan::class, 'targetId');
+    }
 
     /**
     * Returns the default emails
