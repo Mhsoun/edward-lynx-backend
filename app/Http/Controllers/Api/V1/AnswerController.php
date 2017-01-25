@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\SurveyAnswersFinalException;
+use App\Exceptions\SurveyMissingAnswersException;
 
 class AnswerController extends Controller
 {
@@ -206,9 +207,16 @@ class AnswerController extends Controller
         
         $errors = [];
         foreach ($survey->questions as $question) {
-            if (!isset($answers[$question->id]) && !$question->optional) {
-                
+            $questionId = $question->questionId;
+            if (!isset($answers[$questionId]) && !$question->optional) {
+                $errors[] = [
+                    'question'  => $questionId,
+                    'message'   => "Question with ID {$questionId} is missing an answer."     ];
             }
+        }
+        
+        if (!empty($errors)) {
+            throw new SurveyMissingAnswersException($errors);
         }
     }
     
