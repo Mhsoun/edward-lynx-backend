@@ -473,7 +473,7 @@ abstract class Surveys
 
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
-                $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
+                // $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
             }
 
             $invited = true;
