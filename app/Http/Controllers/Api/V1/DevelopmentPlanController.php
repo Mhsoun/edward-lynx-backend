@@ -43,13 +43,16 @@ class DevelopmentPlanController extends Controller
         $user = $request->user();
 
         $devPlan = new DevelopmentPlan($request->all());
+        $devPlan->ownerId = $user->id;
+        $devPlan->targetId = $request->target;
         $devPlan->save();
 
-        foreach ($request->goals as $g) {
-            $goal = $devPlan->goals->create([
+        foreach ($request->goals as $index => $g) {
+            $goal = $devPlan->goals()->create([
                 'title'         => Sanitizer::sanitize($g['title']),
-                'description'   => Sanitizer::sanitize($g['description']),
-                'dueDate'       => Carbon::parse($g['dueDate'])
+                'description'   => empty($g['description']) ? '' : Sanitizer::sanitize($g['description']),
+                'dueDate'       => empty($g['dueDate']) ? null : Carbon::parse($g['dueDate']),
+                'position'      => $index
             ]);
             $goal->save();
         }
