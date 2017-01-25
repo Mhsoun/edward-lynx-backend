@@ -5,7 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
-class BaseModel extends EloquentModel
+abstract class BaseModel extends EloquentModel
 {
  
     /**
