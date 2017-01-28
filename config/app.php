@@ -165,7 +165,7 @@ return [
 		//'App\Providers\ConfigServiceProvider',
 		'App\Providers\EventServiceProvider',
 		'App\Providers\RouteServiceProvider',
-        App\Providers\HalServiceProvider::class,
+        App\Providers\JsonHalServiceProvider::class,
         App\Providers\DatabaseServiceProvider::class
 
 	],

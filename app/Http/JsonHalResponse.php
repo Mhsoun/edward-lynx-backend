@@ -13,7 +13,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 /**
  * Represents a JSON-HAL response returned by the API endpoints.
  */
-class HalResponse extends JsonResponse
+class JsonHalResponse extends JsonResponse
 {
     
     const SERIALIZE_FULL = 0;
