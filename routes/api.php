@@ -55,6 +55,18 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
     Route::post('/{instantFeedback}/shares', 'InstantFeedbackController@share')
         ->middleware('can:share,instantFeedback')
         ->name('api1-instant-feedback-share');
+});
+
+// /dev-plans Endpoints
+Route::group(['prefix' => '/dev-plans'], function() {
+    Route::get('/', 'DevelopmentPlanController@index');
+    Route::post('/', 'DevelopmentPlanController@create');
+    Route::get('/{devPlan}', 'DevelopmentPlanController@show')
+        ->middleware('can:view,devPlan')
+        ->name('api1-dev-plan');
     
-    Route::get('/test', 'InstantFeedbackController@test');
+    Route::patch('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@updateGoal')
+        ->middleware('can:update,devPlan');
+    Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@deleteGoal')
+        ->middleware('can:update,devPlan');
 });

@@ -469,11 +469,11 @@ abstract class Surveys
             $survey->candidates()->save($surveyInviteRecipient);
 
             //Send the emails
-            $surveyEmailer->sendToEvaluate($survey, $surveyRecipient, $surveyRecipient->link);
+            // $surveyEmailer->sendToEvaluate($survey, $surveyRecipient, $surveyRecipient->link);
 
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
-                $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
+                // $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
             }
 
             $invited = true;
