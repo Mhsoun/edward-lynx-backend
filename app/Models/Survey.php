@@ -819,10 +819,9 @@ class Survey extends Model implements Routable, JsonHalLinking
      */
     public function jsonHalLinks()
     {
-        $questionsUrl = route('api1-survey-questions', ['survey' => $this]);
-        
         return [
-            'questions' => ['href' => $questionsUrl]
+            'questions' => route('api1-survey-questions', $this),
+            'answers'   => route('api1-survey-answers', $this)
         ];
     }
 }

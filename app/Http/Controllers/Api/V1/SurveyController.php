@@ -112,8 +112,7 @@ class SurveyController extends Controller
      */
     public function show(Request $request, Survey $survey)
     {
-        $json = $survey->jsonSerialize();
-        return response()->jsonHal($json);
+        return response()->jsonHal($survey);
     }
     
     /**
