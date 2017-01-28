@@ -19,7 +19,7 @@ class UserController extends Controller
      * Return list of all users.
      *
      * @param   Illuminate\Http\Request    $request
-     * @return  App\Htttp\HalResponse
+     * @return  App\Htttp\JsonHalResponse
      */
     public function index(Request $request)
     {
@@ -43,7 +43,7 @@ class UserController extends Controller
      * Returns the current user's info.
      * 
      * @param   Request                 $request
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function get(Request $request)
     {
@@ -55,7 +55,7 @@ class UserController extends Controller
      * Updates user information.
      * 
      * @param   Request                 $request
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function update(Request $request)
     {

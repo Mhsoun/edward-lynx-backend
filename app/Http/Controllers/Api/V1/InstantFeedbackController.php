@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\User;
 use App\Models\Question;
-use App\Http\HalResponse;
 use Illuminate\Http\Request;
+use App\Http\JsonHalResponse;
 use InvalidArgumentException;
 use App\Models\InstantFeedback;
 use Illuminate\Validation\Rule;
@@ -27,7 +27,7 @@ class InstantFeedbackController extends Controller
     /**
      * Returns a list of instant feedbacks.
      *
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function index(Request $request)
     {
@@ -49,7 +49,7 @@ class InstantFeedbackController extends Controller
             $result = [];
             foreach ($instantFeedbacks as $if) {
                 $result[] = array_merge([
-                        '_links'    => HalResponse::generateModelLinks($if)
+                        '_links'    => JsonHalResponse::generateModelLinks($if)
                     ],
                     $if->jsonSerialize(),
                     [ 'key'   => $if->answerKeyOf($currentUser) ]
@@ -101,7 +101,7 @@ class InstantFeedbackController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
@@ -118,7 +118,7 @@ class InstantFeedbackController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function update(Request $request, InstantFeedback $instantFeedback)
     {   
@@ -182,7 +182,7 @@ class InstantFeedbackController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function answers(Request $request, InstantFeedback $instantFeedback)
     {

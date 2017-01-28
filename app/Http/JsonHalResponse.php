@@ -79,7 +79,7 @@ class JsonHalResponse extends JsonResponse
      * Tells serializers to not return a whole data set
      * but instead a summary only.
      *
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function summarize()
     {
