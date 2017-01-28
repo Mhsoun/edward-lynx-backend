@@ -20,7 +20,7 @@ class AnswerController extends Controller
      *
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function index(Request $request, Survey $survey)
     {

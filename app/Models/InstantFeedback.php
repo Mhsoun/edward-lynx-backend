@@ -3,16 +3,28 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use App\Http\HalResponse;
+use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class InstantFeedback extends Model
+class InstantFeedback extends Model implements Routable, JsonHalLinking
 {
     
     protected $fillable = ['user_id', 'lang', 'closed', 'anonymous'];
     
     protected $visible = ['id', 'lang', 'closed', 'anonymous'];
+    
+    /**
+     * Returns the URL to this instant feedback.
+     *
+     * @param   string  $prefix
+     * @return  array
+     */
+    public function url($prefix = '')
+    {
+        return route('api1-instant-feedback', $this);
+    }
     
     /**
      * Scopes instant feedbacks to the ones owned by the current user.
