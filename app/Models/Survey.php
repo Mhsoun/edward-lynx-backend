@@ -1,8 +1,10 @@
 <?php namespace App\Models;
 
 use Lang;
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
 * Represents a survey
@@ -56,6 +58,17 @@ class Survey extends Model
         'thankYouText',
         'questionInfoText'
     ];
+    
+    /**
+     * Limits surveys returned to non-expired surveys.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeValid(Builder $query)
+    {
+        return $query->where('endDate', '>', Carbon::now());
+    }
 
 	/**
 	* Returns name of the type
@@ -129,7 +142,7 @@ class Survey extends Model
 	/**
 	* Adds the recipient to the survey
 	*/
-	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null)
+	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null, $recipientType = 'recipients')
 	{
 		$surveyRecipient = new \App\Models\SurveyRecipient;
 		$surveyRecipient->recipientId = $recipientId;
@@ -137,6 +150,7 @@ class Survey extends Model
 		$surveyRecipient->roleId = $roleId;
 		$surveyRecipient->invitedById = $invitedById;
 		$surveyRecipient->groupId = $groupId;
+        $surveyRecipient->recipientType = $recipientType;
 		$this->recipients()->save($surveyRecipient);
 		return $surveyRecipient;
 	}
@@ -699,6 +713,29 @@ class Survey extends Model
     }
     
     /**
+     * Returns the answer key of the provided user.
+     * Returns NULL if the provided user has already answered the survey.
+     *
+     * @param   App\Models\User $user
+     * @return  string|null
+     */
+    public function answerKeyOf(User $user)
+    {
+        $recipient = $this->recipients()
+                          ->where([
+                              'recipientId'   => $user->id,
+                              'recipientType' => 'users',
+                              'hasAnswered'   => false
+                          ])
+                          ->first();
+        if ($recipient) {
+          return $recipient->link;
+        } else {
+          return null;
+        }
+    }
+    
+    /**
      * Directly override JSON serialization for this model
      * so we can change attributes without overwriting attribute
      * values through accessors.
@@ -709,9 +746,12 @@ class Survey extends Model
     public function jsonSerialize($options = 0)
     {
         $data = parent::jsonSerialize();
+        $currentUser = request()->user();
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
+        $data['key'] = $this->answerKeyOf($currentUser);
+        $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
         
         if ($options == 0) {
             $data = $this->getEmailsForJson($data);

@@ -95,6 +95,10 @@ class Handler extends ExceptionHandler {
         	return $this->convertApiExceptionToResponse($e);
         } elseif ($e instanceof SurveyExpiredException) {
             return $this->convertSurveyExpiredExceptionToResponse($e);
+        } elseif ($e instanceof SurveyAnswersFinalException) {
+            return $this->convertSurveyAnswersFinalExceptionToResponse($e, $request);
+        } elseif ($e instanceof SurveyMissingAnswersException) {
+            return $this->convertSurveyMissingAnswersExceptionToResponse($e, $request);
         }
 
         return $this->prepareResponse($request, $e);
@@ -228,6 +232,39 @@ class Handler extends ExceptionHandler {
                 'error'     => 'survey_expired',
                 'message'   => $message
             ], 400);
+        }
+    }
+    
+    /**
+     * Generates a response for final survey answers.
+     *
+     * @param   App\Exceptions\SurveyAnswersFinalException  $e
+     * @param   Illuminate\Http\Request                     $request
+     * @param   Illuminate\Http\Response
+     */
+    protected function convertSurveyAnswersFinalExceptionToResponse(SurveyAnswersFinalException $e, Request $request)
+    {
+        $message = "Survey has reached it's end date and answers are not accepted anymore.";
+        if ($request->expectsJson()) {
+            return response()->json([
+                'error'     => 'Bad Request',
+                'message'   => 'Survey answers are not accepted anymore.'
+            ], 400);
+        }
+    }
+    
+    /**
+     * Generates a response for surveys missing answers when marked as
+     * final exception.
+     *
+     * @param   App\Exceptions\SurveyMissingAnswersException    $e
+     * @param   Illuminate\Http\Request                         $request
+     * @return  Illuminate\Http\Response
+     */
+    protected function convertSurveyMissingAnswersExceptionToResponse(SurveyMissingAnswersException $e, Request $request)
+    {
+        if ($request->expectsJson()) {
+            return response()->json($e);
         }
     }
 }

@@ -35,7 +35,7 @@ class Recipient extends Model
 			where('ownerId', '=', $ownerId)
 			->where('mail', '=', $email)
 			->first();
-
+            
         if ($recipient == null) {
             $recipient = new \App\Models\Recipient;
             $recipient->name = $name;

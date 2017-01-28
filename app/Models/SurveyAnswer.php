@@ -56,4 +56,34 @@ class SurveyAnswer extends Model
     		->where('invitedById', '=', $this->invitedById)
     		->first();
     }
+    
+    /**
+     * Returns the value of this answer.
+     *
+     * @return  int|string
+     */
+    public function getValueAttribute()
+    {
+        $numerics = [0, 1, 2, 3, 4, 6, 7];
+        $answerType = $this->question->answerType;
+        if (in_array($answerType, $numerics)) {
+            return intval($this->attributes['answerValue']);
+        } else {
+            return $this->answerText;
+        }
+    }
+    
+    /**
+     * Returns the JSON representation of this model.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $answerType = $this->question->answerTypeObject();
+        return [
+            'question'  => $this->questionId,
+            'answer'    => $this->value
+        ];
+    }
 }

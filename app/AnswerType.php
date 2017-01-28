@@ -118,6 +118,13 @@ class AnswerType implements JsonSerializable
     {
         return $this->values;
     }
+    
+    public function valuesFlat()
+    {
+        return array_map(function($val) {
+            return $val->value;
+        }, $this->values());
+    }
 
     /**
     * Returns the maximum value
@@ -348,7 +355,8 @@ class AnswerType implements JsonSerializable
 
         $i = 1;
         foreach ($question->customValues as $customValue) {
-            array_push($values, new AnswerValue($i, $customValue->name));
+            array_push($values, new AnswerValue($customValue->id, $customValue->name));
+            // Should be $i++?
         }
 
         return new AnswerType(

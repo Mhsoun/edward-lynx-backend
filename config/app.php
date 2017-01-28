@@ -150,6 +150,7 @@ return [
         //'Illuminate\Html\HtmlServiceProvider',
 
         AltThree\Bus\BusServiceProvider::class,
+        Alfa6661\Firebase\FirebaseServiceProvider::class,
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
 
@@ -164,7 +165,8 @@ return [
 		//'App\Providers\ConfigServiceProvider',
 		'App\Providers\EventServiceProvider',
 		'App\Providers\RouteServiceProvider',
-        App\Providers\HalServiceProvider::class
+        App\Providers\HalServiceProvider::class,
+        App\Providers\DatabaseServiceProvider::class
 
 	],
 

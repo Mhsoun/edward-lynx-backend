@@ -38,4 +38,8 @@ return [
 		'model'  => 'User',
 		'secret' => '',
 	],
+    
+    'firebase' => [
+        'api_key' => env('FIREBASE_API_KEY')
+    ]
 ];

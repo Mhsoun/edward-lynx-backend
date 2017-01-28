@@ -24,19 +24,27 @@ class InstantFeedbackPolicy
     }
 
     /**
-     * Determine whether the user can view the instantFeedback.
+     * Determine whether the user can view the instant feedback.
      *
-     * @param  \App\User  $user
-     * @param  \App\InstantFeedback  $instantFeedback
-     * @return mixed
+     * @param   \App\User  $user
+     * @param   \App\InstantFeedback  $instantFeedback
+     * @return  mixed
      */
     public function view(User $user, InstantFeedback $instantFeedback)
     {
-        return $instantFeedback->user_id == $user->id;
+        if ($instantFeedback->user_id == $user->id) {
+            return true;
+        } elseif ($instantFeedback->recipients()->where('user_id', $user->id)->count() > 0) {
+            return true;
+        } elseif ($instantFeedback->isSharedTo($user)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
-     * Determine whether the user can create instantFeedbacks.
+     * Determine whether the user can create instant feedbacks.
      *
      * @param  \App\User  $user
      * @return mixed
@@ -44,6 +52,48 @@ class InstantFeedbackPolicy
     public function create(User $user)
     {
         return true;
+    }
+    
+    /**
+     * Determine whether the user can submit answers to this instant feedback.
+     *
+     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  boolean
+     */
+    public function answer(User $user, InstantFeedback $instantFeedback)
+    {
+        return $this->view($user, $instantFeedback);
+    }
+    
+    /**
+     * Determine whether the user can view instant feedback answers.
+     *
+     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  boolean    
+     */
+    public function viewAnswers(User $user, InstantFeedback $instantFeedback)
+    {
+        if ($instantFeedback->user_id == $user->id) {
+            return true;
+        } elseif ($instantFeedback->isSharedTo($user)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Determine whether the user can share instant feedback answers.
+     *
+     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @return  boolean   
+     */
+    public function share(User $user, InstantFeedback $instantFeedback)
+    {
+        return $instantFeedback->user_id == $user->id;
     }
 
     /**

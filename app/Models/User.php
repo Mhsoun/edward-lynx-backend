@@ -8,12 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-// use Illuminate\Auth\Authenticatable;
-// use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-// use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Lang;
 use App\Models\DefaultText;
 
@@ -52,7 +49,7 @@ class User extends Authenticatable implements AuthorizableContract
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated'];
+    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated', 'parent_id', 'access_level'];
 
 	/**
 	 * Additional attributes added into the model's JSON.
@@ -85,7 +82,27 @@ class User extends Authenticatable implements AuthorizableContract
      */
     public function devices()
     {
-        return $this->hasMany(UserDevice::class);
+        return $this->hasMany('App\Models\UserDevice');
+    }
+    
+    /**
+     * Returns this user's development plans.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function developmentPlans()
+    {
+        return $this->hasMany(DevelopmentPlan::class, 'ownerId');
+    }
+    
+    /**
+     * Returns development plans for this user.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function myDevelopmentPlans()
+    {
+        return $this->hasMany(DevelopmentPlan::class, 'targetId');
     }
 
     /**
@@ -724,6 +741,21 @@ class User extends Authenticatable implements AuthorizableContract
             ->get();
         return $children;
     }
+    
+    /**
+     * Returns true if the provided user is a colleague of
+     * this user.
+     *
+     * @param   App\Models\User $user
+     * @return  boolean
+     */
+    public function colleagueOf(User $user)
+    {
+        $colleagues = $this->colleagues()->map(function($user) {
+            return $user->id;
+        });
+        return in_array($user->id, $colleagues);
+    }
 
     /**
      * Returns TRUE if the current user has the provided type/access level.
@@ -741,7 +773,7 @@ class User extends Authenticatable implements AuthorizableContract
         $accessLevel = strtolower($accessLevel);
         $key = array_search($accessLevel, self::ACCESS_LEVELS);
         if ($key !== FALSE) {
-            return true;
+            return $this->access_level == $key;
         } else {
             throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
         }
@@ -778,4 +810,17 @@ class User extends Authenticatable implements AuthorizableContract
 	{
 		return self::ACCESS_LEVELS[$this->access_level];
 	}
+    
+    /**
+     * Returns this user's registered firebase device tokens, used for
+     * sending notifications.
+     *
+     * @return  array
+     */
+    public function routeNotificationForFirebase()
+    {
+        return $this->devices->map(function($device) {
+            return $device->token;
+        });
+    }
 }

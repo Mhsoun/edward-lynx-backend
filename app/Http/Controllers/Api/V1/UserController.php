@@ -66,10 +66,15 @@ class UserController extends Controller
             'info'              => 'max:255',
             'lang'              => 'in:en,fi,sv',
             'password'          => 'required_with:currentPassword|min:6',
-            'currentPassword'   => 'required_with:password|min:6|same_password:' . $user->id
+            'currentPassword'   => 'required_with:password|min:6|same_password:' . $user->id,
+            'gender'            => 'max:255',
+            'department'        => 'max:255',
+            'city'              => 'max:255',
+            'country'           => 'max:255',
+            'role'              => 'max:255'
         ]);
 
-        $fields = ['name', 'info', 'lang'];
+        $fields = ['name', 'info', 'lang', 'gender', 'department', 'city', 'country', 'role'];
         foreach ($fields as $field) {
             if ($request->has($field)) {
                 $user->{$field} = $request->input($field);
@@ -115,18 +120,16 @@ class UserController extends Controller
      * @param   Illuminate\Http\Request $request
      * @return  Illuminate\Http\Response
      */
-    public function registrationTokens(Request $request)
+    public function registerDevice(Request $request)
     {
         $this->validate($request, [
             'token' => 'required|string'
         ]);
             
         $user = request()->user();
-
-        $device = new UserDevice();
-        $device->token = $request->token;
-        
-        $user->devices()->save($device);
+        $user->devices()->firstOrCreate([
+            'token' => $request->token
+        ]);
         
         return response('', 201);
     }

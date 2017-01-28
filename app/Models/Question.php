@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 * Represents a question
 */
 class Question extends Model
-{
+{   
 	protected $fillable = ['text'];
 	public $timestamps = false;
 	private $cachedCustomScaleObject = null;

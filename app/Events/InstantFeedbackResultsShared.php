@@ -3,15 +3,15 @@
 namespace App\Events;
 
 use App\Models\InstantFeedback;
+use Illuminate\Support\Collection;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
-use App\Models\InstantFeedbackRecipient;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class InstantFeedbackCreated
+class InstantFeedbackResultsShared
 {
     use InteractsWithSockets, SerializesModels;
 
@@ -22,23 +22,21 @@ class InstantFeedbackCreated
      */
     public $instantFeedback;
     
-    
     /**
-     * The receiving recipient.
+     * Collection of users the instant feedback is shared to.
      *
-     * @var App\Models\InstantFeedbackRecipient
+     * @var Illuminate\Support\Collection
      */
-    public $recipient;
+    public $users;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(InstantFeedback $instantFeedback, InstantFeedbackRecipient $recipient);
+    public function __construct(InstantFeedback $instantFeedback, Collection $users)
     {
         $this->instantFeedback = $instantFeedback;
-        $this->recipient = $recipient;
     }
 
     /**

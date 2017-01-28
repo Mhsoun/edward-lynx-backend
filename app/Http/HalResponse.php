@@ -223,6 +223,40 @@ class HalResponse extends JsonResponse
             'self' => ['href' => request()->fullUrl()]
         ];
         
+        // If we have no items to encode, exit early.
+        if (empty($arr)) {
+            $result['items'] = [];
+            return $result;
+        }
+        
+        if (is_string(array_keys($arr)[0])) {
+            $result = array_merge($result, $this->encodeAssociativeArray($arr));
+        } else {
+            $result['items'] = $this->encodeIndexedArray($arr);
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Properly encodes an associative array as a JSON-HAL response.
+     *
+     * @param   array   $arr
+     * @return  array
+     */
+    protected function encodeAssociativeArray(array $arr)
+    {
+        return $arr;
+    }
+    
+    /**
+     * Properly encodes an indexed (integer-keyed) array as a JSON-HAL response.
+     *
+     * @param   array   $arr
+     * @return  array
+     */
+    protected function encodeIndexedArray(array $arr)
+    {
         $items = [];
         foreach ($arr as $item) {
             if ($item instanceof Model) {
@@ -235,9 +269,7 @@ class HalResponse extends JsonResponse
                 throw new RuntimeException("Failed to encode item {$item} in array.");
             }
         }
-        $result['items'] = $items;
-        
-        return $result;
+        return $items;
     }
     
 }
