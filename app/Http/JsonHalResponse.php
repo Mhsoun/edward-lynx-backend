@@ -5,6 +5,9 @@ namespace App\Http;
 use Route;
 use stdClass;
 use RuntimeException;
+use App\Contracts\Routable;
+use InvalidArgumentException;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
@@ -35,31 +38,6 @@ class JsonHalResponse extends JsonResponse
     protected $serializationOptions = 0;
     
     /**
-     * Generate the _links field for JSON-HAL responses.
-     * Returns null if it cannot find a route for the model.
-     *
-     * @param   Illuminate\Database\Eloquent\Model
-     * @return  array|null
-     */
-    public static function generateModelLinks(Model $model)
-    {
-        $apiPrefix = 'api1';
-        $key = class_basename($model);
-        $key = str_singular($key);
-        $key = snake_case(str_singular($key));
-        $key = str_replace('_', '-', $key);
-        $modelRoute = "{$apiPrefix}-{$key}";
-        
-        if (Route::has($modelRoute)) {
-            return [
-                'self' => ['href' => route($modelRoute, $model)]
-            ];
-        } else {
-            return null;
-        } 
-    }
-    
-    /**
      * Constructor.
      *
      * @param   mixed   $input
@@ -86,6 +64,40 @@ class JsonHalResponse extends JsonResponse
         $this->serializationOptions = self::SERIALIZE_SUMMARY;
         
         $data = $this->encode($this->input);
+        $this->setData($data);
+        
+        return $this->update();
+    }
+    
+    /**
+     * Merges the provided $links array to the current response.
+     *
+     * @param   array   $links
+     * @return  this
+     */
+    public function withLinks(array $links)
+    {
+        $links = $this->processLinks($links);
+        
+        $data = $this->getData();
+        $data = $this->mergeLinks($links, $data);
+        $this->setData($data);
+        
+        return $this->update();
+    }
+    
+    /**
+     * Appends additional fields to the response.
+     *
+     * @param   array   $fields
+     * @return  this
+     */
+    public function with(array $fields)
+    {
+        $data = $this->getData();
+        foreach ($fields as $key => $value) {
+            $data->{$key} = $value;
+        }
         $this->setData($data);
         
         return $this->update();
@@ -178,16 +190,27 @@ class JsonHalResponse extends JsonResponse
      */
     protected function encodeModel(Model $model)
     {
-        $links = self::generateModelLinks($model);
-        if ($links && is_callable([$model, 'jsonHalLinks'])) {
-            $links = array_merge($links, $model->jsonHalLinks($links));
+        $links = [];
+        if ($model instanceof Routable) {
+            $url = $model->url();
+            $links = [
+                'self'  => ['href' => $url]
+            ];
         }
         
-        $modelJson = $model->jsonSerialize($this->serializationOptions);
+        if ($model instanceof JsonHalLinking) {
+            $newLinks = $model->jsonHalLinks();
+            $newLinks = $this->processLinks($newLinks);
+            $links = array_merge($links, $newLinks);
+        }
         
-        return array_merge([
-            '_links' => $links
-        ], $modelJson);
+        $json = $model->jsonSerialize($this->serializationOptions);
+        
+        if (empty($links)) {
+            return $json;
+        } else {
+            return array_merge(['_links' => $links], $json);
+        }
     }
     
     /**
@@ -270,6 +293,49 @@ class JsonHalResponse extends JsonResponse
             }
         }
         return $items;
+    }
+    
+    /**
+     * Converts string links into proper form.
+     *
+     * @param   array   $links
+     * @return  array
+     */
+    protected function processLinks(array $links)
+    {
+        foreach ($links as $key => $link) {
+            if (is_array($link)) {
+                if (empty($link['href'])) {
+                    throw new InvalidArgumentException('Missing href field in _links.');
+                }
+            } else {
+                $link = strval($link);
+                $links[$key] = ['href' => $link];
+            }
+        }
+        return $links;
+    }
+    
+    /**
+     * Properly merges links into our response data, avoiding
+     * existing links from being overwritten.
+     *
+     * @param   array           $links
+     * @param   array|object    $data
+     * @return  array
+     */
+    protected function mergeLinks(array $links, $data)
+    {
+        if (is_object($data)) {
+            $data = json_decode(json_encode($data), true);
+        }
+        
+        if (!isset($data['_links'])) {
+            $data = array_merge(['_links' => []], $data);
+        }
+        
+        $data['_links'] = array_merge($data['_links'], $links);
+        return $data;
     }
     
 }

@@ -21,7 +21,8 @@ class DevelopmentPlanController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        return response()->jsonHal($user->developmentPlans());
+        $devPlans = $user->developmentPlans;
+        return response()->jsonHal($devPlans);
     }
     
     /**

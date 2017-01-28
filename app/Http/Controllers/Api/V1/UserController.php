@@ -48,7 +48,11 @@ class UserController extends Controller
     public function get(Request $request)
     {
         $user = $request->user();
-        return response()->jsonHal($user);
+        $links = [
+            'self'  => url('/api/v1/user')
+        ];
+        return response()->jsonHal($user)
+                         ->withLinks($links);
     }
 
     /**
