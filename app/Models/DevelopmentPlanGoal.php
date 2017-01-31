@@ -58,4 +58,19 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
         $builder->orderBy('position', 'asc');
     }
     
+    /**
+     * Fixes null dueDates which is parsed as the current date time when
+     * serialized to JSON.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $json = parent::jsonSerialize();
+        if (!$this->attributes['dueDate']) {
+            $json['dueDate'] = null;
+        }
+        return $json;
+    }
+    
 }
