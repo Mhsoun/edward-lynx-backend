@@ -13,6 +13,8 @@ class DevelopmentPlan extends BaseModel implements Routable
     
     public $fillable = ['name'];
     
+    protected $visible = ['id', 'name', 'createdAt', 'updatedAt'];
+    
     /**
      * Returns the API url to this development plan.
      *
