@@ -16,12 +16,13 @@ class DevelopmentPlanController extends Controller
      * Returns the current user's development plans.
      *
      * @param   Illuminate\Http\Request
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function index(Request $request)
     {
         $user = $request->user();
-        return response()->jsonHal($user->developmentPlans());
+        $devPlans = $user->developmentPlans;
+        return response()->jsonHal($devPlans);
     }
     
     /**
@@ -67,7 +68,7 @@ class DevelopmentPlanController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\DevelopmentPlan  $devPlan
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function show(Request $request, DevelopmentPlan $devPlan)
     {
@@ -80,7 +81,7 @@ class DevelopmentPlanController extends Controller
      * @param   Illuminate\Http\Request         $request
      * @param   App\Models\DevelopmentPlan      $devPlan
      * @param   App\Models\DevelopmentPlanGoal  $goal
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
     {

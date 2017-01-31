@@ -3,14 +3,26 @@
 namespace App\Models;
 
 use App\Models\BaseModel;
+use App\Contracts\Routable;
 
-class DevelopmentPlan extends BaseModel
+class DevelopmentPlan extends BaseModel implements Routable
 {
     
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
     public $fillable = ['name'];
+    
+    /**
+     * Returns the API url to this development plan.
+     *
+     * @param   string  $prefix
+     * @return  string
+     */
+    public function url($prefix = '')
+    {
+        return route('api1-dev-plan', $this);
+    }
     
     /**
      * Returns the user who owns this development plan.

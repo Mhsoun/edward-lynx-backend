@@ -27,7 +27,7 @@ class SurveyController extends Controller
      * Returns a list of surveys the user can access.
      *
      * @param   Illuminate\Http\Request     $request
-     * @return  JSONResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function index(Request $request)
     {
@@ -58,7 +58,7 @@ class SurveyController extends Controller
 	 * Creates a survey.
 	 *
      * @param   Illuminate\Http\Request         $request
-	 * @return  Illuminate\Http\JsonResponse
+	 * @return  Illuminate\Http\Response
 	 */
 	public function create(Request $request)
 	{        
@@ -108,12 +108,11 @@ class SurveyController extends Controller
      * 
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function show(Request $request, Survey $survey)
     {
-        $json = $survey->jsonSerialize();
-        return response()->jsonHal($json);
+        return response()->jsonHal($survey);
     }
     
     /**
@@ -121,7 +120,7 @@ class SurveyController extends Controller
      *
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function update(Request $request, Survey $survey)
     {

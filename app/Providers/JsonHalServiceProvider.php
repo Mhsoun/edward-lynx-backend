@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Http\HalResponse;
+use App\Http\JsonHalResponse;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Routing\ResponseFactory;
 
-class HalServiceProvider extends ServiceProvider
+class JsonHalServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
@@ -16,7 +16,7 @@ class HalServiceProvider extends ServiceProvider
     public function boot(ResponseFactory $response)
     {
         $response->macro('jsonHal', function($input, $status = 200, $headers = [], $options = 0) {
-            return new HalResponse($input, $status, $headers, $options);
+            return new JsonHalResponse($input, $status, $headers, $options);
         });
     }
 

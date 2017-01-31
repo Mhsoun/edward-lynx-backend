@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\SurveyAnswersFinalException;
+use App\Exceptions\SurveyMissingAnswersException;
 
 class AnswerController extends Controller
 {
@@ -19,7 +20,7 @@ class AnswerController extends Controller
      *
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function index(Request $request, Survey $survey)
     {
@@ -107,10 +108,17 @@ class AnswerController extends Controller
             throw new CustomValidationException($errors);
         }
         
+        // If this is final, make sure all questions have answers.
+        $this->validateAnswerCompleteness($survey, $recipient->answers, $answers);
+        $errors = $this->validateAnswerCompleteness($survey, $recipient->answers, $answers);
+        if (!empty($errors)) {
+            throw new CustomValidationException($errors);
+        }
+        
         // Save our answers.
         foreach ($questions as $q) {
             $question = $q->question;
-            $answer = empty($answers[$question->id]) ? null : $answers[$question->id];
+            $answer = isset($answers[$question->id]) ? $answers[$question->id] : null;
             
             // Skip if we don't have an answer.
             if ($answer === null) {
@@ -151,6 +159,13 @@ class AnswerController extends Controller
             $recipient->save();
         }
         
+        $recipient = SurveyRecipient::where([
+            'surveyId'      => $recipient->survey->id,
+            'recipientId'   => $recipient->recipientId,
+            'invitedById'   => $recipient->invitedById,
+            'recipientType' => $recipient->recipientType
+        ])->first();
+        
         return response()->jsonHal($recipient);
     }
     
@@ -159,38 +174,63 @@ class AnswerController extends Controller
      *
      * @param   Illuminate\Database\Eloquent\Collection $questions
      * @param   array                                   $answers
-     * @param   boolean                                 $complete
      * @return  array
      */
-    protected function validateAnswers(Collection $questions, array $answers, $complete = true)
+    protected function validateAnswers(Collection $questions, array $answers)
     {
         $errors = [];
         
-        foreach ($questions as $q) {
-            $question = $q->question;
-            $answer = $question->answerTypeObject();
+        foreach ($answers as $questionId => $answer) {
+            $question = $questions->where('questionId', $questionId)
+                                  ->first()
+                                  ->question;
+            $answerType = $question->answerTypeObject();
             $key = "questions.{$question->id}";
             
-            // Validate answers
-            if (empty($answers[$question->id])) {
-                // Make sure non-optional questions have an answer.
-                if ($complete && !$question->optional) {
-                    $errors[$key][] = "Missing answer for question with ID {$question->id}.";
-                }
-            } else {
-                $ans = $answers[$question->id];
-                
-                // Questions that does not accept N/A should not receive one.
-                if ($ans === -1 && !$question->isNA) {
-                    $errors[$key][] = "N/A answer is not accepted.";
-                // Ensure that the answer is a valid one.
-                } elseif (!$answer->isValidValue($ans)) {
-                    $errors[$key][] = "'{$ans}' is not a valid answer.";
-                }
+            if ($answer == -1 && !$question->isNA) {
+                $errors[$key][] = "N/A answer is not accepted.";
+            } elseif (!$answerType->isValidValue($answer)) {
+                $errors[$key][] = "'{$answer}' is not a valid answer.";
             }
         }
         
         return $errors;
+    }
+    
+    /**
+     * Ensures that the user has submitted complete answers to the survey.
+     *
+     * @param   App\Models\Survey                       $survey
+     * @param   Illuminate\Database\Eloquent\Collection $answers
+     * @param   array                                   $newAnswers
+     */
+    protected function validateAnswerCompleteness(Survey $survey, Collection $answers, array $newAnswers)
+    {
+        
+        $answerVals = [];
+        foreach ($answers as $answer) {
+            if (!isset($answers[$answer->questionId])) {
+                $answerVals[$answer->questionId] = $answer->value;
+            }
+        }
+        
+        foreach ($newAnswers as $questionId => $answer) {
+            $answerVals[$questionId] = $answer;
+        }
+        
+        $errors = [];
+        foreach ($survey->questions as $question) {
+            $questionId = $question->questionId;
+            if (!isset($answerVals[$questionId]) && !$question->optional) {
+                $errors[] = [
+                    'question'  => $questionId,
+                    'message'   => "Question with ID {$questionId} is missing an answer."     ];
+            }
+        }
+        
+        if (!empty($errors)) {
+            throw new SurveyMissingAnswersException($errors);
+        }
     }
     
 }

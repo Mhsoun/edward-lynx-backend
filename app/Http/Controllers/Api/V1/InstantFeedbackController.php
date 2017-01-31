@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\User;
 use App\Models\Question;
-use App\Http\HalResponse;
 use Illuminate\Http\Request;
+use App\Http\JsonHalResponse;
 use InvalidArgumentException;
 use App\Models\InstantFeedback;
 use Illuminate\Validation\Rule;
@@ -27,7 +27,7 @@ class InstantFeedbackController extends Controller
     /**
      * Returns a list of instant feedbacks.
      *
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function index(Request $request)
     {
@@ -49,7 +49,7 @@ class InstantFeedbackController extends Controller
             $result = [];
             foreach ($instantFeedbacks as $if) {
                 $result[] = array_merge([
-                        '_links'    => HalResponse::generateModelLinks($if)
+                        '_links'    => JsonHalResponse::generateModelLinks($if)
                     ],
                     $if->jsonSerialize(),
                     [ 'key'   => $if->answerKeyOf($currentUser) ]
@@ -76,8 +76,6 @@ class InstantFeedbackController extends Controller
             'questions.*.isNA'                  => 'required|boolean',
             'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.answer.options'        => 'array',
-            'questions.*.answer.*.description'  => 'string',
-            'questions.*.answer.*.value'        => 'string',
             'recipients'                        => 'required|array',
             'recipients.*.id'                   => 'required|integer|exists:users'
         ]);
@@ -103,16 +101,17 @@ class InstantFeedbackController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         $currentUser = $request->user();
+        $key = $instantFeedback->answerKeyOf($currentUser);
         
-        $json = $instantFeedback->jsonSerialize();
-        $json['key'] = $instantFeedback->answerKeyOf($currentUser);
-        
-        return response()->jsonHal($json);
+        return response()->jsonHal($instantFeedback)
+                         ->with([
+                             'key' => $key
+                         ]);
     }
     
     /**
@@ -120,7 +119,7 @@ class InstantFeedbackController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function update(Request $request, InstantFeedback $instantFeedback)
     {   
@@ -184,7 +183,7 @@ class InstantFeedbackController extends Controller
      *
      * @param   Illuminate\Http\Request     $request
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function answers(Request $request, InstantFeedback $instantFeedback)
     {
@@ -236,15 +235,6 @@ class InstantFeedbackController extends Controller
         event(new InstantFeedbackResultsShared($instantFeedback, $userObjects));
         
         return response('', 201);
-    }
-    
-    public function test()
-    {
-        $ifs = InstantFeedback::all();
-        foreach ($ifs as $if) {
-            $if->delete();
-        }
-        return response('ok');
     }
     
     /**

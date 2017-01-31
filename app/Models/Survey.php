@@ -3,14 +3,17 @@
 use Lang;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
 * Represents a survey
 */
-class Survey extends Model
+class Survey extends Model implements Routable, JsonHalLinking
 {
+    
 	const TIMEZONE = 'Europe/Stockholm';
 
 	/**
@@ -58,6 +61,17 @@ class Survey extends Model
         'thankYouText',
         'questionInfoText'
     ];
+    
+    /**
+     * Returns the API url to this survey.
+     *
+     * @param   string  $prefix
+     * @return  string
+     */
+    public function url($prefix = '')
+    {
+        return route('api1-survey', $this);
+    }
     
     /**
      * Limits surveys returned to non-expired surveys.
@@ -805,10 +819,9 @@ class Survey extends Model
      */
     public function jsonHalLinks()
     {
-        $questionsUrl = route('api1-survey-questions', ['survey' => $this]);
-        
         return [
-            'questions' => ['href' => $questionsUrl]
+            'questions' => route('api1-survey-questions', $this),
+            'answers'   => route('api1-survey-answers', $this)
         ];
     }
 }

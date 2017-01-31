@@ -19,7 +19,7 @@ class UserController extends Controller
      * Return list of all users.
      *
      * @param   Illuminate\Http\Request    $request
-     * @return  App\Htttp\HalResponse
+     * @return  App\Htttp\JsonHalResponse
      */
     public function index(Request $request)
     {
@@ -43,19 +43,23 @@ class UserController extends Controller
      * Returns the current user's info.
      * 
      * @param   Request                 $request
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function get(Request $request)
     {
         $user = $request->user();
-        return response()->jsonHal($user);
+        $links = [
+            'self'  => url('/api/v1/user')
+        ];
+        return response()->jsonHal($user)
+                         ->withLinks($links);
     }
 
     /**
      * Updates user information.
      * 
      * @param   Request                 $request
-     * @return  App\Http\HalResponse
+     * @return  App\Http\JsonHalResponse
      */
     public function update(Request $request)
     {
