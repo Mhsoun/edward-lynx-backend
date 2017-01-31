@@ -170,6 +170,22 @@ class AnswerController extends Controller
     }
     
     /**
+     * Returns survey results.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
+     * @return  App\Http\JsonHalResponse
+     */
+    public function results(Request $request, Survey $survey)
+    {
+        $results = $survey->calculateAnswers();
+        return response()->jsonHal($results)
+                         ->withLinks([
+                             'survey'   => $survey->url()
+                         ]);
+    }
+    
+    /**
      * Ensures that the submitted answers are valid for each question.
      *
      * @param   Illuminate\Database\Eloquent\Collection $questions
