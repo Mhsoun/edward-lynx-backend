@@ -19,7 +19,7 @@ class DevelopmentPlan extends BaseModel implements Routable
      * @param   string  $prefix
      * @return  string
      */
-    public function url($prefix = '')
+    public function url()
     {
         return route('api1-dev-plan', $this);
     }
