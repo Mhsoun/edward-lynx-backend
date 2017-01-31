@@ -21,7 +21,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      * @param   string  $prefix
      * @return  array
      */
-    public function url($prefix = '')
+    public function url()
     {
         return route('api1-instant-feedback', $this);
     }
