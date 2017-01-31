@@ -2,6 +2,7 @@
 
 use Carbon\Carbon;
 use App\Models\UserDevice;
+use App\Contracts\Routable;
 use UnexpectedValueException;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,7 @@ use App\Models\DefaultText;
 /**
 * Represents a user
 */
-class User extends Authenticatable implements AuthorizableContract
+class User extends Authenticatable implements AuthorizableContract, Routable
 {
     use Authorizable, HasApiTokens, Notifiable;
     
@@ -73,6 +74,16 @@ class User extends Authenticatable implements AuthorizableContract
         }
 
         return false;
+    }
+    
+    /**
+     * Returns the API URL of a user's details.
+     *
+     * @return  string
+     */
+    public function url($prefix = '')
+    {
+        return route('api1-user', $this);
     }
     
     /**

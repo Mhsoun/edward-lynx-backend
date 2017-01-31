@@ -10,6 +10,9 @@ Route::group(['prefix' => 'user'], function() {
 // /users endpoint
 Route::group(['prefix' => 'users'], function() {
     Route::get('/', 'UserController@index');
+    Route::get('/{user}', 'UserController@show')
+        ->middleware('can:view,user')
+        ->name('api1-user');
 });
 
 // /surveys Endpoints
