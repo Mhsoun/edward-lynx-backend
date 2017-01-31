@@ -4,8 +4,9 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 
-class DevelopmentPlan extends BaseModel implements Routable
+class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
 {
     
     const CREATED_AT = 'createdAt';
@@ -81,6 +82,19 @@ class DevelopmentPlan extends BaseModel implements Routable
         $json = parent::jsonSerialize();
         $json['goals'] = $this->goals;
         return $json;
+    }
+    
+    /**
+     * Returns additional links for JSON-HAL links field.
+     *
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        return [
+            'owner'     => $this->owner->url(),
+            'target'    => $this->target->url()
+        ];
     }
     
 }
