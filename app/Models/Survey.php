@@ -7,6 +7,7 @@ use App\Contracts\Routable;
 use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
 * Represents a survey
@@ -68,7 +69,7 @@ class Survey extends Model implements Routable, JsonHalLinking
      * @param   string  $prefix
      * @return  string
      */
-    public function url($prefix = '')
+    public function url()
     {
         return route('api1-survey', $this);
     }
@@ -823,5 +824,38 @@ class Survey extends Model implements Routable, JsonHalLinking
             'questions' => route('api1-survey-questions', $this),
             'answers'   => route('api1-survey-answers', $this)
         ];
+    }
+    
+    /**
+     * Returns frequencies and statistics of this survey's answers.
+     *
+     * @return  array
+     */
+    public function calculateAnswers()
+    {
+        $questions = $this->questions->map(function($q) {
+            return $q->question;
+        });
+        
+        $answers = new Collection;
+        foreach ($this->recipients as $recipient) {
+            // Skip users who didn't finish answering yet.
+            if (!$recipient->hasAnswered) {
+                continue;
+            }
+            
+            foreach ($recipient->answers as $answer) {
+                if (!$answers->has($answer->questionId)) {
+                    $answers->put($answer->questionId, new Collection);
+                }
+                
+                $answers->get($answer->questionId)->push($answer);
+            }
+            
+            dd($answers->toArray());
+            
+            $answers->merge($recipient->answers);
+        }
+        //return Question::calculateAnswers($questions, $answers);
     }
 }

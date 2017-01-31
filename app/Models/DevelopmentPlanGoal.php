@@ -19,6 +19,8 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     public $timestamps = false;
     
     protected $dates = ['dueDate'];
+    
+    protected $visible = ['id', 'title', 'description', 'checked', 'position', 'dueDate', 'reminderSent'];
 
     /**
      * Scopes results to goals that are within the due date threshold.
