@@ -179,14 +179,23 @@ class SurveyRecipient extends Model
     /**
      * Returns the JSON representation of this model.
      *
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
      * @return  array
      */
     public function jsonSerialize()
     {
-        return [
+        $json = [
             'key'       => $this->link,
             'final'     => $this->hasAnswered ? true : false,
             'answers'   => $this->answers
         ];
+        
+        if (request()->user()->can('viewAnswers', $this->survey)) {
+            $results = $this->survey->calculateAnswers();
+            $json = array_merge($json, $results);
+        }
+        
+        return $json;
     }
 }

@@ -22,7 +22,7 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      * @param   string  $prefix
      * @return  string
      */
-    public function url($prefix = '')
+    public function url()
     {
         return route('api1-dev-plan', $this);
     }
