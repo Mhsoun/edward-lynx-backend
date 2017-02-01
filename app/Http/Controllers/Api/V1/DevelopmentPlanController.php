@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
 use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
+use App\Models\DevelopmentPlanGoalAction;
 
 class DevelopmentPlanController extends Controller
 {
@@ -127,5 +128,30 @@ class DevelopmentPlanController extends Controller
     {
         $goal->delete();
         return response('', 204);
+    }
+    
+    /**
+     * Update a goal action's details.
+     *
+     * @param   Illuminate\Http\Request                 $request
+     * @param   App\Models\DevelopmentPlan              $devPlan
+     * @param   App\Models\DevelopmentPlanGoal          $goal
+     * @param   App\Models\DevelopmentPlanGoalAction    $action
+     * @return  App\Http\JsonHalResponse
+     */
+    public function updateGoalAction(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal, DevelopmentPlanGoalAction $action)
+    {
+        $this->validate($request, [
+            'title'     => 'string|max:255',
+            'checked'   => 'boolean',
+            'position'  => 'integer|min:0'
+        ]);
+        
+        $action->fill($request->all());
+        $action->save();
+        
+        $action->goal->updateActionPositions();
+        
+        return response()->jsonHal($action);
     }
 }
