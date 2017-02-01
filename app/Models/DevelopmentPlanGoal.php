@@ -14,7 +14,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     
     const DUE_THRESHOLD = 2;
     
-    public $fillable = ['title', 'description', 'checked', 'position', 'dueDate'];
+    public $fillable = ['title', 'description', 'position', 'dueDate'];
     
     public $timestamps = false;
     
