@@ -38,6 +38,18 @@ class UserController extends Controller
         }
         return response()->jsonHal($resp);
     }
+    
+    /**
+     * Returns a user's info.
+     *
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\User         $user
+     * @return  App\Http\JsonHalResponse
+     */
+    public function show(Request $request, User $user)
+    {
+        return response()->jsonHal($user);
+    }
 
     /**
      * Returns the current user's info.

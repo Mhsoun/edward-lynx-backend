@@ -69,7 +69,7 @@ class Survey extends Model implements Routable, JsonHalLinking
      * @param   string  $prefix
      * @return  string
      */
-    public function url($prefix = '')
+    public function url()
     {
         return route('api1-survey', $this);
     }

@@ -14,11 +14,13 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     
     const DUE_THRESHOLD = 2;
     
-    public $fillable = ['title', 'description', 'checked', 'position', 'dueDate'];
+    public $fillable = ['title', 'description', 'position', 'dueDate'];
     
     public $timestamps = false;
     
     protected $dates = ['dueDate'];
+    
+    protected $visible = ['id', 'title', 'description', 'checked', 'position', 'dueDate', 'reminderSent'];
 
     /**
      * Scopes results to goals that are within the due date threshold.
@@ -45,6 +47,17 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     }
     
     /**
+     * Returns the actions under this goal.
+     *
+     * @param   Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function actions()
+    {
+        return $this->hasMany(DevelopmentPlanGoalAction::class, 'goalId')
+                    ->orderBy('position', 'asc');
+    }
+    
+    /**
      * Goals are sorted by their position by default.
      *
      * @param   Illuminate\Database\Eloquent\Builder    $builder
@@ -54,6 +67,37 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     public function apply(Builder $builder, EloquentModel $model)
     {
         $builder->orderBy('position', 'asc');
+    }
+    
+    /**
+     * Updates action positions, used when the position attributes
+     * are not in sequence.
+     *
+     * @return  void
+     */
+    public function updateActionPositions()
+    {
+        foreach ($this->actions as $index => $action) {
+            $action->position = $index;
+            $action->save();
+        }
+    }
+    
+    /**
+     * Fixes null dueDates which is parsed as the current date time when
+     * serialized to JSON.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $json = parent::jsonSerialize();
+        $json['actions'] = $this->actions;
+            
+        if (!$this->attributes['dueDate']) {
+            $json['dueDate'] = null;
+        }
+        return $json;
     }
     
 }

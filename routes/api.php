@@ -10,6 +10,9 @@ Route::group(['prefix' => 'user'], function() {
 // /users endpoint
 Route::group(['prefix' => 'users'], function() {
     Route::get('/', 'UserController@index');
+    Route::get('/{user}', 'UserController@show')
+        ->middleware('can:view,user')
+        ->name('api1-user');
 });
 
 // /surveys Endpoints
@@ -71,5 +74,8 @@ Route::group(['prefix' => '/dev-plans'], function() {
     Route::patch('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@updateGoal')
         ->middleware('can:update,devPlan');
     Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@deleteGoal')
+        ->middleware('can:update,devPlan');
+    
+    Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanController@updateGoalAction')
         ->middleware('can:update,devPlan');
 });

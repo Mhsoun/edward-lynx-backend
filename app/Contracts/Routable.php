@@ -12,9 +12,8 @@ interface Routable
     /**
      * Returns the URL to this model.
      *
-     * @param   string  $prefix
      * @return  string
      */
-    public function url($prefix = '');
+    public function url();
     
 }
