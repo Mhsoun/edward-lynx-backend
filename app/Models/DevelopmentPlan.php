@@ -4,14 +4,17 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 
-class DevelopmentPlan extends BaseModel implements Routable
+class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
 {
     
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
     public $fillable = ['name'];
+    
+    protected $visible = ['id', 'name', 'createdAt', 'updatedAt'];
     
     /**
      * Returns the API url to this development plan.
@@ -32,16 +35,6 @@ class DevelopmentPlan extends BaseModel implements Routable
     public function owner()
     {
         return $this->belongsTo(User::class, 'ownerId');
-    }
-    
-    /**
-     * Returns the user who this development plan is for.
-     *
-     * @return  App\Models\User
-     */
-    public function target()
-    {
-        return $this->belongsTo(User::class, 'targetId');
     }
 
     /**
@@ -79,6 +72,18 @@ class DevelopmentPlan extends BaseModel implements Routable
         $json = parent::jsonSerialize();
         $json['goals'] = $this->goals;
         return $json;
+    }
+    
+    /**
+     * Returns additional links for JSON-HAL links field.
+     *
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        return [
+            'owner'     => $this->owner->url()
+        ];
     }
     
 }

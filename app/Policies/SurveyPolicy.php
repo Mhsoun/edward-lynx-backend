@@ -118,6 +118,24 @@ class SurveyPolicy
     }
     
     /**
+     * Determine whether the user can view survey results.
+     * 
+     * @param   App\Models\User     $user
+     * @param   App\Models\Survey   $survey
+     * @return  boolean
+     */
+    public function viewAnswers(User $user, Survey $survey)
+    {
+        if ($this->administer($user, $survey)) {
+            return true;
+        } elseif ($survey->ownerId == $user->id) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
      * Determine whether the user can administer the survey.
      * 
      * @param   App\Models\User     $user

@@ -237,15 +237,6 @@ class InstantFeedbackController extends Controller
         return response('', 201);
     }
     
-    public function test()
-    {
-        $ifs = InstantFeedback::all();
-        foreach ($ifs as $if) {
-            $if->delete();
-        }
-        return response('ok');
-    }
-    
     /**
      * Processes submitted questions and creates the appropriate
      * records in the database for each.

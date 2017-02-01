@@ -19,6 +19,8 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     public $timestamps = false;
     
     protected $dates = ['dueDate'];
+    
+    protected $visible = ['id', 'title', 'description', 'checked', 'position', 'dueDate', 'reminderSent'];
 
     /**
      * Scopes results to goals that are within the due date threshold.
@@ -54,6 +56,21 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     public function apply(Builder $builder, EloquentModel $model)
     {
         $builder->orderBy('position', 'asc');
+    }
+    
+    /**
+     * Fixes null dueDates which is parsed as the current date time when
+     * serialized to JSON.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $json = parent::jsonSerialize();
+        if (!$this->attributes['dueDate']) {
+            $json['dueDate'] = null;
+        }
+        return $json;
     }
     
 }

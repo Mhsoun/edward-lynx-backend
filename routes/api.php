@@ -10,6 +10,9 @@ Route::group(['prefix' => 'user'], function() {
 // /users endpoint
 Route::group(['prefix' => 'users'], function() {
     Route::get('/', 'UserController@index');
+    Route::get('/{user}', 'UserController@show')
+        ->middleware('can:view,user')
+        ->name('api1-user');
 });
 
 // /surveys Endpoints
@@ -32,6 +35,9 @@ Route::group(['prefix' => '/surveys'], function() {
         ->name('api1-survey-answers');
     Route::post('/{survey}/answers', 'AnswerController@answer')
         ->middleware('can:answer,survey');
+    Route::get('/{survey}/results', 'AnswerController@results')
+        ->middleware('can:viewAnswers,survey')
+        ->name('ap1-survey-results');
 });
 
 // /instant-feedbacks Endpoints
@@ -55,8 +61,6 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
     Route::post('/{instantFeedback}/shares', 'InstantFeedbackController@share')
         ->middleware('can:share,instantFeedback')
         ->name('api1-instant-feedback-share');
-    
-    Route::get('/test', 'InstantFeedbackController@test');
 });
 
 // /dev-plans Endpoints

@@ -35,7 +35,6 @@ class DevelopmentPlanController extends Controller
     {
         $this->validate($request, [
             'name'                  => 'required|string|max:255',
-            'target'                => 'required|integer|exists:users,id',
             'goals'                 => 'required|array',
             'goals.*.title'         => 'required|string|max:255',
             'goals.*.description'   => 'string',
@@ -46,7 +45,6 @@ class DevelopmentPlanController extends Controller
 
         $devPlan = new DevelopmentPlan($request->all());
         $devPlan->ownerId = $user->id;
-        $devPlan->targetId = $request->target;
         $devPlan->save();
 
         foreach ($request->goals as $index => $g) {

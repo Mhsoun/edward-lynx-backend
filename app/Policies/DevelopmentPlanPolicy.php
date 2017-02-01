@@ -21,8 +21,6 @@ class DevelopmentPlanPolicy
     {
         if ($devPlan->ownerId == $user->id) {
             return true;
-        } elseif ($devPlan->targetId == $user->id) {
-            return true;
         } else {
             return false;
         }
