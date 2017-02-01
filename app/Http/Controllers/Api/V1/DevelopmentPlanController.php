@@ -34,11 +34,15 @@ class DevelopmentPlanController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'name'                  => 'required|string|max:255',
-            'goals'                 => 'required|array',
-            'goals.*.title'         => 'required|string|max:255',
-            'goals.*.description'   => 'string',
-            'goals.*.dueDate'       => 'isodate'
+            'name'                          => 'required|string|max:255',
+            'goals'                         => 'required|array',
+            'goals.*.title'                 => 'required|string|max:255',
+            'goals.*.description'           => 'string',
+            'goals.*.dueDate'               => 'isodate',
+            'goals.*.position'              => 'required|integer|min:0',
+            'goals.*.actions'               => 'required|array',
+            'goals.*.actions.*.title'       => 'required|string|max:255',
+            'goals.*.actions.*.position'    => 'required|integer|min:0'
         ]);
             
         $user = $request->user();
@@ -47,15 +51,31 @@ class DevelopmentPlanController extends Controller
         $devPlan->ownerId = $user->id;
         $devPlan->save();
 
-        foreach ($request->goals as $index => $g) {
+        // Process development plan goals
+        foreach ($request->goals as $g) {
             $goal = $devPlan->goals()->create([
-                'title'         => Sanitizer::sanitize($g['title']),
-                'description'   => empty($g['description']) ? '' : Sanitizer::sanitize($g['description']),
+                'title'         => sanitize($g['title']),
+                'description'   => empty($g['description']) ? '' : sanitize($g['description']),
                 'dueDate'       => empty($g['dueDate']) ? null : Carbon::parse($g['dueDate']),
-                'position'      => $index
+                'position'      => $g['position']
             ]);
             $goal->save();
+            
+            // Create actions under each goal.
+            foreach ($g['actions'] as $a) {
+                $action = $goal->actions()->create([
+                    'title'     => sanitize($a['title']),
+                    'position'  => $a['position']
+                ]);
+                $action->save();
+            }
+            
+            // Ensure goal actions positions are in sequence.
+            $goal->updateActionPositions();
         }
+        
+        // Ensure goal positions are in sequence.
+        $devPlan->updateGoalPositions();
 
         $url = route('api1-dev-plan', ['devPlan' => $devPlan]);
         return response('', 201, ['Location' => $url]);

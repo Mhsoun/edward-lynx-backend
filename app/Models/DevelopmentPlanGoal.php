@@ -47,6 +47,17 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     }
     
     /**
+     * Returns the actions under this goal.
+     *
+     * @param   Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function actions()
+    {
+        return $this->hasMany(DevelopmentPlanGoalAction::class, 'goalId')
+                    ->orderBy('position', 'asc');
+    }
+    
+    /**
      * Goals are sorted by their position by default.
      *
      * @param   Illuminate\Database\Eloquent\Builder    $builder
@@ -59,6 +70,20 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     }
     
     /**
+     * Updates action positions, used when the position attributes
+     * are not in sequence.
+     *
+     * @return  void
+     */
+    public function updateActionPositions()
+    {
+        foreach ($this->actions as $index => $action) {
+            $action->position = $index;
+            $action->save();
+        }
+    }
+    
+    /**
      * Fixes null dueDates which is parsed as the current date time when
      * serialized to JSON.
      *
@@ -67,6 +92,8 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     public function jsonSerialize()
     {
         $json = parent::jsonSerialize();
+        $json['actions'] = $this->actions;
+            
         if (!$this->attributes['dueDate']) {
             $json['dueDate'] = null;
         }
