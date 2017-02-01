@@ -86,7 +86,6 @@ class DevelopmentPlanController extends Controller
         $this->validate($request, [
             'title'         => 'string|max:255',
             'description'   => 'string',
-            'checked'       => 'boolean',
             'position'      => 'integer|min:0'
         ]);
             
