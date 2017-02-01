@@ -36,16 +36,6 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     {
         return $this->belongsTo(User::class, 'ownerId');
     }
-    
-    /**
-     * Returns the user who this development plan is for.
-     *
-     * @return  App\Models\User
-     */
-    public function target()
-    {
-        return $this->belongsTo(User::class, 'targetId');
-    }
 
     /**
      * Returns the goals of this development plan.
@@ -92,8 +82,7 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     public function jsonHalLinks()
     {
         return [
-            'owner'     => $this->owner->url(),
-            'target'    => $this->target->url()
+            'owner'     => $this->owner->url()
         ];
     }
     
