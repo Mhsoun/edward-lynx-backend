@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
 use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
+use App\Models\DevelopmentPlanGoalAction;
 
 class DevelopmentPlanController extends Controller
 {
@@ -34,11 +35,15 @@ class DevelopmentPlanController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'name'                  => 'required|string|max:255',
-            'goals'                 => 'required|array',
-            'goals.*.title'         => 'required|string|max:255',
-            'goals.*.description'   => 'string',
-            'goals.*.dueDate'       => 'isodate'
+            'name'                          => 'required|string|max:255',
+            'goals'                         => 'required|array',
+            'goals.*.title'                 => 'required|string|max:255',
+            'goals.*.description'           => 'string',
+            'goals.*.dueDate'               => 'isodate',
+            'goals.*.position'              => 'required|integer|min:0',
+            'goals.*.actions'               => 'required|array',
+            'goals.*.actions.*.title'       => 'required|string|max:255',
+            'goals.*.actions.*.position'    => 'required|integer|min:0'
         ]);
             
         $user = $request->user();
@@ -47,15 +52,31 @@ class DevelopmentPlanController extends Controller
         $devPlan->ownerId = $user->id;
         $devPlan->save();
 
-        foreach ($request->goals as $index => $g) {
+        // Process development plan goals
+        foreach ($request->goals as $g) {
             $goal = $devPlan->goals()->create([
-                'title'         => Sanitizer::sanitize($g['title']),
-                'description'   => empty($g['description']) ? '' : Sanitizer::sanitize($g['description']),
+                'title'         => sanitize($g['title']),
+                'description'   => empty($g['description']) ? '' : sanitize($g['description']),
                 'dueDate'       => empty($g['dueDate']) ? null : Carbon::parse($g['dueDate']),
-                'position'      => $index
+                'position'      => $g['position']
             ]);
             $goal->save();
+            
+            // Create actions under each goal.
+            foreach ($g['actions'] as $a) {
+                $action = $goal->actions()->create([
+                    'title'     => sanitize($a['title']),
+                    'position'  => $a['position']
+                ]);
+                $action->save();
+            }
+            
+            // Ensure goal actions positions are in sequence.
+            $goal->updateActionPositions();
         }
+        
+        // Ensure goal positions are in sequence.
+        $devPlan->updateGoalPositions();
 
         $url = route('api1-dev-plan', ['devPlan' => $devPlan]);
         return response('', 201, ['Location' => $url]);
@@ -86,12 +107,16 @@ class DevelopmentPlanController extends Controller
         $this->validate($request, [
             'title'         => 'string|max:255',
             'description'   => 'string',
-            'checked'       => 'boolean',
             'position'      => 'integer|min:0'
         ]);
             
         $goal->fill($request->all());
         $goal->save();
+        
+        if ($request->has('position')) {
+            $devPlan->updateGoalPositions();
+            $goal = $goal->fresh();
+        }
         
         return response()->jsonHal($goal);
     }
@@ -108,5 +133,33 @@ class DevelopmentPlanController extends Controller
     {
         $goal->delete();
         return response('', 204);
+    }
+    
+    /**
+     * Update a goal action's details.
+     *
+     * @param   Illuminate\Http\Request                 $request
+     * @param   App\Models\DevelopmentPlan              $devPlan
+     * @param   App\Models\DevelopmentPlanGoal          $goal
+     * @param   App\Models\DevelopmentPlanGoalAction    $action
+     * @return  App\Http\JsonHalResponse
+     */
+    public function updateGoalAction(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal, DevelopmentPlanGoalAction $action)
+    {
+        $this->validate($request, [
+            'title'     => 'string|max:255',
+            'checked'   => 'boolean',
+            'position'  => 'integer|min:0'
+        ]);
+        
+        $action->fill($request->all());
+        $action->save();
+        
+        if ($request->has('position')) {
+            $action->goal->updateActionPositions();
+            $action = $action->fresh();
+        }
+        
+        return response()->jsonHal($action);
     }
 }
