@@ -91,10 +91,15 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      */
     public function jsonHalLinks()
     {
-        return [
+        $links = [
             'owner'     => $this->owner->url(),
-            'category'  => $this->category->url()
         ];
+        
+        if ($this->category) {
+            $links['category'] = $this->category->url();
+        }
+        
+        return $links;
     }
     
 }
