@@ -81,11 +81,13 @@ class Question extends Model
                 }
 
                 // Calculate frequencies of each question value
-                foreach ($questionAnswers as $answer) {
-                   $key = $isText ? $answer->answerText : strval($answer->answerValue);
-                   if (isset($counts[$key])) {
-                       $counts[$key] += 1;
-                   }
+                if ($questionAnswers) {
+                    foreach ($questionAnswers as $answer) {
+                       $key = $isText ? $answer->answerText : strval($answer->answerValue);
+                       if (isset($counts[$key])) {
+                           $counts[$key] += 1;
+                       }
+                    }
                 }
 
                 // Build a proper result array
