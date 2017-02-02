@@ -84,6 +84,24 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     }
     
     /**
+     * Updates this goal's checked status depending on the checked
+     * status of it's child actions.
+     *
+     * @return  void
+     */
+    public function updateChecked()
+    {
+        $done = true;
+        foreach ($this->actions as $action) {
+            if (!$action->checked && $done) {
+                $done = false;
+            }
+        }
+        $this->checked = $done;
+        $this->save();
+    }
+    
+    /**
      * Fixes null dueDates which is parsed as the current date time when
      * serialized to JSON.
      *

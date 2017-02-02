@@ -180,6 +180,11 @@ class DevelopmentPlanController extends Controller
             $action = $action->fresh();
         }
         
+        if ($request->has('checked')) {
+            $action->goal->updateChecked();
+            $action = $action->fresh();
+        }
+        
         return response()->jsonHal($action);
     }
 }
