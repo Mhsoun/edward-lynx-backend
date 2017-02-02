@@ -18,7 +18,8 @@ class AuthServiceProvider extends ServiceProvider
         'App\Models\Survey'             => 'App\Policies\SurveyPolicy',
         'App\Models\InstantFeedback'    => 'App\Policies\InstantFeedbackPolicy',
         'App\Models\DevelopmentPlan'    => 'App\Policies\DevelopmentPlanPolicy',
-        'App\Models\User'               => 'App\Policies\UserPolicy'
+        'App\Models\User'               => 'App\Policies\UserPolicy',
+        'App\Models\QuestionCategory'   => 'App\Policies\QuestionCategoryPolicy'
     ];
 
     /**

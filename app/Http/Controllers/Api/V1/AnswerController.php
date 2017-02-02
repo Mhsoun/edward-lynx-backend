@@ -179,6 +179,14 @@ class AnswerController extends Controller
     public function results(Request $request, Survey $survey)
     {
         $results = $survey->calculateAnswers();
+        
+        // Rearrange frequency results
+        $freqs = [];
+        foreach ($results['frequencies'] as $questionId => $counts) {
+            $freqs[] = compact('questionId', 'counts');
+        }
+        $results['frequencies'] = $freqs;
+            
         return response()->jsonHal($results)
                          ->withLinks([
                              'survey'   => $survey->url()
