@@ -36,6 +36,16 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     {
         return $this->belongsTo(User::class, 'ownerId');
     }
+    
+    /**
+     * Returns the survey category this development plan is linked to.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function category()
+    {
+        return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
+    }
 
     /**
      * Returns the goals of this development plan.
@@ -82,7 +92,8 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     public function jsonHalLinks()
     {
         return [
-            'owner'     => $this->owner->url()
+            'owner'     => $this->owner->url(),
+            'category'  => $this->category->url()
         ];
     }
     

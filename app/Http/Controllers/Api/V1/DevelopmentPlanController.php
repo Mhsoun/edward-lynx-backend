@@ -6,9 +6,12 @@ use App\Sanitizer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
+use Illuminate\Validation\Rule;
+use App\Models\QuestionCategory;
 use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
 use App\Models\DevelopmentPlanGoalAction;
+use App\Exceptions\CustomValidationException;
 
 class DevelopmentPlanController extends Controller
 {
@@ -36,6 +39,12 @@ class DevelopmentPlanController extends Controller
     {
         $this->validate($request, [
             'name'                          => 'required|string|max:255',
+            'categoryId'                    => [
+                'integer',
+                Rule::exists('question_categories', 'id')->where(function ($query) {
+                    $query->where('isSurvey', true);
+                })
+            ],
             'goals'                         => 'required|array',
             'goals.*.title'                 => 'required|string|max:255',
             'goals.*.description'           => 'string',
@@ -47,7 +56,18 @@ class DevelopmentPlanController extends Controller
         ]);
             
         $user = $request->user();
-
+        
+        // Make sure the category is visible for the current user
+        if ($request->has('categoryId')) {
+            $category = QuestionCategory::find($request->categoryId);
+            if (!$user->can('view', $category)) {
+                throw new CustomValidationException([
+                    'categoryId' => ['Invalid category id.']
+                ]);
+            }
+        }
+        
+        // Create initial dev plan
         $devPlan = new DevelopmentPlan($request->all());
         $devPlan->ownerId = $user->id;
         $devPlan->save();
