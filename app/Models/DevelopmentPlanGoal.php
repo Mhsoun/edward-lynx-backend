@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use App\Models\BaseModel;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 
-class DevelopmentPlanGoal extends BaseModel implements Scope
+class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
 {
     
     const DUE_THRESHOLD = 2;
@@ -20,7 +21,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     
     protected $dates = ['dueDate'];
     
-    protected $visible = ['id', 'title', 'description', 'checked', 'position', 'dueDate', 'reminderSent'];
+    protected $visible = ['id', 'categoryId', 'title', 'description', 'checked', 'position', 'dueDate', 'reminderSent'];
 
     /**
      * Scopes results to goals that are within the due date threshold.
@@ -44,6 +45,16 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
     public function developmentPlan()
     {
         return $this->belongsTo(DevelopmentPlan::class, 'developmentPlanId');
+    }
+    
+    /**
+     * Returns the survey category this goal is linked to.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function category()
+    {
+        return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
     }
     
     /**
@@ -116,6 +127,22 @@ class DevelopmentPlanGoal extends BaseModel implements Scope
             $json['dueDate'] = null;
         }
         return $json;
+    }
+    
+    /**
+     * Returns additional links for JSON-HAL links field.
+     *
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        if ($this->category) {
+            return [
+                'category'  => $this->category->url()
+            ];
+        } else {
+            return [];
+        }
     }
     
 }
