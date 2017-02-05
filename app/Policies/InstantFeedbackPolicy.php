@@ -19,9 +19,9 @@ class InstantFeedbackPolicy extends Policy
     {
         if ($this->administer($user, $instantFeedback)) {
             return true;
-        } elseif ($instantFeedback->user_id == $user->id) {
+        } elseif ($instantFeedback->userId == $user->id) {
             return true;
-        } elseif ($instantFeedback->recipients()->where('user_id', $user->id)->count() > 0) {
+        } elseif ($instantFeedback->recipients()->where('userId', $user->id)->count() > 0) {
             return true;
         } elseif ($instantFeedback->isSharedTo($user)) {
             return true;
@@ -64,7 +64,7 @@ class InstantFeedbackPolicy extends Policy
     {
         if ($this->administer($user, $instantFeedback)) {
             return true;
-        } elseif ($instantFeedback->user_id == $user->id) {
+        } elseif ($instantFeedback->userId == $user->id) {
             return true;
         } elseif ($instantFeedback->isSharedTo($user)) {
             return true;
@@ -84,7 +84,7 @@ class InstantFeedbackPolicy extends Policy
     {
         if ($this->administer($user, $instantFeedback)) {
             return true;
-        } elseif ($instantFeedback->user_id == $user->id) {
+        } elseif ($instantFeedback->userId == $user->id) {
             return true;
         } else {
             return false;
@@ -102,7 +102,7 @@ class InstantFeedbackPolicy extends Policy
     {
         if ($this->administer($user, $instantFeedback)) {
             return true;
-        } elseif ($instantFeedback->user_id == $user->id) {
+        } elseif ($instantFeedback->userId == $user->id) {
             return true;
         } else {
             return false;
@@ -120,7 +120,7 @@ class InstantFeedbackPolicy extends Policy
     {
         if ($this->administer($user, $instantFeedback)) {
             return true;
-        } elseif ($instantFeedback->user_id == $user->id) {
+        } elseif ($instantFeedback->userId == $user->id) {
             return true;
         } else {
             return false;

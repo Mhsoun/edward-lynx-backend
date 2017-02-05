@@ -80,9 +80,9 @@ class SurveyController extends Controller
             'questions.*.items.*.answer.type'   => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.items.*.answer.options'=> 'array',
             'candidates'                        => 'required|array',
-            'candidates.*.id'                   => 'required_without_all:candidates.*.name,candidates.*.email|integer',
-            'candidates.*.name'                 => 'required_without:candidates.*.id,string',
-            'candidates.*.email'                => 'required_without:candidates.*.id,email'
+            'candidates.*.id'                   => 'required_without_all:candidates.*.name,candidates.*.email|integer|exists:users,id',
+            'candidates.*.name'                 => 'required_without:candidates.*.id|string',
+            'candidates.*.email'                => 'required_without:candidates.*.id|email'
 		], [
 		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
@@ -96,6 +96,9 @@ class SurveyController extends Controller
     
         // Make sure that the current user can create this survey type.
         $this->authorize('create', [Survey::class, $type]);
+        
+        // Make sure the candidates are within the user's company only.
+        $this->validateCandidates($request->user(), $request->candidates);
         
         // Create our draft survey.
         $surveyData = $this->generateSurveyData($type, $request);
@@ -374,6 +377,37 @@ class SurveyController extends Controller
             }
         }
         $data->individual->candidates = $results;
+    }
+    
+    /**
+     * Validates candidate user IDs by making sure they exist and
+     * the current user can access them.
+     *
+     * @param   App\Models\User $user
+     * @param   array           $candidates
+     * @return  void
+     */
+    protected function validateCandidates(User $user, array $candidates)
+    {
+        $errors = [];
+        foreach ($candidates as $index => $c) {
+            if (!isset($c['id'])) {
+                continue;
+            }
+            
+            $candidate = User::find($c['id']);
+            if (!$candidate) {
+                $errors["candidates.{$index}.id"][] = 'Candidate does not exist.';
+            }
+            
+            if (!$candidate->can('view', $user)) {
+                $errors["candidates.{$index}.id"][] = 'Invalid candidate.';
+            }
+        }
+        
+        if (!empty($errors)) {
+            throw new CustomValidationException($errors);
+        }
     }
 
 }
