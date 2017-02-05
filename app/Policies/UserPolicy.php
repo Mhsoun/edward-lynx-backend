@@ -3,24 +3,9 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
-class UserPolicy
+class UserPolicy extends Policy
 {
-    use HandlesAuthorization;
-
-    /**
-     * Before hook. Superadmins can do everything.
-     * 
-     * @param   App\Models\User     $user
-     * @return  boolean
-     */
-    public function before(User $user)
-    {
-        if ($user->isA('superadmin')) {
-            return true;
-        }
-    }
 
     /**
      * Determine whether the user can view another user's details.

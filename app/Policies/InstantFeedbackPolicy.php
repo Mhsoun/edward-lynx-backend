@@ -4,24 +4,9 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\InstantFeedback;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
-class InstantFeedbackPolicy
+class InstantFeedbackPolicy extends Policy
 {
-    use HandlesAuthorization;
-    
-    /**
-     * Before hook. Superadmins can do everything.
-     * 
-     * @param  User $user
-     * @return boolean
-     */
-    public function before(User $user)
-    {
-        if ($user->isA('superadmin')) {
-            return true;
-        }
-    }
 
     /**
      * Determine whether the user can view the instant feedback.
@@ -32,7 +17,9 @@ class InstantFeedbackPolicy
      */
     public function view(User $user, InstantFeedback $instantFeedback)
     {
-        if ($instantFeedback->user_id == $user->id) {
+        if ($this->administer($user, $instantFeedback)) {
+            return true;
+        } elseif ($instantFeedback->user_id == $user->id) {
             return true;
         } elseif ($instantFeedback->recipients()->where('user_id', $user->id)->count() > 0) {
             return true;
@@ -75,7 +62,9 @@ class InstantFeedbackPolicy
      */
     public function viewAnswers(User $user, InstantFeedback $instantFeedback)
     {
-        if ($instantFeedback->user_id == $user->id) {
+        if ($this->administer($user, $instantFeedback)) {
+            return true;
+        } elseif ($instantFeedback->user_id == $user->id) {
             return true;
         } elseif ($instantFeedback->isSharedTo($user)) {
             return true;
@@ -93,7 +82,13 @@ class InstantFeedbackPolicy
      */
     public function share(User $user, InstantFeedback $instantFeedback)
     {
-        return $instantFeedback->user_id == $user->id;
+        if ($this->administer($user, $instantFeedback)) {
+            return true;
+        } elseif ($instantFeedback->user_id == $user->id) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -105,7 +100,13 @@ class InstantFeedbackPolicy
      */
     public function update(User $user, InstantFeedback $instantFeedback)
     {
-        return $instantFeedback->user_id == $user->id;
+        if ($this->administer($user, $instantFeedback)) {
+            return true;
+        } elseif ($instantFeedback->user_id == $user->id) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -117,6 +118,12 @@ class InstantFeedbackPolicy
      */
     public function delete(User $user, InstantFeedback $instantFeedback)
     {
-        return $instantFeedback->user_id == $user->id;
+        if ($this->administer($user, $instantFeedback)) {
+            return true;
+        } elseif ($instantFeedback->user_id == $user->id) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
