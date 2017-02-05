@@ -22,6 +22,13 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 {
     use Authorizable, HasApiTokens, Notifiable;
     
+    const SUPERADMIN = 0;
+    const ADMIN = 1;
+    const SUPERVISOR = 2;
+    const PARTICIPANT = 3;
+    const FEEDBACK_PROVIDER = 4;
+    const ANALYST = 5;
+    
     const ACCESS_LEVELS = [
         0   => 'superadmin',
         1   => 'admin',
@@ -50,7 +57,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated', 'parent_id', 'access_level'];
+    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated', 'parentId', 'accessLevel'];
 
 	/**
 	 * Additional attributes added into the model's JSON.
@@ -729,11 +736,11 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     public function colleagues($includeParent = true)
     {
         $result = new Collection();
-        if ($this->parent_id == null) {
+        if ($this->parentId == null) {
             $result = $this->subUsers();
             $result->prepend($this);
         } else {
-            $parent = self::find($this->parent_id);
+            $parent = self::find($this->parentId);
             $result = $parent->subUsers();
             $result->prepend($parent);
         }
@@ -747,7 +754,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
      */
     public function subUsers()
     {
-        $children = self::where('parent_id', $this->id)
+        $children = self::where('parentId', $this->id)
             ->orderBy('name', 'asc')
             ->get();
         return $children;
@@ -781,13 +788,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
      */
     public function isA($accessLevel)
     {
-        $accessLevel = strtolower($accessLevel);
-        $key = array_search($accessLevel, self::ACCESS_LEVELS);
-        if ($key !== FALSE) {
-            return $this->access_level == $key;
-        } else {
-            throw new UnexpectedValueException("Unknown access level '$accessLevel'.");
-        }
+        return $this->accessLevel == $accessLevel;
     }
 
     /**
@@ -819,7 +820,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 	 */
 	public function getTypeAttribute()
 	{
-		return self::ACCESS_LEVELS[$this->access_level];
+		return self::ACCESS_LEVELS[$this->accessLevel];
 	}
     
     /**
