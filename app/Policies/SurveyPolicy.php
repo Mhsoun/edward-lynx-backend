@@ -4,24 +4,9 @@ use App\SurveyTypes;
 use App\Models\User;
 use App\Models\Survey;
 use App\Models\SurveyRecipient;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
-class SurveyPolicy
+class SurveyPolicy extends Policy
 {
-    use HandlesAuthorization;
-
-    /**
-     * Before hook. Superadmins can do everything.
-     * 
-     * @param   App\Models\User     $user
-     * @return  boolean
-     */
-    public function before(User $user)
-    {
-        if ($user->isA(User::SUPERADMIN)) {
-            return true;
-        }
-    }
 
     /**
      * Determine whether the user can view the survey.
@@ -32,11 +17,13 @@ class SurveyPolicy
      */
     public function view(User $user, Survey $survey)
     {
-        if ($survey->ownerId == $user->id) {
+        if ($this->administer($user, $instantFeedback)) {
             return true;
+        } elseif ($survey->ownerId == $user->id) {
+            return true;
+        } else {
+            return false;
         }
-        
-        return false;
     }
 
     /**
@@ -47,7 +34,7 @@ class SurveyPolicy
      */
     public function viewAll(User $user)
     {
-        return $user->isA('superadmin');
+        return $user->isA(User::SUPERADMIN);
     }
 
     /**
@@ -72,11 +59,13 @@ class SurveyPolicy
      */
     public function update(User $user, Survey $survey)
     {
-        if ($survey->ownerId == $user->id) {
+        if ($this->administer($user, $instantFeedback)) {
             return true;
+        } elseif ($survey->ownerId == $user->id) {
+            return true;
+        } else {
+            return false;
         }
-        
-        return false;
     }
 
     /**
@@ -88,11 +77,13 @@ class SurveyPolicy
      */
     public function delete(User $user, Survey $survey)
     {
-        if ($survey->ownerId == $user->id) {
+        if ($this->administer($user, $instantFeedback)) {
             return true;
+        } elseif ($survey->ownerId == $user->id) {
+            return true;
+        } else {
+            return false;
         }
-        
-        return false;
     }
 
     /**
@@ -128,22 +119,12 @@ class SurveyPolicy
     {
         if ($this->administer($user, $survey)) {
             return true;
+        } elseif ($this->supervise($user, $survey)) {
+            return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
         } else {
             return false;
         }
-    }
-    
-    /**
-     * Determine whether the user can administer the survey.
-     * 
-     * @param   App\Models\User     $user
-     * @param   App\Models\Survey   $survey
-     * @return  boolean
-     */
-    public function administer(User $user, Survey $survey)
-    {
-        return $user->isAn('admin') && $user->colleagueOf($survey->owner);
     }
 }

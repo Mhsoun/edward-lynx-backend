@@ -4,24 +4,9 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\DevelopmentPlan;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
-class DevelopmentPlanPolicy
+class DevelopmentPlanPolicy extends Policy
 {
-    use HandlesAuthorization;
-
-    /**
-     * Before hook. Superadmins can do everything.
-     * 
-     * @param   App\Models\User     $user
-     * @return  boolean
-     */
-    public function before(User $user)
-    {
-        if ($user->isA(User::SUPERADMIN)) {
-            return true;
-        }
-    }
 
     /**
      * Determine whether the user can view the developmentPlan.
@@ -31,8 +16,12 @@ class DevelopmentPlanPolicy
      * @return  mixed
      */
     public function view(User $user, DevelopmentPlan $devPlan)
-    {
+    {   
         if ($devPlan->ownerId == $user->id) {
+            return true;
+        } elseif ($this->administer($user, $devPlan) || $this->supervise($user, $devPlan))
+            return true;
+        } elseif ($user->isA(User::PARTICIPANT))
             return true;
         } else {
             return false;
@@ -47,7 +36,11 @@ class DevelopmentPlanPolicy
      */
     public function create(User $user)
     {
-        return true;
+        if ($user->isA(User::ADMIN) || $user->isA(User::PARTICIPANT)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -59,7 +52,13 @@ class DevelopmentPlanPolicy
      */
     public function update(User $user, DevelopmentPlan $devPlan)
     {
-        return $devPlan->ownerId == $user->id;
+        if ($this->administer($user, $devPlan)) {
+            return true;
+        } elseif ($devPlan->ownerId == $user->id) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -71,6 +70,12 @@ class DevelopmentPlanPolicy
      */
     public function delete(User $user, DevelopmentPlan $devPlan)
     {
-        return $devPlan->ownerId == $user->id;
+        if ($this->administer($user, $devPlan)) {
+            return true;
+        } elseif ($devPlan->ownerId == $user->id) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
