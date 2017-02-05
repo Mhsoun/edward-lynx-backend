@@ -233,15 +233,22 @@ class JsonHalResponse extends JsonResponse
     {
         $result = [];
         
+        // Top-level collections should have a links field and records are
+        // put under the items key.
         if ($isRoot) {
             $result['_links'] = [
                 'self' => ['href' => request()->fullUrl()]
             ];
-        }
-        
-        $result['items'] = [];
-        foreach ($collection as $record) {
-            $result['items'][] = $this->encodeModel($record);
+            
+            $result['items'] = [];
+            foreach ($collection as $record) {
+                $result['items'][] = $this->encodeModel($record);
+            }
+        // Nested collections are plain arrays.
+        } else {
+            foreach ($collection as $record) {
+                $result[] = $this->encodeModel($record);
+            }
         }
         return $result;
     }
