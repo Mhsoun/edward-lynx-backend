@@ -75,4 +75,16 @@ Route::group(['prefix' => '/dev-plans'], function() {
         ->middleware('can:update,devPlan');
     Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@deleteGoal')
         ->middleware('can:update,devPlan');
+    
+    Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanController@updateGoalAction')
+        ->middleware('can:update,devPlan');
+});
+
+// /categories Endpoints
+Route::group(['prefix' => '/categories'], function() {
+    Route::get('/', 'CategoryController@index')
+        ->name('api1-categories');
+    Route::get('/{category}', 'CategoryController@show')
+        ->middleware('can:view,category')
+        ->name('api1-category');
 });

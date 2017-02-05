@@ -838,12 +838,10 @@ class Survey extends Model implements Routable, JsonHalLinking
         });
         
         $answers = new Collection;
-        foreach ($this->recipients as $recipient) {
-            // Skip users who didn't finish answering yet.
-            if (!$recipient->hasAnswered) {
-                continue;
-            }
-            
+        $recipients = $this->recipients()
+                           ->where('hasAnswered', true)
+                           ->get();
+        foreach ($recipients as $recipient) {
             foreach ($recipient->answers as $answer) {
                 if (!$answers->has($answer->questionId)) {
                     $answers->put($answer->questionId, new Collection);
@@ -851,11 +849,8 @@ class Survey extends Model implements Routable, JsonHalLinking
                 
                 $answers->get($answer->questionId)->push($answer);
             }
-            
-            dd($answers->toArray());
-            
-            $answers->merge($recipient->answers);
         }
-        //return Question::calculateAnswers($questions, $answers);
+        
+        return Question::calculateAnswers($questions, $answers);
     }
 }
