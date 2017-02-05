@@ -46,11 +46,13 @@
                     if ($hasBounced) {
                         $statusText = 'alert-warning';
                     }
+                    
+                    $email = $candidate->recipient->mail ? $candidate->recipient->mail : $candidate->recipient->email;
                 ?>
 
                 <tr class="{{ $statusText }}">
                     <td><a href="{{ $viewLink }}">{{ $candidate->recipient->name }}</a></td>
-                    <td>{{ $candidate->recipient->mail }}</td>
+                    <td>{{ $email }}</td>
                     <td>{{ $invitedAndAnswered->answered }}/{{ $invitedAndAnswered->invited  }}</td>
                     <td><input type="checkbox" name="candidateReminderIds[]" value="{{ $candidate->recipientId }}"></td>
                     <td>

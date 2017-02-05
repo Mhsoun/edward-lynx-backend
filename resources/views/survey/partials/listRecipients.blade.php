@@ -52,6 +52,8 @@
                     'recipientId' => $recipient->recipientId,
                     'invitedById' => $recipient->invitedById
                 ]);
+                    
+                $email = $recipient->recipient->mail ? $recipient->recipient->mail : $recipient->recipient->email;
             ?>
             <tr title="{{ $recipient->bounced ? Lang::get('surveys.emailBounced') : '' }}" class="{{ $statusText }}">
                 <td>
@@ -68,7 +70,7 @@
                     @endif
                 </td>
                 <td class="name">{{ $recipient->recipient->name }}</td>
-                <td class="email">{{ $recipient->recipient->mail }}</td>
+                <td class="email">{{ $email }}</td>
                 @if (\App\SurveyTypes::isIndividualLike($survey->type))
                     <td class="role">{{ \App\Roles::name($recipient->roleId)  }}</td>
                 @endif
