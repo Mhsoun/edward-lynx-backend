@@ -42,10 +42,10 @@ class InstantFeedbackController extends Controller
                 ->get();
         } elseif ($request->filter == 'to_answer') {
             $currentUser = $request->user();
-            $instantFeedbacks = InstantFeedback::answerableBy($currentUser)
-                ->oldest()
+            $result = InstantFeedback::answerableBy($currentUser)
+                ->oldest('createdAt')
                 ->get();
-            
+            /*
             $result = [];
             foreach ($instantFeedbacks as $if) {
                 $result[] = array_merge([
@@ -55,6 +55,7 @@ class InstantFeedbackController extends Controller
                     [ 'key'   => $if->answerKeyOf($currentUser) ]
                 );
             }
+            */
         }
         
         return response()->jsonHal($result);
@@ -81,7 +82,7 @@ class InstantFeedbackController extends Controller
         ]);
             
         $instantFeedback = new InstantFeedback($request->all());
-        $instantFeedback->user_id = $request->user()->id;
+        $instantFeedback->userId = $request->user()->id;
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
@@ -169,7 +170,7 @@ class InstantFeedbackController extends Controller
         }
         
         $recipient = InstantFeedbackRecipient::where([
-            'user_id'   => $currentUser->id,
+            'userId'    => $currentUser->id,
             'key'       => $key
         ])->first();
         $recipient->markAnswered();
@@ -268,8 +269,8 @@ class InstantFeedbackController extends Controller
             }
             
             $questionLink = new InstantFeedbackQuestion();
-            $questionLink->instant_feedback_id = $instantFeedback->id;
-            $questionLink->question_id = $question->id;
+            $questionLink->instantFeedbackId = $instantFeedback->id;
+            $questionLink->questionId = $question->id;
             $questionLink->save();
         }
     }

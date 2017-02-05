@@ -11,7 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 class InstantFeedback extends Model implements Routable, JsonHalLinking
 {
     
-    protected $fillable = ['user_id', 'lang', 'closed', 'anonymous'];
+    const CREATED_AT = 'createdAt';
+    const UPDATED_AT = 'updatedAt';
+    
+    protected $fillable = ['userId', 'lang', 'closed', 'anonymous'];
     
     protected $visible = ['id', 'lang', 'closed', 'anonymous'];
     
@@ -34,8 +37,8 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function scopeMine(Builder $query)
     {
-        $user_id = request()->user()->id;
-        return $query->where('user_id', $user_id);
+        $id = request()->user()->id;
+        return $query->where('userId', $id);
     }
     
     /**
@@ -48,11 +51,11 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function scopeAnswerableBy(Builder $query, User $user)
     {
-        $user_id = $user->id;
+        $id = $user->id;
         return $query->select('instant_feedbacks.*')
-                     ->join('instant_feedback_recipients', 'instant_feedback_recipients.instant_feedback_id', '=', 'instant_feedbacks.id')
+                     ->join('instant_feedback_recipients', 'instant_feedback_recipients.instantFeedbackId', '=', 'instant_feedbacks.id')
                      ->where([
-                         'instant_feedback_recipients.user_id'  => $user_id,
+                         'instant_feedback_recipients.userId'  => $id,
                          'instant_feedback_recipients.answered' => 0
                      ]);
     }
@@ -64,7 +67,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class, 'userId');
     }
     
     /**
@@ -74,7 +77,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function questions()
     {
-        return $this->belongsToMany('App\Models\Question', 'instant_feedback_questions');
+        return $this->belongsToMany(Question::class, 'instant_feedback_questions', 'instantFeedbackId', 'questionId');
     }
     
     /**
@@ -84,8 +87,8 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function recipients()
     {
-        return $this->belongsToMany('App\Models\User', 'instant_feedback_recipients', 'instant_feedback_id', 'user_id')
-                    ->withPivot('key', 'answered', 'answered_at');
+        return $this->belongsToMany(User::class, 'instant_feedback_recipients', 'instantFeedbackId', 'userId')
+                    ->withPivot('key', 'answered', 'answeredAt');
     }
     
     /**
@@ -95,7 +98,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function answers()
     {
-        return $this->hasMany('App\Models\InstantFeedbackAnswer');
+        return $this->hasMany(InstantFeedbackAnswer::class, 'instantFeedbackId');
     }
     
     /**
@@ -105,7 +108,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function shares()
     {
-        return $this->belongsToMany('App\Models\User', 'instant_feedback_shares', 'instant_feedback_id', 'user_id');
+        return $this->belongsToMany(User::class, 'instant_feedback_shares', 'instantFeedbackId', 'userId');
     }
     
     /**
@@ -142,7 +145,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     public function answerKeyOf(User $user)
     {
         $invite = $this->recipients()
-                       ->where('user_id', $user->id)
+                       ->where('userId', $user->id)
                        ->first();
         if ($invite && !$invite->pivot->answered) {
             return $invite->pivot->key;
@@ -159,7 +162,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     public function close()
     {
         $this->closed = true;
-        $this->closed_at = Carbon::now();
+        $this->closedAt = Carbon::now();
         return $this;
     }
     
@@ -171,7 +174,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     public function open()
     {
         $this->closed = false;
-        $this->closed_at = null;
+        $this->closedAt = null;
         return $this;
     }
     
@@ -183,7 +186,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     public function jsonSerialize()
     {
         $data = parent::jsonSerialize();
-        $data['createdAt'] = $this->created_at->toIso8601String();
+        $data['createdAt'] = $this->createdAt->toIso8601String();
         
         $data['questions'] = $this->questions;
         $data['shares'] = $this->shares->map(function($user) {

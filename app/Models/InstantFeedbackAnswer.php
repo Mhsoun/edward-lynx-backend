@@ -81,7 +81,7 @@ class InstantFeedbackAnswer extends Model
      */
     public function instantFeedback()
     {
-        return $this->belongsTo('App\Models\InstantFeedback');
+        return $this->belongsTo(InstantFeedback::class, 'instantFeedbackId');
     }
     
     /**
@@ -91,7 +91,7 @@ class InstantFeedbackAnswer extends Model
      */
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class, 'userId');
     }
     
     /**
@@ -101,7 +101,7 @@ class InstantFeedbackAnswer extends Model
      */
     public function question()
     {
-        return $this->belongsTo('App\Models\Question');
+        return $this->belongsTo(Question::class, 'questionId');
     }
     
     /**
@@ -129,9 +129,9 @@ class InstantFeedbackAnswer extends Model
         }
         
         $ifAnswer = new self;
-        $ifAnswer->instant_feedback_id = $instantFeedback->id;
-        $ifAnswer->user_id = $user->id;
-        $ifAnswer->question_id = $question->id;
+        $ifAnswer->instantFeedbackId = $instantFeedback->id;
+        $ifAnswer->userId = $user->id;
+        $ifAnswer->questionId = $question->id;
         $ifAnswer->answer = $answer;
         $ifAnswer->save();
         

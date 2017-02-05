@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class InstantFeedbackShare extends Model
 {
+
+    const CREATED_AT = 'createdAt';
+    const UPDATED_AT = 'updatedAt';
     
     /**
      * Creates a share record for a user to an instant feedback.
@@ -17,14 +20,14 @@ class InstantFeedbackShare extends Model
     public static function make(InstantFeedback $instantFeedback, User $user)
     {
         $share = self::where([
-            'instant_feedback_id'   => $instantFeedback->id,
-            'user_id'               => $user->id
+            'instantFeedbackId'     => $instantFeedback->id,
+            'userId'                => $user->id
         ])->first();
         
         if (!$share) {
             $share = new self;
-            $share->instant_feedback_id = $instantFeedback->id;
-            $share->user_id = $user->id;
+            $share->instantFeedbackId = $instantFeedback->id;
+            $share->userId = $user->id;
             $share->save();
         }
         
@@ -42,8 +45,8 @@ class InstantFeedbackShare extends Model
     public static function isShared(InstantFeedback $instantFeedback, User $user)
     {
         $share = self::where([
-            'instant_feedback_id'   => $instantFeedback->id,
-            'user_id'               => $user->id
+            'instantFeedbackId'     => $instantFeedback->id,
+            'userId'                => $user->id
         ])->first();
             
         return !is_null($share);
