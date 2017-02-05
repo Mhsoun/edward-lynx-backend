@@ -81,8 +81,8 @@ class SurveyController extends Controller
             'questions.*.items.*.answer.options'=> 'array',
             'candidates'                        => 'required|array',
             'candidates.*.id'                   => 'required_without_all:candidates.*.name,candidates.*.email|integer',
-            'candidates.*.name'                 => 'required_without:candidates.*.id,string',
-            'candidates.*.email'                => 'required_without:candidates.*.id,email'
+            'candidates.*.name'                 => 'required_without:candidates.*.id|string',
+            'candidates.*.email'                => 'required_without:candidates.*.id|email'
 		], [
 		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
