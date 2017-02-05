@@ -11,6 +11,19 @@ class DevelopmentPlanPolicy
     use HandlesAuthorization;
 
     /**
+     * Before hook. Superadmins can do everything.
+     * 
+     * @param   App\Models\User     $user
+     * @return  boolean
+     */
+    public function before(User $user)
+    {
+        if ($user->isA('superadmin')) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view the developmentPlan.
      *
      * @param   App\User             $user
