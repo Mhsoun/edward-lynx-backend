@@ -1,4 +1,6 @@
-<?php namespace App\Models;
+<?php
+
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
@@ -24,41 +26,46 @@ class Question extends Model
     public static function calculateAnswers(Collection $questions, Collection $answers)
     {
         $texts = [5, 8]; // Question types with text answers
-        $results = new Collection;
+        $results = [
+            'frequencies'   => [],
+            'totalAnswers'  => 0
+        ];
         
         foreach ($questions as $question) {
+            $questionAnswers = $answers->get($question->id);
             $answerObj = $question->answerTypeObject();
             $isText = in_array($question->answerType, $texts);
+            
+            // Append frequencies to results
+            $results['frequencies'][$question->id] = [];
             
             // Process custom input questions
             if ($question->answerType == 5) {
                 
                 // Calculate frequencies for every custom input answer
                 $counts = [];
-                foreach ($answers as $answer) {
-                    $key = strtolower($answer->answerText);
+                foreach ($questionAnswers as $answer) {
+                    $key = mb_strtolower($answer->answerText);
                     if (isset($counts[$key])) {
                         $counts[$key]['count'] += 1;
                     } else {
                         $counts[$key] = [
-                            'answer'    => $answer,
-                            'count'     => 0
+                            'value'     => $answer->answerText,
+                            'count'     => 1
                         ];
                     }
                 }
                 
-                // Build frequencies array
-                $results['frequencies'] = [];
-                foreach ($freqs as $item) {
-                    $results['frequencies'][] = [
-                        'value' => $item['answer'],
-                        'count' => $item['count']
+                // Merge frequencies to our results
+                foreach ($counts as $key => $count) {
+                    $results['frequencies'][$question->id][] = [
+                        'value' => $key,
+                        'count' => $count['count']
                     ];
                 }
     
             // Questions with fixed values
             } else {
-                $answerObj = $question->answerTypeObject();
                 $possibleValues = $answerObj->valuesFlat();
                 $counts = [];
    
@@ -74,29 +81,28 @@ class Question extends Model
                 }
 
                 // Calculate frequencies of each question value
-                foreach ($answers as $answer) {
-                   $key = $isText ? $answer->answerText : $answer->answerValue;
-                   if (isset($counts[$key])) {
-                       $counts[$key] += 1;
-                   }
+                if ($questionAnswers) {
+                    foreach ($questionAnswers as $answer) {
+                       $key = $isText ? $answer->answerText : strval($answer->answerValue);
+                       if (isset($counts[$key])) {
+                           $counts[$key] += 1;
+                       }
+                    }
                 }
 
                 // Build a proper result array
                 foreach ($counts as $key => $count) {
-                   $results['frequencies'][] = [
+                    $desc = strval($answerObj->descriptionOfValue($key));
+                    $results['frequencies'][$question->id][] = [
                        'value'          => $key,
-                       'description'    => strval($answerObj->descriptionOfValue($key)),
+                       'description'    => $desc,
                        'count'          => $count
                    ];
                 }
             }
             
-            $results->put($question->id, [
-               'totalAnswers' => count($answers)
-            ]);
+            $results['totalAnswers'] += count($questionAnswers);
         }
-       
-        dd($results);
        
         return $results;
     }

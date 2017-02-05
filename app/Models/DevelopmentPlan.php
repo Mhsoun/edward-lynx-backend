@@ -4,9 +4,8 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
-use App\Contracts\JsonHalLinking;
 
-class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
+class DevelopmentPlan extends BaseModel implements Routable
 {
     
     const CREATED_AT = 'createdAt';
@@ -82,7 +81,7 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     public function jsonHalLinks()
     {
         return [
-            'owner'     => $this->owner->url()
+            'owner' => $this->owner->url()
         ];
     }
     

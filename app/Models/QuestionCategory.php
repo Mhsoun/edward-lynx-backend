@@ -1,16 +1,17 @@
 <?php namespace App\Models;
 
+use App\Contracts\Routable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
 * Represents a question category
 */
-class QuestionCategory extends Model
+class QuestionCategory extends Model implements Routable
 {
 	protected $fillable = ['title'];
 	public $timestamps = false;
     
-    protected $visible = ['id', 'title', 'description', 'isSurvey'];
+    protected $visible = ['id', 'title', 'description'];
 
     /**
      * Returns the category for instant feedbacks.
@@ -38,6 +39,16 @@ class QuestionCategory extends Model
         }
         
         return $category;
+    }
+    
+    /**
+     * Returns the API url to this question category.
+     *
+     * @return  string
+     */
+    public function url()
+    {
+        return route('api1-category', $this);
     }
 
 	/**

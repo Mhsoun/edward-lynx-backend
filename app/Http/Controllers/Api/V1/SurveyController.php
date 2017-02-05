@@ -80,7 +80,9 @@ class SurveyController extends Controller
             'questions.*.items.*.answer.type'   => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.items.*.answer.options'=> 'array',
             'candidates'                        => 'required|array',
-            'candidates.*.id'                   => 'required|integer'
+            'candidates.*.id'                   => 'required_without_all:candidates.*.name,candidates.*.email|integer',
+            'candidates.*.name'                 => 'required_without:candidates.*.id,string',
+            'candidates.*.email'                => 'required_without:candidates.*.id,email'
 		], [
 		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
 		]);
@@ -350,18 +352,26 @@ class SurveyController extends Controller
     {
         $results = [];
         foreach ($candidates as $candidate) {
-            $user = User::find($candidate['id']);
+            if (isset($candidate['id'])) {
+                $user = User::find($candidate['id']);
             
-            if (!$user) {
-                continue;
+                if (!$user) {
+                    continue;
+                }
+                
+                $results[] = (object) [
+                    'userId'    => $user->id,
+                    'name'      => $user->name,
+                    'email'     => $user->email,
+                    'position'  => ''
+                ];
+            } else {
+                $results[] = (object) [
+                    'name'      => $candidate['name'],
+                    'email'     => $candidate['email'],
+                    'position'  => ''
+                ];
             }
-            
-            $results[] = (object) [
-                'userId'    => $user->id,
-                'name'      => $user->name,
-                'email'     => $user->email,
-                'position'  => ''
-            ];
         }
         $data->individual->candidates = $results;
     }
