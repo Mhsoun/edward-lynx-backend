@@ -18,7 +18,7 @@ class InstantFeedbackPolicy
      */
     public function before(User $user)
     {
-        if ($user->isA('superadmin')) {
+        if ($user->isA(User::SUPERADMIN)) {
             return true;
         }
     }
