@@ -764,7 +764,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     {
         $colleagues = $this->colleagues()->map(function($user) {
             return $user->id;
-        });
+        })->toArray();
         return in_array($user->id, $colleagues);
     }
 
