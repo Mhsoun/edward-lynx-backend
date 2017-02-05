@@ -206,6 +206,15 @@ class JsonHalResponse extends JsonResponse
         
         $json = $model->jsonSerialize($this->serializationOptions);
         
+        // Process nested models & collections
+        foreach ($json as $key => $value) {
+            if ($value instanceof Collection) {
+                $json[$key] = $this->encodeEloquentCollection($value, false);
+            } elseif ($value instanceof Model) {
+                $json[$key] = $this->encodeModel($value);
+            }
+        }
+        
         if (empty($links)) {
             return $json;
         } else {
@@ -217,14 +226,18 @@ class JsonHalResponse extends JsonResponse
      * Converts an Eloquent Collection into a proper JSON-HAL response.
      *
      * @param   Illuminate\Database\Eloquent\Collection $collection
+     * @param   boolean                                 $isRoot
      * @return  array
      */
-    protected function encodeEloquentCollection(Collection $collection)
+    protected function encodeEloquentCollection(Collection $collection, $isRoot = true)
     {
         $result = [];
-        $result['_links'] = [
-            'self' => ['href' => request()->fullUrl()]
-        ];
+        
+        if ($isRoot) {
+            $result['_links'] = [
+                'self' => ['href' => request()->fullUrl()]
+            ];
+        }
         
         $result['items'] = [];
         foreach ($collection as $record) {
