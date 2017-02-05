@@ -4,9 +4,8 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
-use App\Contracts\JsonHalLinking;
 
-class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
+class DevelopmentPlan extends BaseModel implements Routable
 {
     
     const CREATED_AT = 'createdAt';
@@ -35,16 +34,6 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     public function owner()
     {
         return $this->belongsTo(User::class, 'ownerId');
-    }
-    
-    /**
-     * Returns the survey category this development plan is linked to.
-     *
-     * @return  Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function category()
-    {
-        return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
     }
 
     /**
@@ -91,15 +80,9 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      */
     public function jsonHalLinks()
     {
-        $links = [
-            'owner'     => $this->owner->url(),
+        return [
+            'owner' => $this->owner->url()
         ];
-        
-        if ($this->category) {
-            $links['category'] = $this->category->url();
-        }
-        
-        return $links;
     }
     
 }
