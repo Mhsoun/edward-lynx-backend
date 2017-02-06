@@ -46,17 +46,6 @@ class InstantFeedbackController extends Controller
             $result = InstantFeedback::answerableBy($currentUser)
                 ->oldest('createdAt')
                 ->get();
-            /*
-            $result = [];
-            foreach ($instantFeedbacks as $if) {
-                $result[] = array_merge([
-                        '_links'    => JsonHalResponse::generateModelLinks($if)
-                    ],
-                    $if->jsonSerialize(),
-                    [ 'key'   => $if->answerKeyOf($currentUser) ]
-                );
-            }
-            */
         }
         
         return response()->jsonHal($result);
@@ -89,17 +78,12 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        $recipients = $this->processRecipients($instantFeedback, $request->recipients);
+        $this->processRecipients($instantFeedback, $request->recipients);
         
-        // Notify each recipient of the instant feedback.
-        foreach ($recipients as $recipient) {
-            if (!$recipient instanceof User) {
-                continue; // TODO: skip notifying non-users.
-            }
-
-            $recipient->user->notify(new InstantFeedbackRequested($instantFeedback));
+        foreach ($instantFeedback->users as $user) {
+            $user->notify(new InstantFeedbackRequested($instantFeedback));
         }
-        
+
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
     }

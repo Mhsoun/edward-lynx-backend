@@ -69,6 +69,51 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     {
         return $this->belongsTo(User::class, 'userId');
     }
+
+    /**
+     * Returns registered recipient users of this instant feedback.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\MorphToMany
+     */
+    public function users()
+    {
+        return $this->morphedByMany(
+            User::class,
+            'user',
+            'instant_feedback_recipients',
+            'instantFeedbackId',
+            'userId'
+        )->withPivot('key', 'answered', 'answeredAt');
+    }
+
+    /**
+     * Returns "guest" recipients of this instant feedback.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\MorphToMany
+     */
+    public function recipients()
+    {
+        return $this->morphedByMany(
+            Recipient::class,
+            'user',
+            'instant_feedback_recipients',
+            'instantFeedbackId',
+            'userId'
+        )->withPivot('key', 'answered', 'answeredAt');
+    }
+
+    /**
+     * Returns all registered and guest receivers of this instant feedback.
+     * 
+     * @return  Illuminate\Support\Collection
+     */
+    public function receivers()
+    {
+        $users = $this->users->toArray();
+        $recipients = $this->recipients->toArray();
+        $receivers = collect(array_merge($users, $recipients));
+        return $receivers;
+    }
     
     /**
      * Returns this instant feedback's questions.
@@ -78,18 +123,6 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     public function questions()
     {
         return $this->belongsToMany(Question::class, 'instant_feedback_questions', 'instantFeedbackId', 'questionId');
-    }
-    
-    /**
-     * Returns the recipients of this instant feedback.
-     * TODO: fix this!
-     *
-     * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function recipients()
-    {
-        return $this->belongsToMany(User::class, 'instant_feedback_recipients', 'instantFeedbackId', 'userId')
-                    ->withPivot('key', 'answered', 'answeredAt');
     }
     
     /**

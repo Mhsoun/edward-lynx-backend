@@ -114,6 +114,8 @@ return [
     'automaticReminders' => 'Automatic reminders',
     'toEvaluateEmailDefaultSubject' => 'Invite people to evaluate you.',
     'toEvaluateEmailDefaultText' => $toEvaluateEmail,
+    'toEvaluateTitle' => 'Invite people to evaluate you.',
+    'toEvaluateBody' => 'Invite other people to evaluate you.',
     'inviteMailDefaultSubject' => 'Invitation to answer a survey',
     'inviteMailDefaultText' => $inviteMail,
     'manualRemindingDefaultSubject' => 'Reminder for answering a survey',
