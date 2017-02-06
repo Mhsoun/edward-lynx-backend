@@ -27,17 +27,22 @@ class InstantFeedbackRecipient extends Model
     /**
      * Creates a new recipient record for a user.
      *
-     * @param   App\Models\InstantFeedback  $instantFeedback
-     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback              $instantFeedback
+     * @param   App\Models\User|App\Models\Recipient    $user
      * @return  App\Models\InstantFeedbackRecipient
      */
-    public static function make(InstantFeedback $instantFeedback, User $user)
+    public static function make(InstantFeedback $instantFeedback, $user)
     {
         $key = str_random(32);
         $recipient = new self;
         $recipient->instantFeedbackId = $instantFeedback->id;
         $recipient->userId = $user->id;
         $recipient->key = $key;
+        if ($user instanceof User) {
+            $recipient->userType = 'users';
+        } elseif ($user instanceof Recipient) {
+            $recipient->userType = 'recipients';
+        }
         $recipient->save();
         return $recipient;
     }
@@ -49,7 +54,7 @@ class InstantFeedbackRecipient extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'userId');
+        return $this->morphTo('user', 'userType', 'userId');
     }
     
     /**

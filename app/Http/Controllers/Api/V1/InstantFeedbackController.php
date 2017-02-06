@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\User;
 use App\Models\Question;
+use App\Models\Recipient;
 use Illuminate\Http\Request;
 use App\Http\JsonHalResponse;
 use InvalidArgumentException;
@@ -78,7 +79,9 @@ class InstantFeedbackController extends Controller
             'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.answer.options'        => 'array',
             'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required|integer|exists:users'
+            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
+            'recipients.*.name'                 => 'required_without:recipients.*.id|string',
+            'recipients.*.email'                => 'required_without:recipients.*.id|email'
         ]);
             
         $instantFeedback = new InstantFeedback($request->all());
@@ -90,6 +93,10 @@ class InstantFeedbackController extends Controller
         
         // Notify each recipient of the instant feedback.
         foreach ($recipients as $recipient) {
+            if (!$recipient instanceof User) {
+                continue; // TODO: skip notifying non-users.
+            }
+
             $recipient->user->notify(new InstantFeedbackRequested($instantFeedback));
         }
         
@@ -106,6 +113,7 @@ class InstantFeedbackController extends Controller
      */
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
+        dd($instantFeedback->recipients);
         $currentUser = $request->user();
         $key = $instantFeedback->answerKeyOf($currentUser);
         
@@ -290,10 +298,18 @@ class InstantFeedbackController extends Controller
      */
     protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
     {
+        $currentUser = request()->user();
         $results = [];
         
         foreach ($recipients as $r) {
-            $user = User::find($r['id']);
+            if (isset($r['id'])) {
+                $user = User::find($r['id']);
+                if (!$currentUser->can('view', $user)) {
+                    throw new InvalidArgumentException("Current user cannot access user with ID $user->id.");
+                }
+            } else {
+                $user = Recipient::make($currentUser->id, $r['name'], $r['email'], '');
+            }
             $results[] = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
         
