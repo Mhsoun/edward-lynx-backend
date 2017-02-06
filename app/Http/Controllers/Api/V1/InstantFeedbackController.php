@@ -39,7 +39,7 @@ class InstantFeedbackController extends Controller
         $result = [];
         if ($request->filter == 'mine') {
             $result = InstantFeedback::mine()
-                ->oldest()
+                ->oldest('createdAt')
                 ->get();
         } elseif ($request->filter == 'to_answer') {
             $currentUser = $request->user();
