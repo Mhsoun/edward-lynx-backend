@@ -100,7 +100,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
      */
     public function devices()
     {
-        return $this->hasMany('App\Models\UserDevice');
+        return $this->hasMany('App\Models\UserDevice', 'userId');
     }
     
     /**
