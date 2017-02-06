@@ -19,9 +19,9 @@ class DevelopmentPlanPolicy extends Policy
     {   
         if ($devPlan->ownerId == $user->id) {
             return true;
-        } elseif ($this->administer($user, $devPlan) || $this->supervise($user, $devPlan))
+        } elseif ($this->administer($user, $devPlan) || $this->supervise($user, $devPlan)) {
             return true;
-        } elseif ($user->isA(User::PARTICIPANT))
+        } elseif ($user->isA(User::PARTICIPANT)) {
             return true;
         } else {
             return false;

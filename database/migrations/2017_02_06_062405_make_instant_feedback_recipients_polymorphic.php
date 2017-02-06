@@ -14,7 +14,7 @@ class MakeInstantFeedbackRecipientsPolymorphic extends Migration
     public function up()
     {
         Schema::table('instant_feedback_recipients', function (Blueprint $table) {
-            $table->dropForeign(['user_id']);
+            $table->dropForeign('instant_feedbacks_user_id_foreign');
             $table->string('userType');
         });
 

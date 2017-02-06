@@ -39,7 +39,7 @@ class InstantFeedbackController extends Controller
         $result = [];
         if ($request->filter == 'mine') {
             $result = InstantFeedback::mine()
-                ->oldest()
+                ->oldest('createdAt')
                 ->get();
         } elseif ($request->filter == 'to_answer') {
             $currentUser = $request->user();
@@ -160,13 +160,19 @@ class InstantFeedbackController extends Controller
             ],
             'answers'               => 'required|array|size:1',
             'answers.*.question'    => 'required|integer|exists:questions,id',
-            'answers.*.answer'      => 'required'
+            'answers.*.value'       => 'required_without:answers.*.answer',
+            'answers.*.answer'      => 'required_without:answers.*.value'
         ]);
             
         $currentUser = $request->user();
         $key = $request->key;
         $question = Question::find(intval($request->answers[0]['question']));
-        $answer = $request->answers[0]['answer'];
+        
+        if (isset($request->answers[0]['value'])) {
+            $answer = $request->answers[0]['value'];
+        } else {
+            $answer = $request->answers[0]['answer'];
+        }
         
         try {
             InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
