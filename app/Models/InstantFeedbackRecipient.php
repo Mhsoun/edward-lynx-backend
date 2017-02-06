@@ -39,9 +39,9 @@ class InstantFeedbackRecipient extends Model
         $recipient->userId = $user->id;
         $recipient->key = $key;
         if ($user instanceof User) {
-            $recipient->userType = 'users';
+            $recipient->user_type = 'users';
         } elseif ($user instanceof Recipient) {
-            $recipient->userType = 'recipients';
+            $recipient->user_type = 'recipients';
         }
         $recipient->save();
         return $recipient;
@@ -54,7 +54,7 @@ class InstantFeedbackRecipient extends Model
      */
     public function user()
     {
-        return $this->morphTo('user', 'userType', 'userId');
+        return $this->morphTo('user', 'user_type', 'userId');
     }
     
     /**
