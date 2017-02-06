@@ -113,7 +113,6 @@ class InstantFeedbackController extends Controller
      */
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
-        dd($instantFeedback->recipients);
         $currentUser = $request->user();
         $key = $instantFeedback->answerKeyOf($currentUser);
         

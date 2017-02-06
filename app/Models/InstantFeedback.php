@@ -82,6 +82,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     
     /**
      * Returns the recipients of this instant feedback.
+     * TODO: fix this!
      *
      * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
