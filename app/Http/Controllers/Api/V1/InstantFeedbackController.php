@@ -46,17 +46,6 @@ class InstantFeedbackController extends Controller
             $result = InstantFeedback::answerableBy($currentUser)
                 ->oldest('createdAt')
                 ->get();
-            /*
-            $result = [];
-            foreach ($instantFeedbacks as $if) {
-                $result[] = array_merge([
-                        '_links'    => JsonHalResponse::generateModelLinks($if)
-                    ],
-                    $if->jsonSerialize(),
-                    [ 'key'   => $if->answerKeyOf($currentUser) ]
-                );
-            }
-            */
         }
         
         return response()->jsonHal($result);
