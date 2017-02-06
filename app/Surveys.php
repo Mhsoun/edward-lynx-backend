@@ -6,6 +6,7 @@ use App\Models\Survey;
 use App\Models\EmailText;
 use App\Models\Recipient;
 use App\Events\SurveyCreated;
+use App\Notifications\InviteOthersToEvaluate;
 
 /**
 * Contains functions for surveys
@@ -470,6 +471,11 @@ abstract class Surveys
 
             //Send the emails
             $surveyEmailer->sendToEvaluate($survey, $surveyRecipient, $surveyRecipient->link);
+
+            // Send notification for registered users
+            if ($userType == 'users') {
+                $surveyRecipient->recipient->notify(new InviteOthersToEvaluate($survey));
+            }
 
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
