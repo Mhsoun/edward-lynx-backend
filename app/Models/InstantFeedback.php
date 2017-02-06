@@ -81,7 +81,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
             User::class,
             'user',
             'instant_feedback_recipients',
-            'userId',
+            'instantFeedbackId',
             'userId'
         )->withPivot('key', 'answered', 'answeredAt');
     }
@@ -97,7 +97,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
             Recipient::class,
             'user',
             'instant_feedback_recipients',
-            'userId',
+            'instantFeedbackId',
             'userId'
         )->withPivot('key', 'answered', 'answeredAt');
     }
