@@ -3,10 +3,10 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Alfa6661\Firebase\FirebaseChannel;
-use Alfa6661\Firebase\FirebaseMessage;
+use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Services\Firebase\FirebaseNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class TestNotification extends Notification implements ShouldQueue
@@ -45,16 +45,16 @@ class TestNotification extends Notification implements ShouldQueue
      * Get the firebase representation of the notification.
      * 
      * @param   mixed   $notifiable
-     * @return  Alfa6661\Firebase\FirebaseMessage
+     * @return  App\Services\Firebase\FirebaseNotification
      */
     public function toFirebase($notifiable)
     {
-        return FirebaseMessage::create()
+        return (new FirebaseNotification)
             ->title($this->title)
             ->body($this->body)
             ->data([
-                'id' => 123,
-                'type' => 'test'
-            ]);
+                'id'    => 123,
+                'type'  => 'test'
+            ])->to($notifiable->deviceTokens());
     }
 }
