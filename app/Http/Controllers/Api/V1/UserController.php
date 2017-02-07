@@ -143,18 +143,26 @@ class UserController extends Controller
             'deviceId'  => 'required|string|max:255'
         ]);
             
+        $token = $request->token;
+        $deviceId = md5($request->deviceId);
         $user = $request->user();
         $device = $user->devices()
-                       ->where('deviceId', $request->deviceId)
+                       ->where('deviceId', $deviceId)
                        ->first();
+
         if (!$device) {
             $device = $user->devices()
-                           ->create($request->all());
+                           ->create([
+                                'deviceId'  => $deviceId
+                            ]);
         }
-        $device->token = $request->token;
+        $device->token = $token;
         $device->save();
 
-        return response()->jsonHal($device, 201);
+        return response()->jsonHal([
+            'token'     => $device->token,
+            'deviceId'  => $request->deviceId
+        ], 201);
     }
     
 }
