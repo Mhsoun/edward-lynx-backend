@@ -35,7 +35,7 @@ class FirebaseChannel
      */
     protected function sendToFcm(FirebaseNotification $notif)
     {
-        $key = sprintf('key=%s', config('firebase.api_key'));
+        $key = sprintf('key=%s', config('services.firebase.api_key'));
 
         $client = new Client;
         $req = $client->request('POST', self::FCM_ENDPOINT, [
