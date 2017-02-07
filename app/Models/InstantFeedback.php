@@ -178,7 +178,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function answerKeyOf(User $user)
     {
-        $invite = $this->recipients()
+        $invite = $this->users()
                        ->where('userId', $user->id)
                        ->first();
         if ($invite && !$invite->pivot->answered) {
