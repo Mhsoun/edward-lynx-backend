@@ -31,11 +31,15 @@ class FirebaseChannel
      * Sends a notification through Firebase Cloud Messaging.
      * 
      * @param   App\Services\Firebase\FirebaseNotification  $notif
-     * @return  void
+     * @return  bool
      */
     protected function sendToFcm(FirebaseNotification $notif)
     {
         $key = sprintf('key=%s', config('services.firebase.api_key'));
+
+        if (count($notif->tokens) == 0) {
+            return false;
+        }
 
         $client = new Client;
         $req = $client->request('POST', self::FCM_ENDPOINT, [
@@ -51,6 +55,8 @@ class FirebaseChannel
                 'data'              => $notif->data
             ]
         ]);
+
+        return true;
     }
 
 }
