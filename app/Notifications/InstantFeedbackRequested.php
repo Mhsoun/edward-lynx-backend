@@ -4,10 +4,10 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use App\Models\InstantFeedback;
-use Alfa6661\Firebase\FirebaseChannel;
-use Alfa6661\Firebase\FirebaseMessage;
+use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Services\Firebase\FirebaseNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class InstantFeedbackRequested extends Notification implements ShouldQueue
@@ -62,14 +62,17 @@ class InstantFeedbackRequested extends Notification implements ShouldQueue
      * Get the firebase representation of the notification.
      * 
      * @param   mixed   $notifiable
-     * @return  Alfa6661\Firebase\FirebaseMessage
+     * @return  App\Services\Firebase\FirebaseNotification
      */
     public function toFirebase($notifiable)
     {
-        return FirebaseMessage::create()
+        return (new FirebaseNotification)
             ->title(trans('instantFeedback.requestedTitle'))
             ->body($this->message($notifiable))
-            ->data(['instantFeedbackId' => $this->instantFeedback->id]);
+            ->data([
+                'type'  => 'instant-request',
+                'id'    => $this->instantFeedback->id
+            ])->to($notifiable->deviceTokens());
     }
     
     /**

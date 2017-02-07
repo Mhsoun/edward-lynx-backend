@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\User;
 use App\Models\Question;
+use App\Models\Recipient;
 use Illuminate\Http\Request;
 use App\Http\JsonHalResponse;
 use InvalidArgumentException;
@@ -38,23 +39,13 @@ class InstantFeedbackController extends Controller
         $result = [];
         if ($request->filter == 'mine') {
             $result = InstantFeedback::mine()
-                ->oldest()
+                ->oldest('createdAt')
                 ->get();
         } elseif ($request->filter == 'to_answer') {
             $currentUser = $request->user();
-            $instantFeedbacks = InstantFeedback::answerableBy($currentUser)
-                ->oldest()
+            $result = InstantFeedback::answerableBy($currentUser)
+                ->oldest('createdAt')
                 ->get();
-            
-            $result = [];
-            foreach ($instantFeedbacks as $if) {
-                $result[] = array_merge([
-                        '_links'    => JsonHalResponse::generateModelLinks($if)
-                    ],
-                    $if->jsonSerialize(),
-                    [ 'key'   => $if->answerKeyOf($currentUser) ]
-                );
-            }
         }
         
         return response()->jsonHal($result);
@@ -77,21 +68,22 @@ class InstantFeedbackController extends Controller
             'questions.*.answer.type'           => 'required|in:0,1,2,3,4,5,6,7,8',
             'questions.*.answer.options'        => 'array',
             'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required|integer|exists:users'
+            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
+            'recipients.*.name'                 => 'required_without:recipients.*.id|string',
+            'recipients.*.email'                => 'required_without:recipients.*.id|email'
         ]);
             
         $instantFeedback = new InstantFeedback($request->all());
-        $instantFeedback->user_id = $request->user()->id;
+        $instantFeedback->userId = $request->user()->id;
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        $recipients = $this->processRecipients($instantFeedback, $request->recipients);
+        $this->processRecipients($instantFeedback, $request->recipients);
         
-        // Notify each recipient of the instant feedback.
-        foreach ($recipients as $recipient) {
-            $recipient->user->notify(new InstantFeedbackRequested($instantFeedback));
+        foreach ($instantFeedback->users as $user) {
+            $user->notify(new InstantFeedbackRequested($instantFeedback));
         }
-        
+
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
     }
@@ -152,13 +144,19 @@ class InstantFeedbackController extends Controller
             ],
             'answers'               => 'required|array|size:1',
             'answers.*.question'    => 'required|integer|exists:questions,id',
-            'answers.*.answer'      => 'required'
+            'answers.*.value'       => 'required_without:answers.*.answer',
+            'answers.*.answer'      => 'required_without:answers.*.value'
         ]);
             
         $currentUser = $request->user();
         $key = $request->key;
         $question = Question::find(intval($request->answers[0]['question']));
-        $answer = $request->answers[0]['answer'];
+        
+        if (isset($request->answers[0]['value'])) {
+            $answer = $request->answers[0]['value'];
+        } else {
+            $answer = $request->answers[0]['answer'];
+        }
         
         try {
             InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
@@ -169,7 +167,7 @@ class InstantFeedbackController extends Controller
         }
         
         $recipient = InstantFeedbackRecipient::where([
-            'user_id'   => $currentUser->id,
+            'userId'    => $currentUser->id,
             'key'       => $key
         ])->first();
         $recipient->markAnswered();
@@ -268,8 +266,8 @@ class InstantFeedbackController extends Controller
             }
             
             $questionLink = new InstantFeedbackQuestion();
-            $questionLink->instant_feedback_id = $instantFeedback->id;
-            $questionLink->question_id = $question->id;
+            $questionLink->instantFeedbackId = $instantFeedback->id;
+            $questionLink->questionId = $question->id;
             $questionLink->save();
         }
     }
@@ -283,10 +281,18 @@ class InstantFeedbackController extends Controller
      */
     protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
     {
+        $currentUser = request()->user();
         $results = [];
         
         foreach ($recipients as $r) {
-            $user = User::find($r['id']);
+            if (isset($r['id'])) {
+                $user = User::find($r['id']);
+                if (!$currentUser->can('view', $user)) {
+                    throw new InvalidArgumentException("Current user cannot access user with ID $user->id.");
+                }
+            } else {
+                $user = Recipient::make($currentUser->id, $r['name'], $r['email'], '');
+            }
             $results[] = InstantFeedbackRecipient::make($instantFeedback, $user);
         }
         

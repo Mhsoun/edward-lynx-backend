@@ -22,23 +22,35 @@ class InstantFeedbackRecipient extends Model
      *
      * @var array
      */
-    protected $dates = ['answered_at'];
+    protected $dates = ['answeredAt'];
     
     /**
      * Creates a new recipient record for a user.
      *
-     * @param   App\Models\InstantFeedback  $instantFeedback
-     * @param   App\Models\User             $user
+     * @param   App\Models\InstantFeedback              $instantFeedback
+     * @param   App\Models\User|App\Models\Recipient    $user
      * @return  App\Models\InstantFeedbackRecipient
      */
-    public static function make(InstantFeedback $instantFeedback, User $user)
+    public static function make(InstantFeedback $instantFeedback, $user)
     {
-        $key = str_random(32);
-        $recipient = new self;
-        $recipient->instant_feedback_id = $instantFeedback->id;
-        $recipient->user_id = $user->id;
-        $recipient->key = $key;
-        $recipient->save();
+        $type = $user instanceof User ? 'users' : 'recipients';
+
+        $recipient = self::where([
+            'instantFeedbackId' => $instantFeedback->id,
+            'userId'            => $user->id,
+            'user_type'         => $type
+        ])->first();
+
+        if (!$recipient) {
+            $key = str_random(32);
+            $recipient = new self;
+            $recipient->instantFeedbackId = $instantFeedback->id;
+            $recipient->userId = $user->id;
+            $recipient->key = $key;
+            $recipient->user_type = $type;
+            $recipient->save();
+        }
+
         return $recipient;
     }
     
@@ -49,7 +61,7 @@ class InstantFeedbackRecipient extends Model
      */
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->morphTo('user', 'user_type', 'userId');
     }
     
     /**
@@ -59,7 +71,7 @@ class InstantFeedbackRecipient extends Model
      */
     public function instantFeedback()
     {
-        return $this->belongsTo('App\Models\InstantFeedback');
+        return $this->belongsTo(InstantFeedback::class, 'instantFeedbackId');
     }
     
     /**
@@ -71,7 +83,7 @@ class InstantFeedbackRecipient extends Model
     public function markAnswered()
     {
         $this->answered = 1;
-        $this->answered_at = Carbon::now();
+        $this->answeredAt = Carbon::now();
     }
     
 }
