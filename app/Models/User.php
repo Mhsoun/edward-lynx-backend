@@ -829,7 +829,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
      *
      * @return  array
      */
-    public function routeNotificationForFirebase()
+    public function deviceTokens()
     {
         return $this->devices->map(function($device) {
             return $device->token;
