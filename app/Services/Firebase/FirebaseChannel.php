@@ -23,38 +23,32 @@ class FirebaseChannel
      */
     public function send($notifiable, Notification $notification)
     {
-        $data = $notification->toFirebase($notifiable);
-        $this->sendToFcm(
-            $notification->tokens,
-            $notification->title,
-            $notification->body,
-            $notification->data
-        );
+        $notif = $notification->toFirebase($notifiable);
+        $this->sendToFcm($notif);
     }
 
     /**
      * Sends a notification through Firebase Cloud Messaging.
      * 
-     * @param   string   $tokens
-     * @param   string   $title
-     * @param   string   $body
-     * @param   array    $data
+     * @param   App\Services\Firebase\FirebaseNotification  $notif
      * @return  void
      */
-    protected function sendToFcm($tokens, $title, $body, array $data = [])
+    protected function sendToFcm(FirebaseNotification $notif)
     {
+        $key = sprintf('key=%s', config('firebase.api_key'));
+
         $client = new Client;
         $req = $client->request('POST', self::FCM_ENDPOINT, [
             'headers'   => [
-                'Authorization' => sprintf('key=%s', config('firebase.api_key'))
+                'Authorization' => $key
             ],
             'json'      => [
-                'registration_ids'  => $tokens,
+                'registration_ids'  => $notif->tokens,
                 'notification'      => [
-                    'title' => $title,
-                    'body'  => $body
+                    'title' => $notif->title,
+                    'body'  => $notif->body
                 ],
-                'data'              => $data
+                'data'              => $notif->data
             ]
         ]);
     }
