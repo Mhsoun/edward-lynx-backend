@@ -134,20 +134,27 @@ class UserController extends Controller
      * Adds a device registration token to a user.
      *
      * @param   Illuminate\Http\Request $request
-     * @return  Illuminate\Http\Response
+     * @return  App\Http\JsonHalResponse
      */
     public function registerDevice(Request $request)
     {
         $this->validate($request, [
-            'token' => 'required|string'
+            'token'     => 'required|string',
+            'deviceId'  => 'required|string|max:255'
         ]);
             
-        $user = request()->user();
-        $user->devices()->firstOrCreate([
-            'token' => $request->token
-        ]);
-        
-        return response('', 201);
+        $user = $request->user();
+        $device = $user->devices()
+                       ->where('deviceId', $request->deviceId)
+                       ->first();
+        if (!$device) {
+            $device = $user->devices()
+                           ->create($request->all());
+        }
+        $device->token = $request->token;
+        $device->save();
+
+        return response()->jsonHal($device, 201);
     }
     
 }

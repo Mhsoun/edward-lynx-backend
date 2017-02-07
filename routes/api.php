@@ -88,3 +88,5 @@ Route::group(['prefix' => '/categories'], function() {
         ->middleware('can:view,category')
         ->name('api1-category');
 });
+
+Route::post('/push-notifs-test', 'TestController@push');
