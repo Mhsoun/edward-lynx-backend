@@ -833,6 +833,6 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     {
         return $this->devices->map(function($device) {
             return $device->token;
-        });
+        })->toArray();
     }
 }
