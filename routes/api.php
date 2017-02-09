@@ -51,6 +51,10 @@ Route::group(['prefix' => '/instant-feedbacks'], function() {
     Route::patch('/{instantFeedback}', 'InstantFeedbackController@update')
         ->middleware('can:update,instantFeedback');
     
+    Route::post('/{instantFeedback}/recipients', 'InstantFeedbackController@recipients')
+        ->middleware('can:update,instantFeedback')
+        ->name('api1-instant-feedback-recipients');
+
     Route::get('/{instantFeedback}/answers', 'InstantFeedbackController@answers')
         ->middleware('can:viewAnswers,instantFeedback')
         ->name('api1-instant-feedback-answers');

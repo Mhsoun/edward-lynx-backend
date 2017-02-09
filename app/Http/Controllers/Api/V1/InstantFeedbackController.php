@@ -127,6 +127,53 @@ class InstantFeedbackController extends Controller
     }
     
     /**
+     * Adds additional recipients to an instant feedback.
+     * 
+     * @param   Request         $request
+     * @param   InstantFeedback $instantFeedback
+     * @return  Illuminate\Http\Response
+     */
+    public function recipients(Request $request, InstantFeedback $instantFeedback)
+    {
+        $this->validate($request, [
+            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
+            'recipients.*.name'                 => 'required_without:recipients.*.id|string',
+            'recipients.*.email'                => 'required_without:recipients.*.id|email'
+        ]);
+
+        $recipients = $request->recipients;
+
+        // Retrieve a list of users who have been notified already.
+        $notifiedUsers = [];
+        foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
+            $notifiedUsers[] = $user->id;
+        }
+
+        // Update instant feedback recipients.
+        $this->processRecipients($instantFeedback, $recipients);
+
+        // Build a list of recipients that will be notified.
+        $newRecipients = [];
+        foreach ($recipients as $r) {
+            if (!isset($r['id'])) {
+                continue; // Skip non-registered users.
+            }
+
+            if (in_array($r['id'], $notifiedUsers)) {
+                continue; // Do not notify already saved users.
+            }
+
+            $newRecipients[] = User::find($r['id']);
+        }
+
+        foreach ($newRecipients as $user) {
+            $user->notify(new InstantFeedbackRequested($instantFeedback));
+        }
+
+        return response('', 201);
+    }
+
+    /**
      * Accepts answers to an instant feedback.
      *
      * @param   Illuminate\Http\Request     $request
