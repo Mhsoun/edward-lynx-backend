@@ -21,6 +21,7 @@ use App\Models\InstantFeedbackRecipient;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
 use App\Notifications\InstantFeedbackRequested;
+use App\Exceptions\InstantFeedbackClosedException;
 
 class InstantFeedbackController extends Controller
 {
@@ -143,6 +144,12 @@ class InstantFeedbackController extends Controller
 
         $recipients = $request->recipients;
 
+        // Make sure the instant feedback is still open.
+        if ($instantFeedback->closed) {
+            throw new InstantFeedbackClosedException;
+        }
+        
+
         // Retrieve a list of users who have been notified already.
         $notifiedUsers = [];
         foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
@@ -198,6 +205,11 @@ class InstantFeedbackController extends Controller
         $currentUser = $request->user();
         $key = $request->key;
         $question = Question::find(intval($request->answers[0]['question']));
+        
+        // Make sure the instant feedback is still open.
+        if ($instantFeedback->closed) {
+            throw new InstantFeedbackClosedException;
+        }
         
         if (isset($request->answers[0]['value'])) {
             $answer = $request->answers[0]['value'];
