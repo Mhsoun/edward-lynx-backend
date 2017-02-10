@@ -873,15 +873,20 @@ class Survey extends Model implements Routable, JsonHalLinking
         $candidates = $this->candidates->map(function($c) {
             return $c->recipient->name;
         })->toArray();
+        $numCandidates = count($candidates);
 
-        if (count($candidates) > 1) {
+        if ($numCandidates == 0) {
+            return '';
+        }
+
+        if ($numCandidates > 1) {
             $last = last($candidates);
             $firsts = array_slice($candidates, 0, count($candidates) - 1);
             $persons = implode(', ', $firsts) . ' & ' . $last;
         } else {
             $persons = $candidates[0];
         }
-        
-        return trans('surveys.personsBeingEvaluated', ['persons' => $persons], $this->lang);
+
+        return trans_choice('surveys.personBeingEvaluated', $numCandidates, [], $this->lang) . ' ' . $persons;
     }
 }
