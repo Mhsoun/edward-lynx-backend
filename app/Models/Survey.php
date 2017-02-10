@@ -48,8 +48,16 @@ class Survey extends Model implements Routable, JsonHalLinking
         'autoRemindingDate',
         'description',
         'thankYouText',
-        'questionInfoText'
+        'questionInfoText',
+        'personsEvaluatedText'
     ];
+
+    /**
+     * List of additional fields appended to our JSON representation.
+     * 
+     * @var array
+     */
+    protected $appends = ['personsEvaluatedText'];
     
     /**
      * List of fields hidden when summary serializing to JSON.
@@ -821,8 +829,8 @@ class Survey extends Model implements Routable, JsonHalLinking
     public function jsonHalLinks()
     {
         return [
-            'questions' => route('api1-survey-questions', $this),
-            'answers'   => route('api1-survey-answers', $this)
+            'questions'     => route('api1-survey-questions', $this),
+            'answers'       => route('api1-survey-answers', $this)
         ];
     }
     
@@ -852,5 +860,28 @@ class Survey extends Model implements Routable, JsonHalLinking
         }
         
         return Question::calculateAnswers($questions, $answers);
+    }
+
+    /**
+     * Returns a string describing the candidates being evaluated
+     * for this survey.
+     * 
+     * @return  string
+     */
+    protected function getPersonsEvaluatedTextAttribute()
+    {
+        $candidates = $this->candidates->map(function($c) {
+            return $c->recipient->name;
+        })->toArray();
+
+        if (count($candidates) > 1) {
+            $last = last($candidates);
+            $firsts = array_slice($candidates, 0, count($candidates) - 1);
+            $persons = implode(', ', $firsts) . ' & ' . $last;
+        } else {
+            $persons = $candidates[0];
+        }
+        
+        return trans('surveys.personsBeingEvaluated', ['persons' => $persons], $this->lang);
     }
 }
