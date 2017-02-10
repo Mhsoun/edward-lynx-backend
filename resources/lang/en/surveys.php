@@ -156,6 +156,7 @@ return [
     'expireText' => 'The project will expire at %1$s which is %2$s days from now.',
     'expiredText' => 'The project has been expired at the %1$s.',
     'personBeingEvaluated' => 'The person being evaluated is',
+    'personsBeingEvaluated' => 'The persons being evaluated are :persons',
     'enableAutoReminders' => 'Enable automatic reminders',
     'reminderTime' => 'Time',
     'selectCompany'=>'Select Company',

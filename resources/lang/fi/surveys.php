@@ -144,6 +144,7 @@ return [
     'expireText' => 'The project will expire at %1$s which is %2$s days from now.',
     'expiredText' => 'Projekti päättyi %1$s.',
     'personBeingEvaluated' => 'The person being evaluated is',
+    'personsBeingEvaluated' => 'The persons being evaluated are :persons',
     'enableAutoReminders' => 'Mahdollista automaattiset muistutukset',
     'reminderTime' => 'Aika',
     'selectCompany'=>'Valitse yritys',

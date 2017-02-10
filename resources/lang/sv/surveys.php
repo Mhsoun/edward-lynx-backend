@@ -153,6 +153,7 @@ return [
     'expireText' => 'Projektet går ut på %1$s vilket är %2$s dagar från och med nu.',
     'expiredText' => 'Projektet gick ut den %1$s.',
     'personBeingEvaluated' => 'Personen under utvärdering är',
+    'personsBeingEvaluated' => 'De personer under utvärderas är :persons',
     'enableAutoReminders' => 'Aktivera automatiska påminnelser',
     'reminderTime' => 'Tid',
     'selectCompany' => 'Välj företag',
