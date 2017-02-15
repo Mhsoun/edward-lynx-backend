@@ -51,4 +51,14 @@ class Recipient extends Model
 
 		return $recipient;
 	}
+
+    /**
+     * Allow `mail` to be accessed through `email`.
+     * 
+     * @return  string 
+     */
+    public function getEmailAttribute()
+    {
+        return $this->attributes['mail'];
+    }
 }
