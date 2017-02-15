@@ -226,13 +226,25 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
         $data['shares'] = $this->shares->map(function($user) {
             return $user->id;
         });
-        $data['recipients'] = $this->recipients->map(function($recipient) {
-            return [
+
+        // Build recipients array
+        $data['recipients'] = [];
+        foreach ($this->recipients as $recipient) {
+            $data['recipients'][] = [
                 'id'    => $recipient->id,
                 'name'  => $recipient->name,
-                'email' => $recipient->email
+                'email' => $recipient->email,
+                'isUser'=> false
             ];
-        });
+        }
+        foreach ($this->users as $recipient) {
+            $data['recipients'][] = [
+                'id'    => $recipient->id,
+                'name'  => $recipient->name,
+                'email' => $recipient->email,
+                'isUser'=> true
+            ];
+        }
         
         return $data;
     }
