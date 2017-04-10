@@ -190,7 +190,7 @@ class UserController extends Controller
                 return [
                     'id'            => $item->id,
                     'type'          => 'instant-feedback',
-                    'name'          => null,
+                    'name'          => $item->questions()->first()->text,
                     'description'   => null,
                     'due'           => null
                 ];
