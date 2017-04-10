@@ -169,14 +169,15 @@ class UserController extends Controller
     }
 
     /**
-     * Returns the user's reminders.
+     * Returns user dashboard details.
      * 
      * @param  Illuminate\Http\Request $request 
      * @return App\Http\JsonHalResponse
      */
-    public function reminders(Request $request)
+    public function dashboard(Request $request)
     {
-        $reminders = $request->user()->reminders()->splice(0, 5)->map(function($item) {
+        $user = $request->user();
+        $reminders = $user->reminders()->splice(0, 5)->map(function($item) {
             if ($item instanceof DevelopmentPlanGoal) {
                 return [
                     'id'            => $item->id,
@@ -206,7 +207,11 @@ class UserController extends Controller
             }
         })->toArray();
 
-        return response()->jsonHal($reminders);
+        return response()->jsonHal([
+            'reminders'         => $reminders,
+            'answerableCount'   => $user->answerableCount(),
+            'developmentPlans'  => $user->developmentPlans
+        ]);
     }
     
 }

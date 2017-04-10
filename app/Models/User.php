@@ -892,4 +892,18 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         return $sorted;
 
     }
+
+    /**
+     * Returns the total number of answerable items by the current user.
+     * 
+     * @return int
+     */
+    public function answerableCount()
+    {
+        $count = 0;
+        $count += $this->developmentPlans()->count();
+        $count += InstantFeedback::answerableBy($this)->count();
+        $count += SurveyRecipient::answerableBy($this)->unanswered()->count();
+        return $count;
+    }
 }
