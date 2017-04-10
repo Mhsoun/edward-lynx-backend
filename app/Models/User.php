@@ -4,6 +4,7 @@ use Carbon\Carbon;
 use App\Models\UserDevice;
 use App\Contracts\Routable;
 use UnexpectedValueException;
+use Illuminate\Support\Collection as IlluminateCollection;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -21,14 +22,14 @@ use App\Models\DefaultText;
 class User extends Authenticatable implements AuthorizableContract, Routable
 {
     use Authorizable, HasApiTokens, Notifiable;
-    
+
     const SUPERADMIN = 0;
     const ADMIN = 1;
     const SUPERVISOR = 2;
     const PARTICIPANT = 3;
     const FEEDBACK_PROVIDER = 4;
     const ANALYST = 5;
-    
+
     const ACCESS_LEVELS = [
         0   => 'superadmin',
         1   => 'admin',
@@ -82,7 +83,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 
         return false;
     }
-    
+
     /**
      * Returns the API URL of a user's details.
      *
@@ -92,7 +93,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     {
         return route('api1-user', $this);
     }
-    
+
     /**
      * Returns the devices registered to this user.
      *
@@ -102,7 +103,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     {
         return $this->hasMany('App\Models\UserDevice', 'userId');
     }
-    
+
     /**
      * Returns this user's development plans.
      *
@@ -112,7 +113,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     {
         return $this->hasMany(DevelopmentPlan::class, 'ownerId');
     }
-    
+
     /**
      * Returns development plans for this user.
      *
@@ -726,7 +727,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
             'report.resultsPerExtraQuestion',
             'report.resultsPerExtraQuestionText');
     }
-    
+
     /**
      * Returns all users under the same parent as the current user.
      *
@@ -746,7 +747,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         }
         return $result;
     }
-    
+
     /**
      * Returns all users under the current user.
      *
@@ -759,7 +760,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
             ->get();
         return $children;
     }
-    
+
     /**
      * Returns true if the provided user is a colleague of
      * this user.
@@ -793,15 +794,15 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 
     /**
      * Alias of isA() method for readability.
-     * 
+     *
      * @param 	string 	$accessLevel
-     * @return 	boolean	
+     * @return 	boolean
      */
     public function isAn($accessLevel)
     {
         return $this->isA($accessLevel);
     }
-	
+
 	/**
 	 * Returns the user's account creation date as the registration date.
 	 *
@@ -812,7 +813,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 		$date = new Carbon($this->attributes['created_at']);
 		return $date->toIso8601String();
 	}
-	
+
 	/**
 	 * Returns the user's type or access level.
 	 *
@@ -822,7 +823,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 	{
 		return self::ACCESS_LEVELS[$this->accessLevel];
 	}
-    
+
     /**
      * Returns this user's registered firebase device tokens, used for
      * sending notifications.
@@ -834,5 +835,47 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         return $this->devices->map(function($device) {
             return $device->token;
         })->toArray();
+    }
+
+    /**
+     * Returns current user reminders.
+     *
+     * @return Illuminate\Support\Collection
+     */
+    public function reminders()
+    {
+        $collection = new IlluminateCollection();
+
+        foreach ($this->developmentPlans as $devPlan) {
+            $dueGoals = $devPlan->goals()->due(8)->get();
+            foreach ($dueGoals as $goal) {
+                $collection->push($goal);
+            }
+        }
+
+        $instantFeedbacks = InstantFeedback::answerableBy($this)->get();
+        foreach ($instantFeedbacks as $if) {
+            $collection->push($if);
+        }
+
+        $invites =  SurveyRecipient::answerableBy($this)->unanswered()->get();
+        foreach ($invites as $invite) {
+            if ($invite->survey->isValid()) {
+                $collection->push($invite->survey);
+            }
+        }
+
+        $sorted = $collection->sortBy(function ($item) {
+            if ($item instanceof DevelopmentPlanGoal) {
+                return $item->dueDate->timestamp;
+            } elseif ($item instanceof InstantFeedback) {
+                return $item->createdAt->timestamp;
+            } elseif ($item instanceof Survey) {
+                return $item->endDate->timestamp;
+            }
+        });
+
+        return $sorted;
+
     }
 }

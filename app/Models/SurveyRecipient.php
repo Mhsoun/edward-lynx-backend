@@ -2,6 +2,7 @@
 
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
 * Represents a recipient in a survey
@@ -96,6 +97,33 @@ class SurveyRecipient extends Model
         $survey->recipients()->save($surveyRecipient);
         
         return $surveyRecipient;
+    }
+
+    /**
+     * Returns recipients that should be answered by the provided user.
+     * 
+     * @param  Illuminate\Database\Eloquent\Builder $query
+     * @param  App\Models\User                      $user
+     * @return Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAnswerableBy(Builder $query, User $user)
+    {
+        return $query->where([
+            'recipientType' => 'users',
+            'recipientId'   => $user->id
+        ]);
+    }
+
+    /**
+     * Scopes unanswered invites.
+     * 
+     * @param  Illuminate\Database\Eloquent\Builder $query
+     * @param  App\Models\User                      $user
+     * @return Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeUnanswered(Builder $query)
+    {
+        return $query->where('hasAnswered', false);
     }
 
     /**

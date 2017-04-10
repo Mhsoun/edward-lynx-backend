@@ -4,8 +4,11 @@ use DB;
 use Auth;
 use Hash;
 use App\Models\User;
+use App\Models\Survey;
 use App\Models\UserDevice;
 use Illuminate\Http\Request;
+use App\Models\InstantFeedback;
+use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
@@ -163,6 +166,47 @@ class UserController extends Controller
             'token'     => $device->token,
             'deviceId'  => $request->deviceId
         ], 201);
+    }
+
+    /**
+     * Returns the user's reminders.
+     * 
+     * @param  Illuminate\Http\Request $request 
+     * @return App\Http\JsonHalResponse
+     */
+    public function reminders(Request $request)
+    {
+        $reminders = $request->user()->reminders()->splice(0, 5)->map(function($item) {
+            if ($item instanceof DevelopmentPlanGoal) {
+                return [
+                    'id'            => $item->id,
+                    'type'          => 'development-plan-goal',
+                    'name'          => $item->title,
+                    'description'   => $item->description,
+                    'due'           => $item->dueDate->toIso8601String()
+                ];
+            } elseif ($item instanceof InstantFeedback) {
+                return [
+                    'id'            => $item->id,
+                    'type'          => 'instant-feedback',
+                    'name'          => null,
+                    'description'   => null,
+                    'due'           => null
+                ];
+            } elseif ($item instanceof Survey) {
+                return [
+                    'id'            => $item->id,
+                    'type'          => 'survey',
+                    'name'          => $item->name,
+                    'description'   => $item->description,
+                    'due'           => $item->endDate->toIso8601String()
+                ];
+            } else {
+                throw new \UnexpectedValueException('Failed to encode reminder for object with type "'. get_class($item) .'".');
+            }
+        })->toArray();
+
+        return response()->jsonHal($reminders);
     }
     
 }

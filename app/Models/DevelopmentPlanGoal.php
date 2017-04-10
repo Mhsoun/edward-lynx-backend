@@ -12,31 +12,38 @@ use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
 {
-    
+
     const DUE_THRESHOLD = 2;
-    
+
     public $fillable = ['title', 'description', 'position', 'dueDate'];
-    
+
     public $timestamps = false;
-    
+
     protected $dates = ['dueDate'];
-    
+
     protected $visible = ['id', 'categoryId', 'title', 'description', 'checked', 'position', 'dueDate', 'reminderSent'];
 
     /**
      * Scopes results to goals that are within the due date threshold.
      *
      * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @param   int                                     $dueThreshold
      * @return  Illuminate\Database\Eloquent\Builder
      */
-    public function scopeDue(Builder $query)
+    public function scopeDue(Builder $query, $dueThreshold = null)
     {
         $now = Carbon::now();
-        $due = Carbon::now()->addDays(self::DUE_THRESHOLD);
+
+        if ($dueThreshold) {
+            $due = Carbon::now()->addDays($dueThreshold);
+        } else {
+            $due = Carbon::now()->addDays(self::DUE_THRESHOLD);
+        }
+
         return $query->whereDate('dueDate', '>=', $now)
                      ->whereDate('dueDate', '<=', $due);
     }
-    
+
     /**
      * Returns the development plan this goal is under.
      *
@@ -46,7 +53,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     {
         return $this->belongsTo(DevelopmentPlan::class, 'developmentPlanId');
     }
-    
+
     /**
      * Returns the survey category this goal is linked to.
      *
@@ -56,7 +63,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     {
         return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
     }
-    
+
     /**
      * Returns the actions under this goal.
      *
@@ -67,7 +74,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
         return $this->hasMany(DevelopmentPlanGoalAction::class, 'goalId')
                     ->orderBy('position', 'asc');
     }
-    
+
     /**
      * Goals are sorted by their position by default.
      *
@@ -79,7 +86,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     {
         $builder->orderBy('position', 'asc');
     }
-    
+
     /**
      * Updates action positions, used when the position attributes
      * are not in sequence.
@@ -93,7 +100,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
             $action->save();
         }
     }
-    
+
     /**
      * Updates this goal's checked status depending on the checked
      * status of it's child actions.
@@ -111,7 +118,7 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
         $this->checked = $done;
         $this->save();
     }
-    
+
     /**
      * Fixes null dueDates which is parsed as the current date time when
      * serialized to JSON.
@@ -122,13 +129,13 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     {
         $json = parent::jsonSerialize();
         $json['actions'] = $this->actions;
-            
+
         if (!$this->attributes['dueDate']) {
             $json['dueDate'] = null;
         }
         return $json;
     }
-    
+
     /**
      * Returns additional links for JSON-HAL links field.
      *
@@ -144,5 +151,5 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
             return [];
         }
     }
-    
+
 }

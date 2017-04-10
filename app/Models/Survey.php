@@ -863,6 +863,16 @@ class Survey extends Model implements Routable, JsonHalLinking
     }
 
     /**
+     * Returns TRUE if this survey hasn't expired yet.
+     * 
+     * @return bool
+     */
+    public function isValid()
+    {
+        return $this->endDate->gte(Carbon::now());
+    }
+
+    /**
      * Returns a string describing the candidates being evaluated
      * for this survey.
      * 

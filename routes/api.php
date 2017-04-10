@@ -5,6 +5,8 @@ Route::group(['prefix' => 'user'], function() {
     Route::get('/', 'UserController@get');
     Route::patch('/', 'UserController@update');
     Route::post('/devices', 'UserController@registerDevice');
+
+    Route::get('/reminders', 'UserController@reminders');
 });
 
 // /users endpoint
