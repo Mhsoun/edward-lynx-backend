@@ -854,8 +854,10 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         }
 
         $instantFeedbacks = InstantFeedback::answerableBy($this)->get();
+        $numIf = 0;
         foreach ($instantFeedbacks as $if) {
             $collection->push($if);
+            $numIf++;
         }
 
         $invites =  SurveyRecipient::answerableBy($this)->unanswered()->get();
@@ -874,6 +876,20 @@ class User extends Authenticatable implements AuthorizableContract, Routable
                 return $item->endDate->timestamp;
             }
         });
+
+        if ($numIf > 2) {
+            $i = 0;
+            return $sorted->filter(function($item) use ($i) {
+                $i++;
+                if ($item instanceof InstantFeedback) {
+                    return $i <= 2;
+                } else {
+                    return true;
+                }
+            });
+        } else {
+            return $sorted;
+        }
 
         return $sorted;
 
