@@ -210,7 +210,7 @@ class UserController extends Controller
         return response()->jsonHal([
             'reminders'         => $reminders,
             'answerableCount'   => $user->answerableCount(),
-            'developmentPlans'  => $user->developmentPlans
+            'developmentPlans'  => $user->developmentPlans()->latest('createdAt')->get()->splice(0, 2)
         ]);
     }
     
