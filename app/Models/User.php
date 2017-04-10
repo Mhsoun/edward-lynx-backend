@@ -878,9 +878,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         });
 
         if ($numIf > 2) {
-            $i = 0;
-            return $sorted->filter(function($item) use ($i) {
-                $i++;
+            return $sorted->filter(function($item, $i) {
                 if ($item instanceof InstantFeedback) {
                     return $i <= 2;
                 } else {
