@@ -227,6 +227,11 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
             return $user->id;
         });
 
+        $data['stats'] = [
+            'invited'   => $this->receivers()->count(),
+            'answered'  => $this->recipients()->where('answered', true)->count() + $this->users()->where('answered', true)->count()
+        ];
+
         // Build recipients array
         $data['recipients'] = [];
         foreach ($this->recipients as $recipient) {
