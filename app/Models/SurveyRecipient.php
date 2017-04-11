@@ -219,11 +219,6 @@ class SurveyRecipient extends Model
             'answers'   => $this->answers
         ];
         
-        if (request()->user()->can('viewAnswers', $this->survey)) {
-            $results = $this->survey->calculateAnswers();
-            $json = array_merge($json, $results);
-        }
-        
         return $json;
     }
 }
