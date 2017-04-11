@@ -114,10 +114,8 @@ class AnswerController extends Controller
         }
         
         // If this is final, make sure all questions have answers.
-        $this->validateAnswerCompleteness($survey, $recipient->answers, $answers);
-        $errors = $this->validateAnswerCompleteness($survey, $recipient->answers, $answers);
-        if (!empty($errors)) {
-            throw new CustomValidationException($errors);
+        if ($final) {
+            $this->validateAnswerCompleteness($survey, $recipient->answers, $answers);
         }
         
         // Save our answers.
