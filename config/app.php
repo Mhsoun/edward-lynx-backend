@@ -153,6 +153,7 @@ return [
         Alfa6661\Firebase\FirebaseServiceProvider::class,
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
+        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
 
 
         /*
@@ -212,6 +213,7 @@ return [
 		'Response'  	=> 'Illuminate\Support\Facades\Response',
 		'Route'     	=> 'Illuminate\Support\Facades\Route',
 		'Schema'    	=> 'Illuminate\Support\Facades\Schema',
+		'Sentry'		=> Sentry\SentryLaravel\SentryFacade::class,
 		'Session'   	=> 'Illuminate\Support\Facades\Session',
 		'Storage'   	=> 'Illuminate\Support\Facades\Storage',
 		'URL'       	=> 'Illuminate\Support\Facades\URL',
