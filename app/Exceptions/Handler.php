@@ -94,7 +94,7 @@ class Handler extends ExceptionHandler {
         } elseif ($e instanceof ApiException) {
         	return $this->convertApiExceptionToResponse($e);
         } elseif ($e instanceof SurveyExpiredException) {
-            return $this->convertSurveyExpiredExceptionToResponse($e);
+            return $this->convertSurveyExpiredExceptionToResponse($e, $request);
         } elseif ($e instanceof SurveyAnswersFinalException) {
             return $this->convertSurveyAnswersFinalExceptionToResponse($e, $request);
         } elseif ($e instanceof SurveyMissingAnswersException) {
