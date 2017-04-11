@@ -169,8 +169,9 @@ class SurveyController extends Controller
             'answeredById'      => $request->user()->id,
             'answeredByType'    => 'users'
         ])->getResults();
+
         foreach ($answers as $answer) {
-            $questionToAnswers[$answer->questionId] = $answer->answerValue ? $answer->answerValue : $answer->answerText;
+            $questionToAnswers[$answer->questionId] = is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue;
         }
          
         // Include the user's answer to each question 
