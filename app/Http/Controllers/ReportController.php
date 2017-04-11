@@ -551,7 +551,6 @@ class ReportController extends Controller
 			}
 
             $answerData = \App\SurveyReport360::create($survey, $toEvaluate, $includeInGroupReport);
-            dd($answerData);
 
             return view('survey.report')
                 ->with(array_merge(

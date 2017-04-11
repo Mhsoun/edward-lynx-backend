@@ -2,6 +2,7 @@
 
 use Lang;
 use Carbon\Carbon;
+use App\SurveyTypes;
 use App\Models\User;
 use App\Contracts\Routable;
 use App\Contracts\JsonHalLinking;
@@ -865,7 +866,34 @@ class Survey extends Model implements Routable, JsonHalLinking
             }
         }
         
-        return Question::calculateAnswers($questions, $answers);
+        $data = Question::calculateAnswers($questions, $answers);
+
+        if (SurveyTypes::isGroupLike($this->type)) {
+            $report = \App\SurveyReportGroup::create($this);
+        } elseif ($this->type == \App\SurveyTypes::Individual) {
+            $report = \App\SurveyReport360::create($this, null, null);
+        } elseif ($this->type == \App\SurveyTypes::Progress) {
+            $report = \App\SurveyReportProgress::create($survey, null);
+        } elseif ($this->type == \App\SurveyTypes::Normal) {
+            $report = \App\SurveyReportNormal::create($survey, null);
+        }
+
+        $data['average'] = array_map(function($item) {
+            return [
+                'id'        => $item->id,
+                'name'      => $item->name,
+                'average'   => $item->average
+            ];
+        }, $report->categories);
+        $data['ioc'] = array_map(function($item) {
+            return [
+                'id'        => $item->id,
+                'name'      => $item->name,
+                'average'   => $item->average
+            ];
+        }, $report->categoriesByRole);
+
+        return $data;
     }
 
     /**

@@ -82,7 +82,7 @@ class AnswerController extends Controller
             $recipient = SurveyRecipient::where([
                 'surveyId'      => $survey->id,
                 'link'          => $key,
-                'recipientId'   => $user->id,
+                // 'recipientId'   => $user->id,
                 'recipientType' => 'users'
             ])->first();
                 
@@ -115,7 +115,7 @@ class AnswerController extends Controller
         if ($final) {
             $this->validateAnswerCompleteness($survey, $recipient->answers, $answers);
         }
-        
+
         // Save our answers.
         foreach ($questions as $q) {
             $question = $q->question;
