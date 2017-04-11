@@ -267,7 +267,7 @@ class Handler extends ExceptionHandler {
     protected function convertSurveyMissingAnswersExceptionToResponse(SurveyMissingAnswersException $e, Request $request)
     {
         if ($request->expectsJson()) {
-            return response()->json($e);
+            return response()->json($e, 422);
         }
     }
 }
