@@ -775,6 +775,12 @@ class Survey extends Model implements Routable, JsonHalLinking
         $data['endDate'] = $this->endDate->toIso8601String();
         $data['key'] = $this->answerKeyOf($currentUser);
         $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
+
+        $recipients = $this->recipients();
+        $data['stats'] = [
+            'invited'   => $recipients->count(),
+            'answered'  => $recipients->where('hasAnswered', true)->count()
+        ];
         
         if ($options == 0) {
             $data = $this->getEmailsForJson($data);
