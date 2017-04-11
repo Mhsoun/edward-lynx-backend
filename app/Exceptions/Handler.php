@@ -226,7 +226,7 @@ class Handler extends ExceptionHandler {
      */
     protected function convertSurveyExpiredExceptionToResponse(SurveyExpiredException $e, Request $request)
     {
-        $message = "Survey has reached it's end date and answers are not accepted anymore.";
+        $message = "Survey has reached its end date and answers are not accepted anymore.";
         if ($request->expectsJson()) {
             return response()->json([
                 'error'     => 'survey_expired',
