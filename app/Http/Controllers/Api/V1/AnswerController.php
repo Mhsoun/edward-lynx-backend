@@ -7,6 +7,7 @@ use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
 use App\Http\Controllers\Controller;
+use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\SurveyAnswersFinalException;
