@@ -44,8 +44,6 @@ class AnswerController extends Controller
     /**
      * Answers a survey.
      *
-     * TODO: DID HOTFIX EARLIER, VALIDATE FLOW.
-     *
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
      * @return  Illuminate\Http\Response
