@@ -247,7 +247,7 @@ class Handler extends ExceptionHandler {
         $message = "Survey has reached it's end date and answers are not accepted anymore.";
         if ($request->expectsJson()) {
             return response()->json([
-                'error'     => 'Bad Request',
+                'error'     => 'answers_final',
                 'message'   => 'Survey answers are not accepted anymore.'
             ], 400);
         }
