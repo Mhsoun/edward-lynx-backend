@@ -41,6 +41,11 @@ class Question extends Model
             
             // Process custom input questions
             if ($question->answerType == 5) {
+
+                // Continue if we have no tokens to process
+                if (!$questionAnswers) {
+                    continue;
+                }
                 
                 // Calculate frequencies for every custom input answer
                 $counts = [];
