@@ -43,6 +43,8 @@ class AnswerController extends Controller
     /**
      * Answers a survey.
      *
+     * TODO: DID HOTFIX EARLIER, VALIDATE FLOW.
+     *
      * @param   Illuminate\Http\Request $request
      * @param   App\Models\Survey       $survey
      * @return  Illuminate\Http\Response
@@ -52,6 +54,8 @@ class AnswerController extends Controller
         $this->validate($request, [
             'key'                   => 'required|string',
             'answers'               => 'required|array',
+            'answers.*.question'    => 'required|integer|exists:questions,id',
+            'answers.*.value'       => 'required',
             'final'                 => 'boolean'
         ]);
             
@@ -59,7 +63,7 @@ class AnswerController extends Controller
         $key = $request->key;
         $answers = [];
         foreach ($request->answers as $answer) {
-            $answers[$answer['question']] = $answer['answer'];
+            $answers[$answer['question']] = $answer['value'];
         }
         $final = $request->input('final', true);
         $user = $request->user();
