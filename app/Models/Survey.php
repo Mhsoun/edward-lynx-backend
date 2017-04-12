@@ -885,13 +885,20 @@ class Survey extends Model implements Routable, JsonHalLinking
                 'average'   => $item->average
             ];
         }, $report->categories);
+
         $data['ioc'] = array_map(function($item) {
             return [
                 'id'        => $item->id,
                 'name'      => $item->name,
-                'average'   => $item->average
+                'roles'     => array_map(function($item2) {
+                    return [
+                        'id'        => $item2->id,
+                        'name'      => $item2->name,
+                        'average'   => $item2->average
+                    ];
+                }, $item->roles)
             ];
-        }, $report->categoriesByRole);
+        }, $report->selfAndOthersCategories);
 
         return $data;
     }
