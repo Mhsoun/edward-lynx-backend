@@ -31,7 +31,12 @@ abstract class Policy
      */
     public function administer(User $user, $object)
     {
-        return $user->isA(User::ADMIN) && $object->owner->colleagueOf($user);
+        $owner = $object->owner;
+        if (!$owner) {
+            $owner = $object->user;
+        }
+
+        return $user->isA(User::ADMIN) && $owner->colleagueOf($user);
     }
     
     /**
