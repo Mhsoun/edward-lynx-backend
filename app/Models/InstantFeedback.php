@@ -56,7 +56,8 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
                      ->join('instant_feedback_recipients', 'instant_feedback_recipients.instantFeedbackId', '=', 'instant_feedbacks.id')
                      ->where([
                          'instant_feedback_recipients.userId'  => $id,
-                         'instant_feedback_recipients.answered' => 0
+                         'instant_feedback_recipients.answered' => 0,
+                         'instant_feedback_recipients.user_type' => 'users'
                      ]);
     }
     
