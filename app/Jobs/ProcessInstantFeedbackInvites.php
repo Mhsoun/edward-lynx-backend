@@ -3,10 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\User;
+use App\Models\Recipient;
+use InvalidArgumentException;
 use App\Models\AnonymousUser;
 use Illuminate\Bus\Queueable;
 use App\Models\InstantFeedback;
 use Illuminate\Queue\SerializesModels;
+use App\Models\InstantFeedbackRecipient;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Notifications\InstantFeedbackRequested;
@@ -39,12 +42,12 @@ class ProcessInstantFeedbackInvites implements ShouldQueue
     {
         // Retrieve a list of users who have been notified already.
         $notifiedUsers = [];
-        foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
+        foreach ($this->instantFeedback->users()->where('user_type', 'users') as $user) {
             $notifiedUsers[] = $user->id;
         }
 
         // Update instant feedback recipients.
-        $this->processRecipients($instantFeedback, $recipients);
+        $this->processRecipients($this->instantFeedback, $this->recipients);
 
         // Build a list of recipients that will be notified.
         $newRecipients = [];
@@ -70,5 +73,32 @@ class ProcessInstantFeedbackInvites implements ShouldQueue
         foreach ($anonRecipients as $recipient) {
             $recipient->notify($notif);
         }
+    }
+
+    /**
+     * Processes each recipient and creates recipient records for each.
+     *
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   array                       $recipients
+     * @return  array
+     */
+    protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
+    {
+        $currentUser = request()->user();
+        $results = [];
+        
+        foreach ($recipients as $r) {
+            if (isset($r['id'])) {
+                $user = User::find($r['id']);
+                if (!$currentUser->can('view', $user)) {
+                    throw new InvalidArgumentException("Current user cannot access user with ID $user->id.");
+                }
+            } else {
+                $user = Recipient::make($currentUser->id, $r['name'], $r['email'], '');
+            }
+            $results[] = InstantFeedbackRecipient::make($instantFeedback, $user);
+        }
+        
+        return $results;
     }
 }
