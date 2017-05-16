@@ -175,7 +175,7 @@ class InstantFeedbackController extends Controller
             }
         }
 
-        dispatch(new SendInstantFeedbackRecipientsInvites($newRecipients, $anonRecipients));
+        dispatch(new SendInstantFeedbackRecipientsInvites($instantFeedback, $newRecipients, $anonRecipients));
 
         return response('', 201);
     }
