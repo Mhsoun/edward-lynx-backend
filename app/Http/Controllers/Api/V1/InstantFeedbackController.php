@@ -22,6 +22,7 @@ use App\Models\InstantFeedbackRecipient;
 use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
+use App\Notifications\InstantFeedbackRequested;
 use App\Exceptions\InstantFeedbackClosedException;
 
 class InstantFeedbackController extends Controller
