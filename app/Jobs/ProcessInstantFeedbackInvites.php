@@ -52,7 +52,7 @@ class ProcessInstantFeedbackInvites implements ShouldQueue
         // Build a list of recipients that will be notified.
         $newRecipients = [];
         $anonRecipients = [];
-        foreach ($recipients as $r) {
+        foreach ($this->recipients as $r) {
             if (!isset($r['id'])) {
                 $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
             } else {
