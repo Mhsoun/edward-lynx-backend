@@ -21,8 +21,8 @@ use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
-use App\Notifications\InstantFeedbackRequested;
 use App\Exceptions\InstantFeedbackClosedException;
+use App\Jobs\SendInstantFeedbackRecipientsInvites;
 
 class InstantFeedbackController extends Controller
 {
@@ -175,13 +175,7 @@ class InstantFeedbackController extends Controller
             }
         }
 
-        foreach ($newRecipients as $user) {
-            $user->notify(new InstantFeedbackRequested($instantFeedback));
-        }
-
-        foreach ($anonRecipients as $user) {
-            $user->notify(new InstantFeedbackRequested($instantFeedback));
-        }
+        dispatch(new SendInstantFeedbackRecipientsInvites($newRecipients, $anonRecipients));
 
         return response('', 201);
     }
