@@ -13,4 +13,9 @@ class AnonymousUser
         $this->name = $name;
         $this->email = $email;
     }
+
+    public function deviceTokens($value='')
+    {
+        return [];
+    }
 }
