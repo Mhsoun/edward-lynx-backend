@@ -143,39 +143,13 @@ class InstantFeedbackController extends Controller
             'recipients.*.email'                => 'required_without:recipients.*.id|email'
         ]);
 
-        $recipients = $request->recipients;
-
         // Make sure the instant feedback is still open.
         if ($instantFeedback->closed) {
             throw new InstantFeedbackClosedException;
         }
-        
 
-        // Retrieve a list of users who have been notified already.
-        $notifiedUsers = [];
-        foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
-            $notifiedUsers[] = $user->id;
-        }
-
-        // Update instant feedback recipients.
-        $this->processRecipients($instantFeedback, $recipients);
-
-        // Build a list of recipients that will be notified.
-        $newRecipients = [];
-        $anonRecipients = [];
-        foreach ($recipients as $r) {
-            if (!isset($r['id'])) {
-                $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
-            } else {
-                if (in_array($r['id'], $notifiedUsers)) {
-                    continue; // Do not notify already saved users.
-                }
-
-                $newRecipients[] = User::find($r['id']);
-            }
-        }
-
-        dispatch(new SendInstantFeedbackRecipientsInvites($instantFeedback, $newRecipients, $anonRecipients));
+        $recipients = $request->recipients;
+        dispatch(new ProcessInstantFeedbackInvites($instantFeedback, $recipients));
 
         return response('', 201);
     }
