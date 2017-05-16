@@ -166,13 +166,13 @@ class InstantFeedbackController extends Controller
         foreach ($recipients as $r) {
             if (!isset($r['id'])) {
                 $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
-            }
+            } else {
+                if (in_array($r['id'], $notifiedUsers)) {
+                    continue; // Do not notify already saved users.
+                }
 
-            if (in_array($r['id'], $notifiedUsers)) {
-                continue; // Do not notify already saved users.
+                $newRecipients[] = User::find($r['id']);
             }
-
-            $newRecipients[] = User::find($r['id']);
         }
 
         foreach ($newRecipients as $user) {
