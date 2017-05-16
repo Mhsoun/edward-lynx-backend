@@ -19,10 +19,10 @@ use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
+use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InstantFeedbackClosedException;
-use App\Jobs\SendInstantFeedbackRecipientsInvites;
 
 class InstantFeedbackController extends Controller
 {
