@@ -7,6 +7,7 @@ use App\Models\Question;
 use App\Models\Recipient;
 use Illuminate\Http\Request;
 use App\Http\JsonHalResponse;
+use App\Models\AnonymousUser;
 use InvalidArgumentException;
 use App\Models\InstantFeedback;
 use Illuminate\Validation\Rule;
@@ -161,9 +162,10 @@ class InstantFeedbackController extends Controller
 
         // Build a list of recipients that will be notified.
         $newRecipients = [];
+        $anonRecipients = [];
         foreach ($recipients as $r) {
             if (!isset($r['id'])) {
-                continue; // Skip non-registered users.
+                $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
             }
 
             if (in_array($r['id'], $notifiedUsers)) {
@@ -174,6 +176,10 @@ class InstantFeedbackController extends Controller
         }
 
         foreach ($newRecipients as $user) {
+            $user->notify(new InstantFeedbackRequested($instantFeedback));
+        }
+
+        foreach ($anonRecipients as $user) {
             $user->notify(new InstantFeedbackRequested($instantFeedback));
         }
 
