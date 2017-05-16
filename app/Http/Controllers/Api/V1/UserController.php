@@ -180,7 +180,7 @@ class UserController extends Controller
         $reminders = $user->reminders()->splice(0, 5)->map(function($item) {
             if ($item instanceof DevelopmentPlanGoal) {
                 return [
-                    'id'            => $item->id,
+                    'id'            => $item->developmentPlan->id,
                     'type'          => 'development-plan-goal',
                     'name'          => $item->title,
                     'description'   => $item->description,
