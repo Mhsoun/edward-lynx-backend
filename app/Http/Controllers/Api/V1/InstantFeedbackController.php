@@ -304,5 +304,32 @@ class InstantFeedbackController extends Controller
             $questionLink->save();
         }
     }
+
+    /**
+     * Processes each recipient and creates recipient records for each.
+     *
+     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   array                       $recipients
+     * @return  array
+     */
+    protected function processRecipients(InstantFeedback $instantFeedback, array $recipients)
+    {
+        $currentUser = request()->user();
+        $results = [];
+        
+        foreach ($recipients as $r) {
+            if (isset($r['id'])) {
+                $user = User::find($r['id']);
+                if (!$currentUser->can('view', $user)) {
+                    throw new InvalidArgumentException("Current user cannot access user with ID $user->id.");
+                }
+            } else {
+                $user = Recipient::make($currentUser->id, $r['name'], $r['email'], '');
+            }
+            $results[] = InstantFeedbackRecipient::make($instantFeedback, $user);
+        }
+        
+        return $results;
+    }
     
 }
