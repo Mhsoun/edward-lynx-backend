@@ -150,7 +150,40 @@ class InstantFeedbackController extends Controller
         }
 
         $recipients = $request->recipients;
-        dispatch(new ProcessInstantFeedbackInvites($instantFeedback, $recipients));
+
+        // Retrieve a list of users who have been notified already.
+        $notifiedUsers = [];
+        foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
+            $notifiedUsers[] = $user->id;
+        }
+
+        // Update instant feedback recipients.
+        $this->processRecipients($instantFeedback, $recipients);
+
+        // Build a list of recipients that will be notified.
+        $newRecipients = [];
+        $anonRecipients = [];
+        foreach ($recipients as $r) {
+            if (!isset($r['id'])) {
+                $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
+            } else {
+                if (in_array($r['id'], $notifiedUsers)) {
+                    continue; // Do not notify already saved users.
+                }
+
+                $newRecipients[] = User::find($r['id']);
+            }
+        }
+
+        $notif = new InstantFeedbackRequested($instantFeedback);
+
+        foreach ($newRecipients as $user) {
+            $user->notify($notif);
+        }
+
+        foreach ($anonRecipients as $recipient) {
+            $recipient->notify($notif);
+        }
 
         return response('', 201);
     }
