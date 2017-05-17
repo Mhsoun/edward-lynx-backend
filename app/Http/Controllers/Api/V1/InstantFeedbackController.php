@@ -83,8 +83,17 @@ class InstantFeedbackController extends Controller
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
         $this->processRecipients($instantFeedback, $request->recipients);
         
+        $notif = new InstantFeedbackRequested($instantFeedback);
+
         foreach ($instantFeedback->users as $user) {
-            $user->notify(new InstantFeedbackRequested($instantFeedback));
+            $user->notify($notif);
+        }
+
+        foreach ($request->recipients as $recipient) {
+            if (!empty($recipient['email'])) {
+                $anonUser = new AnonymousUser($recipient['name'], $recipient['email']);
+                $anonUser->notify($notif);
+            }
         }
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
