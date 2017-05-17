@@ -16,7 +16,7 @@ return [
 	|
 	*/
 
-	'default' => env('QUEUE_DRIVER', 'database'),
+	'default' => env('QUEUE_DRIVER', 'async'),
 
 	/*
 	|--------------------------------------------------------------------------
@@ -71,6 +71,13 @@ return [
 			'queue'  => 'default',
 			'expire' => 60,
 		],
+
+		'async' => [
+	        'driver' => 'async',
+	        'table'	 => 'jobs',
+	        'queue'	 => 'default',
+	        'expire' => 60,
+	    ],
 
 	],
 
