@@ -853,21 +853,25 @@ class User extends Authenticatable implements AuthorizableContract, Routable
             }
         }
 
-        $instantFeedbacks = InstantFeedback::answerableBy($this)->get();
+        $instantFeedbacks = InstantFeedback::answerableBy($this)
+                                ->latest('createdAt')
+                                ->get();
         $numIf = 0;
         foreach ($instantFeedbacks as $if) {
             $collection->push($if);
             $numIf++;
         }
 
-        $invites =  SurveyRecipient::answerableBy($this)->unanswered()->get();
+        $invites =  SurveyRecipient::answerableBy($this)
+                        ->unanswered()
+                        ->get();
         foreach ($invites as $invite) {
             if ($invite->survey->isValid()) {
                 $collection->push($invite->survey);
             }
         }
 
-        $sorted = $collection->sortBy(function ($item) {
+        $sorted = $collection->sortByDesc(function ($item) {
             if ($item instanceof DevelopmentPlanGoal) {
                 return $item->dueDate->timestamp;
             } elseif ($item instanceof InstantFeedback) {

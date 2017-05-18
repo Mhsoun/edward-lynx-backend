@@ -192,7 +192,8 @@ class UserController extends Controller
                     'type'          => 'instant-feedback',
                     'name'          => $item->questions()->first()->text,
                     'description'   => null,
-                    'due'           => null
+                    'due'           => null,
+                    'date'          => $item->createdAt->toIso8601String()
                 ];
             } elseif ($item instanceof Survey) {
                 return [
@@ -209,7 +210,7 @@ class UserController extends Controller
 
         return response()->jsonHal([
             'reminders'         => $reminders,
-            'answerableCount'   => $user->answerableCount(),
+            'answerableCount'   => count($reminders),
             'developmentPlans'  => $user->developmentPlans()->latest('createdAt')->get()->splice(0, 2)
         ]);
     }
