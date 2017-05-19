@@ -51,7 +51,7 @@ class InstantFeedbackRequested extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $url = "edwardlynx:instant-feedback-{$this->instantFeedback->id}";
+        $url = "edwardlynx://instant-feedback/{$this->instantFeedback->id}";
         return (new MailMessage)
                     ->subject(trans('instantFeedback.requestedTitle'))
                     ->line($this->message($notifiable))
