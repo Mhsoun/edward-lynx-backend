@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Models\DevelopmentPlanGoal;
 use Illuminate\Support\ServiceProvider;
+use App\Models\DevelopmentPlanGoalAction;
+use App\Observers\DevelopmentPlanGoalObserver;
+use App\Observers\DevelopmentPlanGoalActionObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 class DatabaseServiceProvider extends ServiceProvider
@@ -41,8 +44,7 @@ class DatabaseServiceProvider extends ServiceProvider
      */
     protected function registerModelHooks()
     {
-        DevelopmentPlanGoal::deleted(function ($goal) {
-            $goal->developmentPlan->updateGoalPositions();
-        });
+        DevelopmentPlanGoalAction::observe(DevelopmentPlanGoalActionObserver::class);
+        DevelopmentPlanGoal::observe(DevelopmentPlanGoalObserver::class);
     }
 }

@@ -46,6 +46,23 @@ class DevelopmentPlan extends BaseModel implements Routable
         return $this->hasMany(DevelopmentPlanGoal::class, 'developmentPlanId')
                     ->orderBy('position', 'asc');
     }
+
+    /**
+     * Updates this dev plan's checked status depending on the checked
+     * status of it's child goals.
+     *
+     * @return  void
+     */
+    public function updateChecked()
+    {
+        $notDone = $this->goals()
+                        ->where('checked', false)
+                        ->count();
+        $this->checked = !$notDone > 0;
+        $this->save();
+
+        return !$notDone > 0;
+    }
     
     /**
      * Updates goal positions, used when the position attributes

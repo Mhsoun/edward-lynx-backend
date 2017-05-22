@@ -134,11 +134,7 @@ class DevelopmentPlanController extends Controller
             
         $goal->fill($request->all());
         $goal->save();
-        
-        if ($request->has('position')) {
-            $devPlan->updateGoalPositions();
-            $goal = $goal->fresh();
-        }
+        $goal = $goal->fresh();
         
         return response()->jsonHal($goal);
     }
@@ -176,16 +172,7 @@ class DevelopmentPlanController extends Controller
         
         $action->fill($request->all());
         $action->save();
-        
-        if ($request->has('position')) {
-            $action->goal->updateActionPositions();
-            $action = $action->fresh();
-        }
-        
-        if ($request->has('checked')) {
-            $action->goal->updateChecked();
-            $action = $action->fresh();
-        }
+        $action = $action->fresh();
         
         return response()->jsonHal($action);
     }
