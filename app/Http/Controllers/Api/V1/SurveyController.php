@@ -33,23 +33,43 @@ class SurveyController extends Controller
     public function index(Request $request)
     {
         $this->validate($request, [
-            'num'   => 'integer|between:1,50'
+            'num'       => 'integer|between:1,50',
+            'filter'    => 'string'
         ]);
         
         $num = intval($request->input('num', 10));
         $user = $request->user();
 
-        // Fetch all surveys if we are a superadmin.
-        if ($user->can('viewAll', Survey::class)) {
-            $surveys = Survey::select('*');
-        } else {
-            $surveys = Survey::where('ownerId', $user->id);
-        }
+        if ($request->filter === 'answerable') {
+            $surveys = Survey::answerableBy($user)
+                            ->valid()
+                            ->where('type', SurveyTypes::Individual)
+                            ->latest('endDate')
+                            ->orderByRaw('survey_recipients.hasAnswered ASC')
+                            ->paginate($num)
+                            ->sort(function($a, $b) use ($user) {
+                                if ($a->status($user) < $b->status($user)) {
+                                    return -1;
+                                } elseif ($a->status($user) > $b->status($user)) {
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            });
 
-        $surveys = $surveys->valid()
+        } else {
+            // Fetch all surveys if we are a superadmin.
+            if ($user->can('viewAll', Survey::class)) {
+                $surveys = Survey::select('*');
+            } else {
+                $surveys = Survey::where('ownerId', $user->id);
+            }
+
+            $surveys = $surveys->valid()
                            ->where('type', SurveyTypes::Individual)
                            ->latest('endDate')
                            ->paginate($num);
+        }
         
         return response()->jsonHal($surveys)
                          ->summarize();

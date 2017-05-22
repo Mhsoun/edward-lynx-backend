@@ -94,6 +94,15 @@ class Survey extends Model implements Routable, JsonHalLinking
         return $query->where('endDate', '>', Carbon::now());
     }
 
+    public function scopeAnswerableBy(Builder $query, User $user)
+    {
+        return $query->join('survey_recipients', 'surveys.id', '=', 'survey_recipients.surveyId')
+                    ->where([
+                        'survey_recipients.recipientId'     => $user->id,
+                        'survey_recipients.recipientType'   => 'users',
+                    ]);
+    }
+
 	/**
 	* Returns name of the type
 	*/
@@ -939,5 +948,10 @@ class Survey extends Model implements Routable, JsonHalLinking
         }
 
         return trans_choice('surveys.personBeingEvaluated', $numCandidates, [], $this->lang) . ' ' . $persons;
+    }
+
+    public function status(User $user)
+    {
+        return SurveyRecipient::surveyStatus($this, $user);
     }
 }
