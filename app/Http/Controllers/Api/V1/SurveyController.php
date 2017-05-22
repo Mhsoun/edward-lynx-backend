@@ -208,7 +208,7 @@ class SurveyController extends Controller
                         ->firstOrFail();
 
         return response()->jsonHal([
-            'surveyId' => $recipient->surveyId
+            'survey_id' => $recipient->surveyId
         ]);
     }
     
