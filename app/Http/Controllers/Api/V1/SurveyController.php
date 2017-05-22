@@ -12,6 +12,7 @@ use App\Models\Recipient;
 use App\Models\DefaultText;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
+use App\Models\SurveyRecipient;
 use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
@@ -187,6 +188,28 @@ class SurveyController extends Controller
         });
         
         return response()->jsonHal($json);
+    }
+
+    /**
+     * Exchange survey answer keys for a survey ID.
+     * 
+     * @param  Illuminate\Http\Request  $request
+     * @param  string                   $key
+     * @return App\Http\JsonHalResponse
+     */
+    public function exchange(Request $request, $key)
+    {
+        $currentUser = $request->user();
+        $recipient = SurveyRecipient::where([
+                            'link'          => $key,
+                            'recipientType' => 'users',
+                            'recipientId'   => $currentUser->id
+                        ])
+                        ->firstOrFail();
+
+        return response()->jsonHal([
+            'surveyId' => $recipient->surveyId
+        ]);
     }
     
     /**
