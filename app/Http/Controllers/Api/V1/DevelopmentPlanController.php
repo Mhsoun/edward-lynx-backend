@@ -26,8 +26,7 @@ class DevelopmentPlanController extends Controller
     {
         $user = $request->user();
         $devPlans = $user->developmentPlans()
-                         ->latest('createdAt')
-                         ->orderBy('checked', 'ASC')
+                         ->orderByRaw('checked ASC, createdAt DESC')
                          ->get();
         return response()->jsonHal($devPlans);
     }
