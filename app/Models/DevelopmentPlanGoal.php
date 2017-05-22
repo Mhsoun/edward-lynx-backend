@@ -45,6 +45,17 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     }
 
     /**
+     * Scopes results to open/unchecked development plans goals only.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOpen(Builder $query)
+    {
+        return $query->where('checked', false);
+    }
+
+    /**
      * Returns the development plan this goal is under.
      *
      * @param   App\Models\DevelopmentPlan

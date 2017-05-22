@@ -846,7 +846,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     {
         $collection = new IlluminateCollection();
 
-        foreach ($this->developmentPlans as $devPlan) {
+        foreach ($this->developmentPlans()->open()->get() as $devPlan) {
             $dueGoals = $devPlan->goals()
                                 ->due(8)
                                 ->get();

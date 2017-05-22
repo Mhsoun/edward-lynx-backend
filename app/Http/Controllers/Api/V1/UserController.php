@@ -211,7 +211,7 @@ class UserController extends Controller
         return response()->jsonHal([
             'reminders'         => $reminders,
             'answerableCount'   => count($reminders),
-            'developmentPlans'  => $user->developmentPlans()->latest('createdAt')->get()
+            'developmentPlans'  => $user->developmentPlans()->latest('createdAt')->open()->get()
         ]);
     }
     
