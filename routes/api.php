@@ -40,6 +40,9 @@ Route::group(['prefix' => '/surveys'], function() {
     Route::get('/{survey}/results', 'AnswerController@results')
         ->middleware('can:viewAnswers,survey')
         ->name('ap1-survey-results');
+
+    Route::get('/exchange/{key}', 'SurveyController@exchange')
+        ->name('api1-survey-key-exchange');
 });
 
 // /instant-feedbacks Endpoints

@@ -847,7 +847,9 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         $collection = new IlluminateCollection();
 
         foreach ($this->developmentPlans as $devPlan) {
-            $dueGoals = $devPlan->goals()->due(8)->get();
+            $dueGoals = $devPlan->goals()
+                                ->due(8)
+                                ->get();
             foreach ($dueGoals as $goal) {
                 $collection->push($goal);
             }
@@ -873,7 +875,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 
         $sorted = $collection->sortByDesc(function ($item) {
             if ($item instanceof DevelopmentPlanGoal) {
-                return $item->dueDate->timestamp;
+                return $item->developmentPlan->createdAt->timestamp;
             } elseif ($item instanceof InstantFeedback) {
                 return $item->createdAt->timestamp;
             } elseif ($item instanceof Survey) {
