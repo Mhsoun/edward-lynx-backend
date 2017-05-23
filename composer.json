@@ -7,23 +7,17 @@
   ],
   "license": "MIT",
   "type": "project",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/brux-ingenuity/passport"
-    }
-  ],
   "require": {
     "laravel/framework": "5.3.*",
     "laravelcollective/html": "~5.0",
     "guzzlehttp/guzzle": "~6.0",
     "erusev/parsedown": "~1.5",
-    "laravel/passport": "dev-dev-no-throttle",
     "alt-three/bus": "^2.0",
     "doctrine/dbal": "^2.5",
     "alfa6661/laravel-firebase": "^2.0",
     "sentry/sentry-laravel": "^0.6.1",
-    "barryvdh/laravel-async-queue": "0.5.0"
+    "barryvdh/laravel-async-queue": "0.5.0",
+    "laravel/passport": "v1.0.17"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.0",
