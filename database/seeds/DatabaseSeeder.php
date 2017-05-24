@@ -415,7 +415,7 @@ class UserTableSeeder extends Seeder
         		'email' 	    => 'admin@edwardlynx.com',
         		'info' 		    => '',
         		'password' 	    => Hash::make("password123"),
-                'access_level'  => 0
+                'accessLevel'   => 0
         	]);
 
         	$edwardLynx->isAdmin = true;
