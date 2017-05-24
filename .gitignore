@@ -1,5 +1,4 @@
 /bootstrap/compiled.php
-/vendor
 /node_modules
 /storage/oauth-private.key
 /storage/oauth-public.key
