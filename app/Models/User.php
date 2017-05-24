@@ -1,24 +1,43 @@
 <?php namespace App\Models;
 
+use Carbon\Carbon;
+use App\Models\UserDevice;
+use App\Contracts\Routable;
+use UnexpectedValueException;
+use Illuminate\Support\Collection as IlluminateCollection;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-// use Illuminate\Auth\Authenticatable;
-// use Illuminate\Auth\Passwords\CanResetPassword;
-// use Illuminate\Foundation\Auth\Access\Authorizable;
-// use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-// use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-// use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Lang;
 use App\Models\DefaultText;
 
 /**
 * Represents a user
 */
-class User extends Authenticatable
+class User extends Authenticatable implements AuthorizableContract, Routable
 {
-    use HasApiTokens, Notifiable;
+    use Authorizable, HasApiTokens, Notifiable;
+
+    const SUPERADMIN = 0;
+    const ADMIN = 1;
+    const SUPERVISOR = 2;
+    const PARTICIPANT = 3;
+    const FEEDBACK_PROVIDER = 4;
+    const ANALYST = 5;
+
+    const ACCESS_LEVELS = [
+        0   => 'superadmin',
+        1   => 'admin',
+        2   => 'supervisor',
+        3   => 'participant',
+        4   => 'feedback-provider',
+        5   => 'analyst'
+    ];
 
     /**
      * The database table used by the model.
@@ -39,7 +58,14 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'created_at', 'updated_at', 'isAdmin', 'allowedSurveyTypes', 'isValidated', 'parentId', 'accessLevel'];
+
+	/**
+	 * Additional attributes added into the model's JSON.
+	 *
+	 * @var array
+	 */
+	protected $appends = ['type', 'registeredOn'];
 
     protected $attributes = [
         'isAdmin' => false,
@@ -56,6 +82,46 @@ class User extends Authenticatable
         }
 
         return false;
+    }
+
+    /**
+     * Returns the API URL of a user's details.
+     *
+     * @return  string
+     */
+    public function url($prefix = '')
+    {
+        return route('api1-user', $this);
+    }
+
+    /**
+     * Returns the devices registered to this user.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function devices()
+    {
+        return $this->hasMany('App\Models\UserDevice', 'userId');
+    }
+
+    /**
+     * Returns this user's development plans.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function developmentPlans()
+    {
+        return $this->hasMany(DevelopmentPlan::class, 'ownerId');
+    }
+
+    /**
+     * Returns development plans for this user.
+     *
+     * @return  Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function myDevelopmentPlans()
+    {
+        return $this->hasMany(DevelopmentPlan::class, 'targetId');
     }
 
     /**
@@ -660,5 +726,190 @@ class User extends Authenticatable
             $lang,
             'report.resultsPerExtraQuestion',
             'report.resultsPerExtraQuestionText');
+    }
+
+    /**
+     * Returns all users under the same parent as the current user.
+     *
+     * @param   boolean                                     $includeParent
+     * @return  Illuminate\Database\Eloquent\Collection
+     */
+    public function colleagues($includeParent = true)
+    {
+        $result = new Collection();
+        if ($this->parentId == null) {
+            $result = $this->subUsers();
+            $result->prepend($this);
+        } else {
+            $parent = self::find($this->parentId);
+            $result = $parent->subUsers();
+            $result->prepend($parent);
+        }
+        return $result;
+    }
+
+    /**
+     * Returns all users under the current user.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection
+     */
+    public function subUsers()
+    {
+        $children = self::where('parentId', $this->id)
+            ->orderBy('name', 'asc')
+            ->get();
+        return $children;
+    }
+
+    /**
+     * Returns true if the provided user is a colleague of
+     * this user.
+     *
+     * @param   App\Models\User $user
+     * @return  boolean
+     */
+    public function colleagueOf(User $user)
+    {
+        $colleagues = $this->colleagues()->map(function($user) {
+            return $user->id;
+        })->toArray();
+        return in_array($user->id, $colleagues);
+    }
+
+    /**
+     * Returns TRUE if the current user has the provided type/access level.
+     *
+     * Take note that this is a naive implementation of ACLs.
+     * This follows how self::isEdwardLynx() in detecting superadmins
+     * by checking if isAdmin is = 1. All other accounts with a 0 isAdmin
+     * attribute are admins to their respective companies only.
+     *
+     * @param  	string  $accessLevel
+     * @return 	boolean
+     */
+    public function isA($accessLevel)
+    {
+        return $this->accessLevel == $accessLevel;
+    }
+
+    /**
+     * Alias of isA() method for readability.
+     *
+     * @param 	string 	$accessLevel
+     * @return 	boolean
+     */
+    public function isAn($accessLevel)
+    {
+        return $this->isA($accessLevel);
+    }
+
+	/**
+	 * Returns the user's account creation date as the registration date.
+	 *
+	 * @return	string
+	 */
+	public function getRegisteredOnAttribute()
+	{
+		$date = new Carbon($this->attributes['created_at']);
+		return $date->toIso8601String();
+	}
+
+	/**
+	 * Returns the user's type or access level.
+	 *
+	 * @return	string
+	 */
+	public function getTypeAttribute()
+	{
+		return self::ACCESS_LEVELS[$this->accessLevel];
+	}
+
+    /**
+     * Returns this user's registered firebase device tokens, used for
+     * sending notifications.
+     *
+     * @return  array
+     */
+    public function deviceTokens()
+    {
+        return $this->devices->map(function($device) {
+            return $device->token;
+        })->toArray();
+    }
+
+    /**
+     * Returns current user reminders.
+     *
+     * @return Illuminate\Support\Collection
+     */
+    public function reminders()
+    {
+        $collection = new IlluminateCollection();
+
+        foreach ($this->developmentPlans()->open()->get() as $devPlan) {
+            $dueGoals = $devPlan->goals()
+                                ->due(8)
+                                ->get();
+            foreach ($dueGoals as $goal) {
+                $collection->push($goal);
+            }
+        }
+
+        $instantFeedbacks = InstantFeedback::answerableBy($this)
+                                ->latest('createdAt')
+                                ->get();
+        $numIf = 0;
+        foreach ($instantFeedbacks as $if) {
+            $collection->push($if);
+            $numIf++;
+        }
+
+        $invites =  SurveyRecipient::answerableBy($this)
+                        ->unanswered()
+                        ->get();
+        foreach ($invites as $invite) {
+            if ($invite->survey->isValid()) {
+                $collection->push($invite->survey);
+            }
+        }
+
+        $sorted = $collection->sortByDesc(function ($item) {
+            if ($item instanceof DevelopmentPlanGoal) {
+                return $item->developmentPlan->createdAt->timestamp;
+            } elseif ($item instanceof InstantFeedback) {
+                return $item->createdAt->timestamp;
+            } elseif ($item instanceof Survey) {
+                return $item->endDate->timestamp;
+            }
+        });
+
+        if ($numIf > 2) {
+            return $sorted->filter(function($item, $i) {
+                if ($item instanceof InstantFeedback) {
+                    return $i <= 2;
+                } else {
+                    return true;
+                }
+            });
+        } else {
+            return $sorted;
+        }
+
+        return $sorted;
+
+    }
+
+    /**
+     * Returns the total number of answerable items by the current user.
+     * 
+     * @return int
+     */
+    public function answerableCount()
+    {
+        $count = 0;
+        $count += $this->developmentPlans()->count();
+        $count += InstantFeedback::answerableBy($this)->count();
+        $count += SurveyRecipient::answerableBy($this)->unanswered()->count();
+        return $count;
     }
 }

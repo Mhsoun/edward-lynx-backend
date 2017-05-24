@@ -108,7 +108,7 @@ return [
 	|
 	*/
 
-	'log' => 'daily',
+	'log' => 'syslog',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -127,7 +127,6 @@ return [
 		 * Laravel Framework Service Providers...
 		 */
 		'Illuminate\Auth\AuthServiceProvider',
-		//'Illuminate\Bus\BusServiceProvider',
 		'Illuminate\Broadcasting\BroadcastServiceProvider',
 		'Illuminate\Cache\CacheServiceProvider',
 		'Illuminate\Foundation\Providers\ConsoleSupportServiceProvider',
@@ -150,8 +149,11 @@ return [
         'Illuminate\View\ViewServiceProvider',
         //'Illuminate\Html\HtmlServiceProvider',
 
+        AltThree\Bus\BusServiceProvider::class,
+        Alfa6661\Firebase\FirebaseServiceProvider::class,
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
+        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
 
 
         /*
@@ -164,6 +166,8 @@ return [
 		//'App\Providers\ConfigServiceProvider',
 		'App\Providers\EventServiceProvider',
 		'App\Providers\RouteServiceProvider',
+        App\Providers\JsonHalServiceProvider::class,
+        App\Providers\DatabaseServiceProvider::class
 
 	],
 
@@ -209,6 +213,7 @@ return [
 		'Response'  	=> 'Illuminate\Support\Facades\Response',
 		'Route'     	=> 'Illuminate\Support\Facades\Route',
 		'Schema'    	=> 'Illuminate\Support\Facades\Schema',
+		'Sentry'		=> Sentry\SentryLaravel\SentryFacade::class,
 		'Session'   	=> 'Illuminate\Support\Facades\Session',
 		'Storage'   	=> 'Illuminate\Support\Facades\Storage',
 		'URL'       	=> 'Illuminate\Support\Facades\URL',

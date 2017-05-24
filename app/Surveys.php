@@ -1,6 +1,12 @@
 <?php namespace App;
+
 use Auth;
-use \App\Models\Survey;
+use App\Models\User;
+use App\Models\Survey;
+use App\Models\EmailText;
+use App\Models\Recipient;
+use App\Events\SurveyCreated;
+use App\Notifications\InviteOthersToEvaluate;
 
 /**
 * Contains functions for surveys
@@ -48,13 +54,7 @@ abstract class Surveys
     */
     private static function createEmailText($ownerId, $lang, $email)
     {
-        $emailText = new \App\Models\EmailText;
-        $emailText->lang = $lang;
-        $emailText->subject = $email->subject;
-        $emailText->text = $email->text;
-        $emailText->ownerId = $ownerId;
-        $emailText->save();
-        return $emailText;
+		return EmailText::make(User::find($ownerId), $email->subject, $email->text, $lang);
     }
 
     /**
@@ -71,14 +71,13 @@ abstract class Surveys
             'userReport' => 'userReportTextId',
             'toEvaluateRole' => 'evaluatedTeamInvitationTextId',
         ];
+		
+		$owner = User::find($surveyData->ownerId);
 
         foreach ($emails as $email => $columnName) {
             if (property_exists($surveyData->emails, $email)) {
-                $emailText = Surveys::createEmailText(
-                    $surveyData->ownerId,
-                    $surveyData->lang,
-                    $surveyData->emails->{$email});
-
+				$email = $surveyData->emails->{$email};
+				$emailText = EmailText::make($owner, $email->subject, $email->text, $surveyData->lang);
                 $survey[$columnName] = $emailText->id;
             }
         }
@@ -157,7 +156,11 @@ abstract class Surveys
             Surveys::createGroup($app, $survey, $surveyData);
         } else if ($type == SurveyTypes::Normal) {
             Surveys::createNormal($app, $survey, $surveyData);
+        } else if ($type == SurveyTypes::Instant) {
+            Surveys::createInstant($survey, $surveyData->recipients);
         }
+        
+        event(new SurveyCreated($survey));
 
         return $survey;
     }
@@ -358,6 +361,36 @@ abstract class Surveys
             $survey->extraQuestions()->save($extraQuestion);
         }
     }
+    
+    /**
+     * Perform specific tasks for instant feedback surveys.
+     *
+     * @param   App\Models\Survey   $survey
+     * @param   array               $recipients
+     * @return  void
+     */
+    private static function createInstant(Survey $survey, array $recipients)
+    {
+        // Create recipients for each submitted user.
+        foreach ($recipients as $recipient) {
+            $user = User::find($recipient['id']);
+            $recipientObj = Recipient::where([
+                'ownerId'   => $survey->ownerId,
+                'name'      => $user->name,
+                'mail'      => $user->email
+            ])->first();
+            
+            if (!$recipientObj) {
+                $recipientObj = new Recipient();
+                $recipientObj->ownerId = $survey->ownerId;
+                $recipientObj->name = $user->name;
+                $recipientObj->mail = $user->email;
+                $recipientObj->save();
+            }
+            
+            $survey->addRecipient($recipientObj->id, null, $survey->ownerId);
+        }
+    }
 
     /**
     * Invites the given candidates
@@ -368,16 +401,31 @@ abstract class Surveys
         $surveyEmailer = $app->app->make('SurveyEmailer');
 
         foreach ($candidates as $candidate) {
-            $recipient = \App\Models\Recipient::make(
-                $survey->ownerId,
-                $candidate->name,
-                $candidate->email,
-                $candidate->position);
+            $recipient = !empty($candidate->userId) ? User::find($candidate->userId) : null;
+            
+            // Make a recipient record if the candidate is not a
+            // registered user.
+            if (!$recipient) {
+                $recipient = \App\Models\Recipient::make(
+                    $survey->ownerId,
+                    $candidate->name,
+                    $candidate->email,
+                    $candidate->position);
+            }
 
             //If the recipient already is added as candidate, continue.
             $isAlreadyCandidate = $survey->candidates()
-                ->where('recipientId', '=', $recipient->id)
-                ->where('surveyId', '=', $survey->id)
+                ->where('surveyId', $survey->id)
+                ->where(function ($query) use ($recipient) {
+                    $query->where([
+                            'recipientId'   => $recipient->id,
+                            'recipientType' => 'recipients'
+                          ])
+                          ->orWhere([
+                            'recipientId'   => $recipient->id,
+                            'recipientType' => 'users'
+                          ]);
+                })
                 ->first() != null;
 
             if ($isAlreadyCandidate) {
@@ -385,14 +433,18 @@ abstract class Surveys
             }
 
             //Create the recipient
+            $userType = $recipient instanceof User ? 'users' : 'recipients';
             $surveyRecipient = $survey->addRecipient(
                 $recipient->id,
                 \App\Roles::selfRoleId(),
-                $recipient->id);
+                $recipient->id,
+                null,
+                $userType);
 
             //Create the candidate
             $surveyInviteRecipient = new \App\Models\SurveyCandidate;
             $surveyInviteRecipient->recipientId = $recipient->id;
+            $surveyInviteRecipient->recipientType = $userType;
             $surveyInviteRecipient->link = $surveyRecipient->link;
 
             $endDate = $survey->endDate;
@@ -419,6 +471,11 @@ abstract class Surveys
 
             //Send the emails
             $surveyEmailer->sendToEvaluate($survey, $surveyRecipient, $surveyRecipient->link);
+
+            // Send notification for registered users
+            if ($userType == 'users') {
+                $surveyRecipient->recipient->notify(new InviteOthersToEvaluate($survey));
+            }
 
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {

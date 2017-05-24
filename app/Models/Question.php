@@ -1,15 +1,116 @@
-<?php namespace App\Models;
+<?php
+
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
 * Represents a question
 */
 class Question extends Model
-{
+{   
 	protected $fillable = ['text'];
 	public $timestamps = false;
 	private $cachedCustomScaleObject = null;
+    protected $visible = ['id', 'text', 'optional', 'isNA', 'isFollowUpQuestion', 'answer'];
+    protected $appends = ['answer'];
+    
+    /**
+     * Returns answer frequencies and statistics.
+     *
+     * @param   Illuminate\Database\Eloquent\Collection $questions
+     * @param   Illuminate\Database\Eloquent\Collection $answers
+     * @return  array
+     */
+    public static function calculateAnswers(Collection $questions, Collection $answers)
+    {
+        $texts = [5, 8]; // Question types with text answers
+        $results = [
+            'frequencies'   => [],
+            'totalAnswers'  => 0
+        ];
+        
+        foreach ($questions as $question) {
+            $questionAnswers = $answers->get($question->id);
+            $answerObj = $question->answerTypeObject();
+            $isText = in_array($question->answerType, $texts);
+            
+            // Append frequencies to results
+            $results['frequencies'][$question->id] = [];
+            
+            // Process custom input questions
+            if ($question->answerType == 5) {
+
+                // Continue if we have no tokens to process
+                if (!$questionAnswers) {
+                    continue;
+                }
+                
+                // Calculate frequencies for every custom input answer
+                $counts = [];
+                foreach ($questionAnswers as $answer) {
+                    $key = mb_strtolower($answer->answerText);
+                    if (isset($counts[$key])) {
+                        $counts[$key]['count'] += 1;
+                    } else {
+                        $counts[$key] = [
+                            'value'     => $answer->answerText,
+                            'count'     => 1
+                        ];
+                    }
+                }
+                
+                // Merge frequencies to our results
+                foreach ($counts as $key => $count) {
+                    $results['frequencies'][$question->id][] = [
+                        'value' => $key,
+                        'count' => $count['count']
+                    ];
+                }
+    
+            // Questions with fixed values
+            } else {
+                $possibleValues = $answerObj->valuesFlat();
+                $counts = [];
+   
+                // If the question allows a N/A option, add a -1 value
+                if ($question->isNA) {
+                   $counts['-1'] = 0;
+                }
+
+                // Initialize possible values to zero
+                foreach ($possibleValues as $val) {
+                   $key = strval($val);
+                   $counts[$key] = 0;
+                }
+
+                // Calculate frequencies of each question value
+                if ($questionAnswers) {
+                    foreach ($questionAnswers as $answer) {
+                       $key = $isText ? $answer->answerText : strval($answer->answerValue);
+                       if (isset($counts[$key])) {
+                           $counts[$key] += 1;
+                       }
+                    }
+                }
+
+                // Build a proper result array
+                foreach ($counts as $key => $count) {
+                    $desc = strval($answerObj->descriptionOfValue($key));
+                    $results['frequencies'][$question->id][] = [
+                       'value'          => $key,
+                       'description'    => $desc,
+                       'count'          => $count
+                   ];
+                }
+            }
+            
+            $results['totalAnswers'] += count($questionAnswers);
+        }
+       
+        return $results;
+    }
 
 	/**
 	* Returns the category that the question belongs to
@@ -150,4 +251,14 @@ class Question extends Model
 
 		return $copyQuestion;
 	}
+    
+    /**
+     * Returns an array of possible answers to this question.
+     *
+     * @return  array
+     */
+    public function getAnswerAttribute()
+    {
+        return $this->answerTypeObject()->jsonSerialize();
+    }
 }

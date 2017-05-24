@@ -14,6 +14,7 @@ class SurveyCandidate extends Model
 
     //Laravel does not support composite primary key, we use a the link as primary here so a recipient has be updated.
     protected $primaryKey = 'link';
+	public $incrementing = false;
 
     protected $fillable = [];
     public $timestamps = false;
@@ -33,7 +34,7 @@ class SurveyCandidate extends Model
     */
     public function recipient()
     {
-        return $this->belongsTo('\App\Models\Recipient', 'recipientId');
+        return $this->morphTo('recipient', 'recipientType', 'recipientId');
     }
 
     /**

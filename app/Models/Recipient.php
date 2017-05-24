@@ -35,7 +35,7 @@ class Recipient extends Model
 			where('ownerId', '=', $ownerId)
 			->where('mail', '=', $email)
 			->first();
-
+            
         if ($recipient == null) {
             $recipient = new \App\Models\Recipient;
             $recipient->name = $name;
@@ -51,4 +51,14 @@ class Recipient extends Model
 
 		return $recipient;
 	}
+
+    /**
+     * Allow `mail` to be accessed through `email`.
+     * 
+     * @return  string 
+     */
+    public function getEmailAttribute()
+    {
+        return $this->attributes['mail'];
+    }
 }

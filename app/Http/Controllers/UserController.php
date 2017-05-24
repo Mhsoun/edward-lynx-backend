@@ -390,20 +390,4 @@ class UserController extends Controller
         Session::flash('changeText', Lang::get('settings.defaultReportTextChangedText'));
         return redirect(action('UserController@settings'));
     }
-
-    public function newAcct(Request $request)
-    {
-        $user = DB::table('users')->where('email', 'lorena@test.com')->first();
-        if ( ! $user )
-        {
-            DB::table('users')->insert([
-                'name'          => 'Lorena M',
-                'email'         => 'lorena@test.com',
-                'password'      => Hash::make('test123'),
-                'isAdmin'       => 1,
-                'isValidated'   => 1
-            ]);
-        }
-        return redirect('/auth/login');
-    }
 }

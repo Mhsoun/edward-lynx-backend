@@ -1,13 +1,21 @@
 <?php namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Lang;
+use Carbon\Carbon;
+use App\SurveyTypes;
+use App\Models\User;
+use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
 * Represents a survey
 */
-class Survey extends Model
+class Survey extends Model implements Routable, JsonHalLinking
 {
+    
 	const TIMEZONE = 'Europe/Stockholm';
 
 	/**
@@ -24,6 +32,76 @@ class Survey extends Model
 	public $timestamps = false;
 
 	protected $dates = ['startDate', 'endDate', 'autoRemindingDate'];
+
+    /**
+     * List of fields whitelisted for serialization to JSON.
+     * 
+     * @var array
+     */
+    protected $visible = [
+        'id',
+        'name',
+        'type',
+        'lang',
+        'startDate',
+        'endDate',
+        'enableAutoReminding',
+        'autoRemindingDate',
+        'description',
+        'thankYouText',
+        'questionInfoText',
+        'personsEvaluatedText'
+    ];
+
+    /**
+     * List of additional fields appended to our JSON representation.
+     * 
+     * @var array
+     */
+    protected $appends = ['personsEvaluatedText'];
+    
+    /**
+     * List of fields hidden when summary serializing to JSON.
+     *
+    * @var  array
+     */
+    protected $hiddenWhenSummarized = [
+        'enableAutoReminding',
+        'autoRemindingDate',
+        'thankYouText',
+        'questionInfoText'
+    ];
+    
+    /**
+     * Returns the API url to this survey.
+     *
+     * @param   string  $prefix
+     * @return  string
+     */
+    public function url()
+    {
+        return route('api1-survey', $this);
+    }
+    
+    /**
+     * Limits surveys returned to non-expired surveys.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeValid(Builder $query)
+    {
+        return $query->where('endDate', '>', Carbon::now());
+    }
+
+    public function scopeAnswerableBy(Builder $query, User $user)
+    {
+        return $query->join('survey_recipients', 'surveys.id', '=', 'survey_recipients.surveyId')
+                    ->where([
+                        'survey_recipients.recipientId'     => $user->id,
+                        'survey_recipients.recipientType'   => 'users',
+                    ]);
+    }
 
 	/**
 	* Returns name of the type
@@ -97,7 +175,7 @@ class Survey extends Model
 	/**
 	* Adds the recipient to the survey
 	*/
-	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null)
+	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null, $recipientType = 'recipients')
 	{
 		$surveyRecipient = new \App\Models\SurveyRecipient;
 		$surveyRecipient->recipientId = $recipientId;
@@ -105,6 +183,7 @@ class Survey extends Model
 		$surveyRecipient->roleId = $roleId;
 		$surveyRecipient->invitedById = $invitedById;
 		$surveyRecipient->groupId = $groupId;
+        $surveyRecipient->recipientType = $recipientType;
 		$this->recipients()->save($surveyRecipient);
 		return $surveyRecipient;
 	}
@@ -457,13 +536,20 @@ class Survey extends Model
 
     /**
     * Returns the categories and questions, ordered correctly
+    *
+    * @param    bool    $asModels
+    * @return   array
     */
-    public function categoriesAndQuestions()
+    public function categoriesAndQuestions($asModels = false)
     {
     	$categories = [];
 
         foreach ($this->categories()->orderBy('order', 'asc')->get() as $category) {
-            array_push($categories, $this->categoryViewData($category));
+            if ($asModels) {
+                array_push($categories, $category);
+            } else {
+                array_push($categories, $this->categoryViewData($category));
+            }
         }
 
         return $categories;
@@ -657,5 +743,226 @@ class Survey extends Model
 		}
 
     	return false;
+    }
+    
+    /**
+     * Returns the answer key of the provided user.
+     * Returns NULL if the provided user has already answered the survey.
+     *
+     * @param   App\Models\User $user
+     * @return  string|null
+     */
+    public function answerKeyOf(User $user)
+    {
+        $recipient = $this->recipients()
+                          ->where([
+                              'recipientId'   => $user->id,
+                              'recipientType' => 'users',
+                              'hasAnswered'   => false
+                          ])
+                          ->first();
+        if ($recipient) {
+          return $recipient->link;
+        } else {
+          return null;
+        }
+    }
+    
+    /**
+     * Directly override JSON serialization for this model
+     * so we can change attributes without overwriting attribute
+     * values through accessors.
+     *
+     * @param   integer $options
+     * @return  array
+     */
+    public function jsonSerialize($options = 0)
+    {
+        $data = parent::jsonSerialize();
+        $currentUser = request()->user();
+        
+        $data['startDate'] = $this->startDate->toIso8601String();
+        $data['endDate'] = $this->endDate->toIso8601String();
+        $data['key'] = $this->answerKeyOf($currentUser);
+        $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
+
+        $recipients = $this->recipients();
+        $data['stats'] = [
+            'invited'   => $recipients->count(),
+            'answered'  => $recipients->where('hasAnswered', true)->count()
+        ];
+        
+        if ($options == 0) {
+            $data = $this->getEmailsForJson($data);
+        } elseif ($options == 1) {
+            foreach ($this->hiddenWhenSummarized as $field) {
+                unset($data[$field]);
+            }
+        }
+            
+        return $data;
+    }
+    
+    /**
+     * Returns email information associated to this survey
+     * for serialization to JSON.
+     *
+     * @param   array   $data
+     * @return  array
+     */
+    protected function getEmailsForJson(array $data)
+    {
+        $data['emails'] = [];
+        $texts = [
+            'invitation',
+            'manualReminding',
+            'toEvaluate',
+            'inviteOthersReminding',
+            'candidateInvitation'
+        ];
+        
+        foreach ($texts as $text) {
+            $method = "{$text}Text";
+            $emailText = $this->{$method};
+            
+            if ($emailText->exists) {
+                $data['emails'][$text] = [
+                    'subject'   => $emailText->subject,
+                    'text'      => $emailText->text
+                ];
+            }
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Returns additional links to be appended to this object's
+     * _links JSON-HAL representation.
+     *
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        return [
+            'questions'     => route('api1-survey-questions', $this),
+            'answers'       => route('api1-survey-answers', $this)
+        ];
+    }
+    
+    /**
+     * Returns frequencies and statistics of this survey's answers.
+     *
+     * @return  array
+     */
+    public function calculateAnswers()
+    {
+        $questions = $this->questions->map(function($q) {
+            return $q->question;
+        });
+        
+        $answers = new Collection;
+        $recipients = $this->recipients()
+                           ->where('hasAnswered', true)
+                           ->get();
+        foreach ($recipients as $recipient) {
+            foreach ($recipient->answers as $answer) {
+                if (!$answers->has($answer->questionId)) {
+                    $answers->put($answer->questionId, new Collection);
+                }
+                
+                $answers->get($answer->questionId)->push($answer);
+            }
+        }
+        
+        $data = Question::calculateAnswers($questions, $answers);
+
+        if (SurveyTypes::isGroupLike($this->type)) {
+            $report = \App\SurveyReportGroup::create($this);
+        } elseif ($this->type == \App\SurveyTypes::Individual) {
+            $report = \App\SurveyReport360::create($this, null, null);
+        } elseif ($this->type == \App\SurveyTypes::Progress) {
+            $report = \App\SurveyReportProgress::create($survey, null);
+        } elseif ($this->type == \App\SurveyTypes::Normal) {
+            $report = \App\SurveyReportNormal::create($survey, null);
+        }
+
+        $data['average'] = array_map(function($item) {
+            return [
+                'id'        => $item->id,
+                'name'      => $item->name,
+                'average'   => $item->average
+            ];
+        }, $report->categories);
+
+        $data['ioc'] = array_map(function($item) {
+            return [
+                'id'        => $item->id,
+                'name'      => $item->name,
+                'roles'     => array_map(function($item2) {
+                    return [
+                        'id'        => $item2->id,
+                        'name'      => $item2->name,
+                        'average'   => $item2->average
+                    ];
+                }, $item->roles)
+            ];
+        }, $report->selfAndOthersCategories);
+
+        return $data;
+    }
+
+    /**
+     * Returns TRUE if this survey hasn't expired yet.
+     * 
+     * @return bool
+     */
+    public function isValid()
+    {
+        return $this->endDate->gte(Carbon::now());
+    }
+
+    /**
+     * Returns a string describing the candidates being evaluated
+     * for this survey.
+     * 
+     * @return  string
+     */
+    protected function getPersonsEvaluatedTextAttribute()
+    {
+        $candidates = $this->candidates->map(function($c) {
+            return $c->recipient->name;
+        })->toArray();
+        $numCandidates = count($candidates);
+
+        if ($numCandidates == 0) {
+            return '';
+        }
+
+        if ($numCandidates > 1) {
+            $last = last($candidates);
+            $firsts = array_slice($candidates, 0, count($candidates) - 1);
+            $persons = implode(', ', $firsts) . ' & ' . $last;
+        } else {
+            $persons = $candidates[0];
+        }
+
+        return trans_choice('surveys.personBeingEvaluated', $numCandidates, [], $this->lang) . ' ' . $persons;
+    }
+
+    public function status(User $user)
+    {
+        return SurveyRecipient::surveyStatus($this, $user);
+    }
+
+    /**
+     * Returns TRUE if this survey has expired or reached
+     * it's closed date.
+     * 
+     * @return  boolean
+     */
+    public function isClosed()
+    {
+        return $this->endDate->lte(Carbon::now());
     }
 }

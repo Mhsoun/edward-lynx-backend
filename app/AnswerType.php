@@ -1,10 +1,11 @@
 <?php namespace App;
 use Lang;
+use JsonSerializable;
 
 /**
 * Represents an answer value
 */
-class AnswerValue
+class AnswerValue implements JsonSerializable
 {
     public $value;
     public $description;
@@ -17,12 +18,25 @@ class AnswerValue
         $this->value = $value;
         $this->description = $description;
     }
+    
+    /**
+     * Returns the JSON representation of this object.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'description'   => $this->description,
+            'value'         => $this->value
+        ];
+    }
 }
 
 /**
 * Represents an answer type
 */
-class AnswerType
+class AnswerType implements JsonSerializable
 {
     private $typeId;
     private $values;
@@ -104,6 +118,13 @@ class AnswerType
     {
         return $this->values;
     }
+    
+    public function valuesFlat()
+    {
+        return array_map(function($val) {
+            return $val->value;
+        }, $this->values());
+    }
 
     /**
     * Returns the maximum value
@@ -175,6 +196,27 @@ class AnswerType
     {
         $this->valueExplanations = $valueExplanations;
         return $this;
+    }
+    
+    /**
+     * Returns the JSON representation of this object.
+     *
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $options = array_map(function($val) {
+            return $val->jsonSerialize();
+        }, $this->values);
+        
+        return [
+            'type'          => $this->typeId,
+            'description'   => $this->descriptionText,
+            'help'          => $this->helpText,
+            'isText'        => $this->isText,
+            'isNumeric'     => $this->isNumeric,
+            'options'       => $this->isText() ? null : $options
+        ];
     }
 
     /**
@@ -313,7 +355,8 @@ class AnswerType
 
         $i = 1;
         foreach ($question->customValues as $customValue) {
-            array_push($values, new AnswerValue($i, $customValue->name));
+            array_push($values, new AnswerValue($customValue->id, $customValue->name));
+            // Should be $i++?
         }
 
         return new AnswerType(

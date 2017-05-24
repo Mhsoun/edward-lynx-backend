@@ -1,14 +1,55 @@
 <?php namespace App\Models;
 
+use App\Contracts\Routable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
 * Represents a question category
 */
-class QuestionCategory extends Model
+class QuestionCategory extends Model implements Routable
 {
 	protected $fillable = ['title'];
 	public $timestamps = false;
+    
+    protected $visible = ['id', 'title', 'description'];
+
+    /**
+     * Returns the category for instant feedbacks.
+     *
+     * @param   App\Models\User     $user
+     * @param   string              $lang
+     * @return  App\Models\QuestionCategory
+     */
+    public static function findCategoryForInstantFeedbacks(User $user, $lang)
+    {
+        $title = 'Instant Feedbacks Category';
+        $category = self::where([
+            'title'     => $title,
+            'lang'      => $lang,
+            'ownerId'   => $user->id
+        ])->first();
+        
+        if ($category == null) {
+            $category = new self;
+            $category->title = $title;
+            $category->lang = $lang;
+            $category->description = '';
+            $category->ownerId = $user->id;
+            $category->save();
+        }
+        
+        return $category;
+    }
+    
+    /**
+     * Returns the API url to this question category.
+     *
+     * @return  string
+     */
+    public function url()
+    {
+        return route('api1-category', $this);
+    }
 
 	/**
 	* Returns the questions in the category

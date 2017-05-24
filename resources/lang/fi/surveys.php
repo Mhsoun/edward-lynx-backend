@@ -143,7 +143,7 @@ return [
     'selectGroup' => 'Valitse ryhmä',
     'expireText' => 'The project will expire at %1$s which is %2$s days from now.',
     'expiredText' => 'Projekti päättyi %1$s.',
-    'personBeingEvaluated' => 'The person being evaluated is',
+    'personBeingEvaluated' => 'The person being evaluated is|The persons being evaluated are',
     'enableAutoReminders' => 'Mahdollista automaattiset muistutukset',
     'reminderTime' => 'Aika',
     'selectCompany'=>'Valitse yritys',
