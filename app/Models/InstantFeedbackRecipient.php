@@ -25,27 +25,24 @@ class InstantFeedbackRecipient extends Model
     protected $dates = ['answeredAt'];
     
     /**
-     * Creates a new recipient record for a user.
+     * Creates a new recipient record for a recipient.
      *
      * @param   App\Models\InstantFeedback              $instantFeedback
-     * @param   App\Models\User|App\Models\Recipient    $user
+     * @param   App\Models\Recipient                    $recipient
      * @return  App\Models\InstantFeedbackRecipient
      */
-    public static function make(InstantFeedback $instantFeedback, $user)
+    public static function make(InstantFeedback $instantFeedback, $recipient)
     {
-        $type = $user instanceof User ? 'users' : 'recipients';
-
         $recipient = self::where([
             'instantFeedbackId' => $instantFeedback->id,
-            'userId'            => $user->id,
-            'user_type'         => $type
+            'recipientId'       => $recipient->id
         ])->first();
 
         if (!$recipient) {
             $key = str_random(32);
             $recipient = new self;
             $recipient->instantFeedbackId = $instantFeedback->id;
-            $recipient->userId = $user->id;
+            $recipient->recipientId = $recipient->id;
             $recipient->key = $key;
             $recipient->user_type = $type;
             $recipient->save();
@@ -55,13 +52,13 @@ class InstantFeedbackRecipient extends Model
     }
     
     /**
-     * Returns the recipient user.
+     * Returns the recipient record.
      *
-     * @return  App\Models\User
+     * @return  App\Models\Recipient
      */
-    public function user()
+    public function recipient()
     {
-        return $this->morphTo('user', 'user_type', 'userId');
+        return $this->belongsTo(Recipient::class, 'recipientId');
     }
     
     /**

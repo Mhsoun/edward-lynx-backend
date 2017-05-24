@@ -950,6 +950,8 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'RenameRecipientTypeInSurveyAnswersTable' => __DIR__ . '/../..' . '/database/migrations/2017_01_23_070011_rename_recipient_type_in_survey_answers_table.php',
         'RenameUserColumnsToMatchStandards' => __DIR__ . '/../..' . '/database/migrations/2017_02_05_135043_rename_user_columns_to_match_standards.php',
         'RenameUserIdInUserDevices' => __DIR__ . '/../..' . '/database/migrations/2017_02_06_183015_rename_user_id_in_user_devices.php',
+        'RenameUserIdToRecipientIdInInstantFeedbackAnswers' => __DIR__ . '/../..' . '/database/migrations/2017_05_24_163143_RenameUserIdToRecipientIdInInstantFeedbackAnswers.php',
+        'RenameUserIdToRecipientIdInInstantFeedbackRecipients' => __DIR__ . '/../..' . '/database/migrations/2017_05_24_161752_RenameUserIdToRecipientIdInInstantFeedbackRecipients.php',
         'RenamnedFields' => __DIR__ . '/../..' . '/database/migrations/2016_03_10_204413_renamned_fields.php',
         'RenamnedFieldsAgain' => __DIR__ . '/../..' . '/database/migrations/2016_03_10_212613_renamned_fields_again.php',
         'RennamnedFieldsAgain2' => __DIR__ . '/../..' . '/database/migrations/2016_03_19_142820_rennamned_fields_again2.php',

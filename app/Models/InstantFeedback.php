@@ -51,14 +51,15 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function scopeAnswerableBy(Builder $query, User $user)
     {
-        $id = $user->id;
+        $recipients = Recipient::where('mail', $user->email)->get();
+        $ids = $recipients->map(function($recipient) {
+            return $recipient->id;
+        });
+
         return $query->select('instant_feedbacks.*')
                      ->join('instant_feedback_recipients', 'instant_feedback_recipients.instantFeedbackId', '=', 'instant_feedbacks.id')
-                     ->where([
-                         'instant_feedback_recipients.userId'  => $id,
-                         'instant_feedback_recipients.answered' => 0,
-                         'instant_feedback_recipients.user_type' => 'users'
-                     ]);
+                     ->where('instant_feedback_recipients.answered', false)
+                     ->whereIn('instant_feedback_recipients.recipientId', $ids);
     }
     
     /**
@@ -78,13 +79,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function users()
     {
-        return $this->morphedByMany(
-            User::class,
-            'user',
-            'instant_feedback_recipients',
-            'instantFeedbackId',
-            'userId'
-        )->withPivot('key', 'answered', 'answeredAt');
+        throw new \Exception('InstantFeedback::users is not supported now.');
     }
 
     /**
@@ -94,13 +89,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function recipients()
     {
-        return $this->morphedByMany(
-            Recipient::class,
-            'user',
-            'instant_feedback_recipients',
-            'instantFeedbackId',
-            'userId'
-        )->withPivot('key', 'answered', 'answeredAt');
+        return $this->hasManyThrough(Recipient::class, InstantFeedbackRecipient::class, 'recipientId')->withPivot('key', 'answered', 'answeredAt');
     }
 
     /**
@@ -110,10 +99,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function receivers()
     {
-        $users = $this->users->toArray();
-        $recipients = $this->recipients->toArray();
-        $receivers = collect(array_merge($users, $recipients));
-        return $receivers;
+        throw new \Exception('Use InstantFeedback::recipients instead.');
     }
     
     /**
@@ -174,16 +160,16 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      * if the user hasn't been invited or the invite has been
      * answered already.
      *
-     * @param   App\Models\User $user
+     * @param   App\Models\Recipient    $recipient
      * @return  string|null
      */
-    public function answerKeyOf(User $user)
+    public function answerKeyOf(Recipient $recipient)
     {
-        $invite = $this->users()
-                       ->where('userId', $user->id)
-                       ->first();
-        if ($invite && !$invite->pivot->answered) {
-            return $invite->pivot->key;
+        $ifRecipient = $this->recipients()
+                            ->where('recipientId', $recipient->id)
+                            ->first();
+        if ($ifRecipient && !$ifRecipient->pivot->answered) {
+            return $ifRecipient->pivot->key;
         } else {
             return null;
         }
@@ -229,8 +215,8 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
         });
 
         $data['stats'] = [
-            'invited'   => $this->receivers()->count(),
-            'answered'  => $this->recipients()->where('answered', true)->count() + $this->users()->where('answered', true)->count()
+            'invited'   => $this->recipients()->count(),
+            'answered'  => $this->recipients()->where('answered', true)->count()
         ];
 
         // Users
@@ -248,14 +234,6 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
                 'name'  => $recipient->name,
                 'email' => $recipient->email,
                 'isUser'=> false
-            ];
-        }
-        foreach ($this->users as $recipient) {
-            $data['recipients'][] = [
-                'id'    => $recipient->id,
-                'name'  => $recipient->name,
-                'email' => $recipient->email,
-                'isUser'=> true
             ];
         }
         
