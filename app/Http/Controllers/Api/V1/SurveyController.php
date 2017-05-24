@@ -17,6 +17,7 @@ use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -230,6 +231,21 @@ class SurveyController extends Controller
         return response()->jsonHal([
             'survey_id' => $recipient->surveyId
         ]);
+    }
+
+    public function recipients(Request $request, Survey $survey)
+    {
+        $this->validate($request, [
+            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
+            'recipients.*.name'                 => 'required_without:recipients.*.id|string',
+            'recipients.*.email'                => 'required_without:recipients.*.id|email'
+        ]);
+
+        if ($survey->isClosed()) {
+            throw new SurveyExpiredException;
+        }
+
+        
     }
     
     /**
