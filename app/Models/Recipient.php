@@ -64,4 +64,14 @@ class Recipient extends Model
     {
         return $this->attributes['mail'];
     }
+
+    /**
+     * Recipient stores email addresses in the 'mail' column.
+     * 
+     * @return  string
+     */
+    public function routeNotificationForMail()
+    {
+        return $this->mail;
+    }
 }
