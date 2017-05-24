@@ -81,17 +81,7 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        $this->processRecipients($instantFeedback, $request->recipients);
-
-        foreach ($instantFeedback->users as $user) {
-            $user->notify(new InstantFeedbackRequested($instantFeedback));
-        }
-
-        foreach ($request->recipients as $recipient) {
-            if (!empty($recipient['email'])) {
-                $anonUser = new AnonymousUser($recipient['name'], $recipient['email']);
-            }
-        }
+        $this->notifyRecipients($instantFeedback, $request->recipients);
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
         return response('', 201, ['Location' => $url]);
@@ -107,7 +97,8 @@ class InstantFeedbackController extends Controller
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         $currentUser = $request->user();
-        $key = $instantFeedback->answerKeyOf($currentUser);
+        $recipient = $this->findRecipient($instantFeedback, $currentUser);
+        $key = $instantFeedback->answerKeyOf($recipient);
         
         return response()->jsonHal($instantFeedback)
                          ->with([
@@ -156,40 +147,7 @@ class InstantFeedbackController extends Controller
         }
 
         $recipients = $request->recipients;
-
-        // Retrieve a list of users who have been notified already.
-        $notifiedUsers = [];
-        foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
-            $notifiedUsers[] = $user->id;
-        }
-
-        // Update instant feedback recipients.
-        $this->processRecipients($instantFeedback, $recipients);
-
-        // Build a list of recipients that will be notified.
-        $newRecipients = [];
-        $anonRecipients = [];
-        foreach ($recipients as $r) {
-            if (!isset($r['id'])) {
-                $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
-            } else {
-                if (in_array($r['id'], $notifiedUsers)) {
-                    continue; // Do not notify already saved users.
-                }
-
-                $newRecipients[] = User::find($r['id']);
-            }
-        }
-
-        $notif = new InstantFeedbackRequested($instantFeedback);
-
-        foreach ($newRecipients as $user) {
-            $user->notify($notif);
-        }
-
-        foreach ($anonRecipients as $recipient) {
-            $recipient->notify($notif);
-        }
+        $this->notifyRecipients($instantFeedback, $request->recipients);
 
         return response('', 201);
     }
@@ -217,6 +175,7 @@ class InstantFeedbackController extends Controller
         ]);
             
         $currentUser = $request->user();
+        $recipient = $this->findRecipient($instantFeedback, $currentUser);
         $key = $request->key;
         $question = Question::find(intval($request->answers[0]['question']));
         
@@ -232,19 +191,16 @@ class InstantFeedbackController extends Controller
         }
         
         try {
-            InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
+            InstantFeedbackAnswer::make($instantFeedback, $recipient, $question, $answer);
         } catch (InvalidArgumentException $e) {
             throw new CustomValidationException([
                 'answers.0.answer'  => $e->getMessage()
             ]);
         }
         
-        $recipient = InstantFeedbackRecipient::where([
-            'userId'    => $currentUser->id,
-            'key'       => $key
-        ])->first();
-        $recipient->markAnswered();
-        $recipient->save();
+        $ifRecipient = InstantFeedbackRecipient::where('key', $key)->first();
+        $ifRecipient->markAnswered();
+        $ifRecipient->save();
         
         return response('', 201);
     }
@@ -370,6 +326,64 @@ class InstantFeedbackController extends Controller
         }
         
         return $results;
+    }
+
+    /**
+     * Sends notifications to instant feedback recipients.
+     * 
+     * @param  App\Models\InstantFeedback   $instantFeedback
+     * @param  array                        $recipients
+     * @return array
+     */
+    protected function notifyRecipients(InstantFeedback $instantFeedback, array $recipients)
+    {
+        $currentUser = request()->user();
+        $results = [];
+
+        foreach ($recipients as $r) {
+            $user = null;
+
+            if (!empty($r['id'])) {
+                $user = User::find($r['id']);
+                if (!$currentUser->can('view', $user)) {
+                    throw new InvalidArgumentException("Current user cannot access user with ID $user->id.");
+                }
+
+                $name = $user->name;
+                $email = $user->email;
+            } else {
+                $name = $r['name'];
+                $email = $r['email'];
+            }
+
+            $recipient = Recipient::make($currentUser->id, $name, $email, '');
+            $ifRecipient = InstantFeedbackRecipient::make($instantFeedback, $recipient);
+
+            if (!$recipient->notified) {
+                $recipient->notify(new InstantFeedbackRequested($instantFeedback));
+                $recipient->notified = true;
+                $recipient->save();
+            }
+
+            $results[] = $recipient;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Finds the recipient record for the provided user.
+     * 
+     * @param  App\Models\InstantFeedback   $instantFeedback
+     * @param  App\Models\User              $user
+     * @return App\Models\Recipient
+     */
+    protected function findRecipient(InstantFeedback $instantFeedback, User $user)
+    {
+        return Recipient::where([
+            'ownerId'   => $instantFeedback->user->id,
+            'mail'      => $user->email
+        ])->first();
     }
     
 }
