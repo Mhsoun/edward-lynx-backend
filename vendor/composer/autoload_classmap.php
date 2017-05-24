@@ -19,6 +19,7 @@ return array(
     'AddInviteOthersRemindersEmail' => $baseDir . '/database/migrations/2016_03_06_132131_add_invite_others_reminders_email.php',
     'AddInviteText' => $baseDir . '/database/migrations/2015_09_26_131055_add_invite_text.php',
     'AddLanguageToUser' => $baseDir . '/database/migrations/2015_03_10_191152_add_language_to_user.php',
+    'AddNotifiedToInstantFeedbackRecipients' => $baseDir . '/database/migrations/2017_05_24_154658_AddNotifiedToInstantFeedbackRecipients.php',
     'AddParentIdToUsersTable' => $baseDir . '/database/migrations/2017_01_11_064826_add_parent_id_to_users_table.php',
     'AddRoleToGroup' => $baseDir . '/database/migrations/2015_05_30_124701_add_role_to_group.php',
     'AddRoleToUsersTable' => $baseDir . '/database/migrations/2017_01_24_095743_add_role_to_users_table.php',
