@@ -38,6 +38,7 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ Lang::get('nav.admin') }} <span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
                                 <li><a href="{{ action('CompanyController@index') }}">{{ Lang::get('nav.companies') }}</a></li>
+                                <li><a href="{{ action('UsersController@index') }}">Users</a></li>
                                 <li><a href="{{ action('AdminController@performanceIndex') }}">{{ Lang::get('nav.performance') }}</a></li>
                                 <li><a href="{{ action('AdminController@rolesIndex') }}">{{ Lang::get('nav.roles') }}</a></li>
                             </ul>
