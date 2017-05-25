@@ -22,6 +22,7 @@ use App\Models\InstantFeedbackRecipient;
 use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
+use App\Exceptions\InvalidOperationException;
 use App\Notifications\InstantFeedbackRequested;
 use App\Exceptions\InstantFeedbackClosedException;
 
@@ -97,8 +98,13 @@ class InstantFeedbackController extends Controller
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         $currentUser = $request->user();
-        $recipient = $this->findRecipient($instantFeedback, $currentUser);
-        $key = $instantFeedback->answerKeyOf($recipient);
+
+        if ($instantFeedback->user->id === $currentUser->id) {
+            $key = null;
+        } else {
+            $recipient = $this->findRecipient($instantFeedback, $currentUser);
+            $key = $instantFeedback->answerKeyOf($recipient);
+        }
         
         return response()->jsonHal($instantFeedback)
                          ->with([
@@ -161,6 +167,16 @@ class InstantFeedbackController extends Controller
      */
     public function answer(Request $request, InstantFeedback $instantFeedback)
     {
+        // Prevent owners from answering their instant feedback.
+        if ($instantFeedback->user->id == $request->user()->id) {
+            throw new InvalidOperationException('Answering your own instant feedback is not allowed.');
+        }
+
+        // Do not accept answers on closed instant feedbacks.
+        if ($instantFeedback->closed) {
+            throw new InvalidOperationException('Instant feedback already closed for answers.');
+        }
+
         $this->validate($request, [
             'key'                   => [
                 'required',
@@ -178,11 +194,6 @@ class InstantFeedbackController extends Controller
         $recipient = $this->findRecipient($instantFeedback, $currentUser);
         $key = $request->key;
         $question = Question::find(intval($request->answers[0]['question']));
-        
-        // Make sure the instant feedback is still open.
-        if ($instantFeedback->closed) {
-            throw new InstantFeedbackClosedException;
-        }
         
         if (isset($request->answers[0]['value'])) {
             $answer = $request->answers[0]['value'];
