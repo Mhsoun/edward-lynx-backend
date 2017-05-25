@@ -89,7 +89,8 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
      */
     public function recipients()
     {
-        return $this->hasManyThrough(Recipient::class, InstantFeedbackRecipient::class, 'recipientId')->withPivot('key', 'answered', 'answeredAt');
+        return $this->belongsToMany(Recipient::class, 'instant_feedback_recipients', 'instantFeedbackId', 'recipientId')
+                    ->withPivot('key', 'answered', 'answeredAt');
     }
 
     /**
