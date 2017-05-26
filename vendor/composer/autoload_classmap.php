@@ -530,6 +530,7 @@ return array(
     'PHP_Token_XOR_EQUAL' => $vendorDir . '/phpunit/php-token-stream/src/Token.php',
     'PHP_Token_YIELD' => $vendorDir . '/phpunit/php-token-stream/src/Token.php',
     'PHP_Token_YIELD_FROM' => $vendorDir . '/phpunit/php-token-stream/src/Token.php',
+    'PropagateUserAllowedSurveyTypes' => $baseDir . '/database/migrations/2017_05_26_082229_PropagateUserAllowedSurveyTypes.php',
     'QTitle' => $baseDir . '/database/migrations/2015_02_24_215731_qTitle.php',
     'Questions' => $baseDir . '/database/migrations/2015_02_24_215741_questions.php',
     'Recipiant' => $baseDir . '/database/migrations/2015_02_27_144932_recipiant.php',
