@@ -3,6 +3,7 @@
 use App\SurveyTypes;
 use App\Models\User;
 use App\Models\Survey;
+use App\Models\Recipient;
 use App\Models\SurveyRecipient;
 
 class SurveyPolicy extends Policy
@@ -95,16 +96,9 @@ class SurveyPolicy extends Policy
      */
     public function answer(User $user, Survey $survey)
     {
-        if ($this->administer($user, $survey)) {
-            return true;
-        }
-        
-        $recipient = SurveyRecipient::where([
-            'surveyId'      => $survey->id,
-            'recipientId'   => $user->id,
-            'recipientType' => 'users'
-        ]);
-            
+        $recipient = Recipient::findForOwner($survey->ownerId, $user->email);
+        $surveyRecipient = SurveyRecipient::where('recipientId', $recipient)
+                                ->first();
         return $recipient->count() > 0;
     }
     

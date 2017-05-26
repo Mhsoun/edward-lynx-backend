@@ -96,11 +96,13 @@ class Survey extends Model implements Routable, JsonHalLinking
 
     public function scopeAnswerableBy(Builder $query, User $user)
     {
+        $recipients = Recipient::where('mail', $user->email)
+                        ->get()
+                        ->map(function($recipient) {
+                            return $recipient->id;
+                        });
         return $query->join('survey_recipients', 'surveys.id', '=', 'survey_recipients.surveyId')
-                    ->where([
-                        'survey_recipients.recipientId'     => $user->id,
-                        'survey_recipients.recipientType'   => 'users',
-                    ]);
+                    ->whereIn('survey_recipients.recipientId', $recipients);
     }
 
 	/**
@@ -175,7 +177,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 	/**
 	* Adds the recipient to the survey
 	*/
-	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null, $recipientType = 'recipients')
+	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null)
 	{
 		$surveyRecipient = new \App\Models\SurveyRecipient;
 		$surveyRecipient->recipientId = $recipientId;
@@ -183,7 +185,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 		$surveyRecipient->roleId = $roleId;
 		$surveyRecipient->invitedById = $invitedById;
 		$surveyRecipient->groupId = $groupId;
-        $surveyRecipient->recipientType = $recipientType;
 		$this->recipients()->save($surveyRecipient);
 		return $surveyRecipient;
 	}
@@ -783,8 +784,14 @@ class Survey extends Model implements Routable, JsonHalLinking
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
-        $data['key'] = $this->answerKeyOf($currentUser);
-        $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
+
+        if ($currentUser->id == $this->ownerId) {
+            $data['key'] = null;
+            $data['status'] = SurveyRecipient::NO_INVITE;
+        } else {
+            $data['key'] = $this->answerKeyOf($currentUser);
+            $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
+        }
 
         $recipients = $this->recipients();
         $data['stats'] = [

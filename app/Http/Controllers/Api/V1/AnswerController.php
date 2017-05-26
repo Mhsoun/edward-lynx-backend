@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Survey;
+use App\Models\Recipient;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
@@ -25,20 +26,17 @@ class AnswerController extends Controller
      */
     public function index(Request $request, Survey $survey)
     {
-        $user = $request->user();
-        $recipient = SurveyRecipient::where([
+        $currentUser = $request->user();
+        $recipient = Recipient::where([
+            'ownerId'   => $survey->ownerId,
+            'mail'      => $currentUser->email
+        ])->first();
+        $surveyRecipient = SurveyRecipient::where([
             'surveyId'      => $survey->id,
-            'recipientId'   => $user->id,
-            'recipientType' => 'users'
+            'recipientId'   => $recipient->id
         ])->first();
         
-        // If we can't find an invite then the user is an admin.
-        // Create an invite for him/her.
-        if (!$recipient && $user->can('administer', $survey)) {
-            $recipient = SurveyRecipient::make($survey, $user);
-        }
-        
-        return response()->jsonHal($recipient);
+        return response()->jsonHal($surveyRecipient);
     }
     
     /**

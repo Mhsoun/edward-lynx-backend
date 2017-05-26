@@ -417,14 +417,7 @@ abstract class Surveys
             $isAlreadyCandidate = $survey->candidates()
                 ->where('surveyId', $survey->id)
                 ->where(function ($query) use ($recipient) {
-                    $query->where([
-                            'recipientId'   => $recipient->id,
-                            'recipientType' => 'recipients'
-                          ])
-                          ->orWhere([
-                            'recipientId'   => $recipient->id,
-                            'recipientType' => 'users'
-                          ]);
+                    $query->where('recipientId', $recipientId);
                 })
                 ->first() != null;
 
@@ -433,18 +426,15 @@ abstract class Surveys
             }
 
             //Create the recipient
-            $userType = $recipient instanceof User ? 'users' : 'recipients';
             $surveyRecipient = $survey->addRecipient(
                 $recipient->id,
                 \App\Roles::selfRoleId(),
                 $recipient->id,
-                null,
-                $userType);
+                null);
 
             //Create the candidate
             $surveyInviteRecipient = new \App\Models\SurveyCandidate;
             $surveyInviteRecipient->recipientId = $recipient->id;
-            $surveyInviteRecipient->recipientType = $userType;
             $surveyInviteRecipient->link = $surveyRecipient->link;
 
             $endDate = $survey->endDate;
