@@ -535,7 +535,6 @@ return array(
     'Recipiant' => $baseDir . '/database/migrations/2015_02_27_144932_recipiant.php',
     'Recipiantsinforms' => $baseDir . '/database/migrations/2015_02_27_163327_recipiantsinforms.php',
     'RecipientInGroupVeryInvalidForeignKey' => $baseDir . '/database/migrations/2015_04_11_120033_recipient_in_group_very_invalid_foreign_key.php',
-    'RemoveAccessLevelFromUsers' => $baseDir . '/database/migrations/2017_05_25_154826_RemoveAccessLevelFromUsers.php',
     'RemovedPhoneNumberFromUser' => $baseDir . '/database/migrations/2016_04_04_091450_removed_phone_number_from_user.php',
     'RemovedSurveyEndDateCandidate' => $baseDir . '/database/migrations/2016_03_09_102925_removed_survey_end_date_candidate.php',
     'RemovedTemplateTables' => $baseDir . '/database/migrations/2015_03_19_182554_removed_template_tables.php',

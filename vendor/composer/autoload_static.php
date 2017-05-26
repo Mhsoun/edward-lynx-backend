@@ -940,7 +940,6 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'Recipiant' => __DIR__ . '/../..' . '/database/migrations/2015_02_27_144932_recipiant.php',
         'Recipiantsinforms' => __DIR__ . '/../..' . '/database/migrations/2015_02_27_163327_recipiantsinforms.php',
         'RecipientInGroupVeryInvalidForeignKey' => __DIR__ . '/../..' . '/database/migrations/2015_04_11_120033_recipient_in_group_very_invalid_foreign_key.php',
-        'RemoveAccessLevelFromUsers' => __DIR__ . '/../..' . '/database/migrations/2017_05_25_154826_RemoveAccessLevelFromUsers.php',
         'RemovedPhoneNumberFromUser' => __DIR__ . '/../..' . '/database/migrations/2016_04_04_091450_removed_phone_number_from_user.php',
         'RemovedSurveyEndDateCandidate' => __DIR__ . '/../..' . '/database/migrations/2016_03_09_102925_removed_survey_end_date_candidate.php',
         'RemovedTemplateTables' => __DIR__ . '/../..' . '/database/migrations/2015_03_19_182554_removed_template_tables.php',
