@@ -44,7 +44,6 @@ class InstantFeedbackRecipient extends Model
             $recipient->instantFeedbackId = $instantFeedback->id;
             $recipient->recipientId = $recipient->id;
             $recipient->key = $key;
-            $recipient->user_type = $type;
             $recipient->save();
         }
 
