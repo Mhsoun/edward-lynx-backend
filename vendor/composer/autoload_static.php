@@ -936,6 +936,7 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'PHP_Token_XOR_EQUAL' => __DIR__ . '/..' . '/phpunit/php-token-stream/src/Token.php',
         'PHP_Token_YIELD' => __DIR__ . '/..' . '/phpunit/php-token-stream/src/Token.php',
         'PHP_Token_YIELD_FROM' => __DIR__ . '/..' . '/phpunit/php-token-stream/src/Token.php',
+        'PropagateUserAllowedSurveyTypes' => __DIR__ . '/../..' . '/database/migrations/2017_05_26_082229_PropagateUserAllowedSurveyTypes.php',
         'QTitle' => __DIR__ . '/../..' . '/database/migrations/2015_02_24_215731_qTitle.php',
         'Questions' => __DIR__ . '/../..' . '/database/migrations/2015_02_24_215741_questions.php',
         'Recipiant' => __DIR__ . '/../..' . '/database/migrations/2015_02_27_144932_recipiant.php',
