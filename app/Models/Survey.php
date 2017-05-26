@@ -1055,4 +1055,15 @@ class Survey extends Model implements Routable, JsonHalLinking
     {
         return SurveyRecipient::surveyStatus($this, $user);
     }
+
+    /**
+     * Returns TRUE if this survey has expired or reached
+     * it's closed date.
+     * 
+     * @return  boolean
+     */
+    public function isClosed()
+    {
+        return $this->endDate->lte(Carbon::now());
+    }
 }

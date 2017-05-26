@@ -17,7 +17,7 @@ class SurveyPolicy extends Policy
      */
     public function view(User $user, Survey $survey)
     {
-        if ($this->administer($user, $instantFeedback)) {
+        if ($this->administer($user, $survey)) {
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
@@ -59,7 +59,7 @@ class SurveyPolicy extends Policy
      */
     public function update(User $user, Survey $survey)
     {
-        if ($this->administer($user, $instantFeedback)) {
+        if ($this->administer($user, $survey)) {
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
@@ -77,7 +77,7 @@ class SurveyPolicy extends Policy
      */
     public function delete(User $user, Survey $survey)
     {
-        if ($this->administer($user, $instantFeedback)) {
+        if ($this->administer($user, $survey)) {
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
