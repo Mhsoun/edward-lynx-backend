@@ -784,14 +784,9 @@ class Survey extends Model implements Routable, JsonHalLinking
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
 
-        if ($currentUser->id == $this->ownerId) {
-            $data['key'] = null;
-            $data['status'] = SurveyRecipient::NO_INVITE;
-        } else {
-            $recipient = Recipient::findForOwner($this->ownerId, $currentUser->email);
-            $data['key'] = $this->answerKeyOf($recipient);
-            $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
-        }
+        $recipient = Recipient::findForOwner($this->ownerId, $currentUser->email);
+        $data['key'] = $this->answerKeyOf($recipient);
+        $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
 
         $recipients = $this->recipients();
         $data['stats'] = [
@@ -959,7 +954,8 @@ class Survey extends Model implements Routable, JsonHalLinking
 
     public function status(User $user)
     {
-        return SurveyRecipient::surveyStatus($this, $user);
+        $recipient = Recipient::findForOwner($this->ownerId, $user->email);
+        return SurveyRecipient::surveyStatus($this, $recipient);
     }
 
     /**
