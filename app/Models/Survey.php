@@ -758,7 +758,6 @@ class Survey extends Model implements Routable, JsonHalLinking
         $recipient = $this->recipients()
                           ->where([
                               'recipientId'   => $user->id,
-                              'recipientType' => 'users',
                               'hasAnswered'   => false
                           ])
                           ->first();

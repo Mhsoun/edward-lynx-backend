@@ -267,10 +267,7 @@ class SurveyController extends Controller
             throw new SurveyExpiredException;
         }
 
-        $inviter = SurveyCandidate::where([
-            'recipientId'   => $request->user()->id,
-            'recipientType' => 'users'
-        ])->first();
+        $inviter = SurveyCandidate::where('recipientId', $request->user()->id)->first();
 
         if (!$inviter) {
             abort(403, 'Candidate is not invited to the survey.');
@@ -527,7 +524,6 @@ class SurveyController extends Controller
         $recipient = Recipient::make($owner, $name, $email, '');
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $recipient->id)
-            ->where('recipientType', '=', 'recipients')
             ->where('surveyId', '=', $survey->id)
             ->where('invitedById', '=', $owner)
             ->first();
@@ -566,7 +562,6 @@ class SurveyController extends Controller
 
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $user->id)
-            ->where('recipientType', '=', 'users')
             ->where('surveyId', '=', $survey->id)
             ->where('invitedById', '=', $owner)
             ->first();
