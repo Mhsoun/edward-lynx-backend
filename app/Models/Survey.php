@@ -3,6 +3,7 @@
 use Lang;
 use Carbon\Carbon;
 use App\SurveyTypes;
+use App\SurveyReportHelpers;
 use App\Models\User;
 use App\Contracts\Routable;
 use App\Contracts\JsonHalLinking;
@@ -881,6 +882,14 @@ class Survey extends Model implements Routable, JsonHalLinking
             $report = \App\SurveyReportGroup::create($this);
         } elseif ($this->type == \App\SurveyTypes::Individual) {
             $report = \App\SurveyReport360::create($this, null, null);
+            $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
+            $surveyParserData = \App\EmailContentParser::createReportParserData($this, null, null);
+
+            $questionAndComments = SurveyReportHelpers::getQuestionAnswers($this, $this->recipients);
+
+            $getDataFromHelper = SurveyReportHelpers::getData($this, $questionAndComments, null);
+
+            $otherCategoryAnswerFrequency = $getDataFromHelper->otherCategoryAnswerFrequency;
         } elseif ($this->type == \App\SurveyTypes::Progress) {
             $report = \App\SurveyReportProgress::create($survey, null);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
@@ -908,6 +917,98 @@ class Survey extends Model implements Routable, JsonHalLinking
                 }, $item->roles)
             ];
         }, $report->selfAndOthersCategories);
+
+        $data['radar_diagram'] = array_map(function($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'roles' => array_map(function($item2) {
+                    return [
+                        'id' => $item2->id,
+                        'name' => $item2->name,
+                        'average' => $item2->average
+                    ];
+                }, $item->roles)
+            ];
+        }, $report->selfAndOthersCategories);
+
+        $data['comments'] = array_map(function($item) use ($surveyParserData) {
+
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'answer' => array_map(function($item2) {
+                    return [
+                        'recipient_id' => $item2->recipientId,
+                        'text' => $item2->text
+                    ];
+                }, $item->answers)
+            ];
+        }, $report->comments);
+
+        /*$data['highestLowestIndividual'] = array_map(function($item) {
+
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'answer' => array_map(function($item2) {
+                    return [
+                        'recipient_id' => $item2->recipientId,
+                        'text' => $item2->text
+                    ];
+                }, $item->answers)
+            ];
+        }, $report->comments);*/
+        $data['blindspot'] = $report->blindSpots;
+
+        $data['breakdown'] = array_map(function($item) use ($selfRoleId) {
+
+            return [
+            	'dataPoints' => array_map(function($item2) use ($selfRoleId) {
+            		$role_style = "";
+
+		        	if($item2->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
+
+                    return [
+                        'Title' => json_encode($item2->name),
+                        'Percentage' => round($item2->average, 2),
+                        'role_style' => $role_style
+                    ];
+                }, $item->roles)
+            ];
+        }, $report->categoriesByRole);
+
+        $data['detailed_answer_summary'] = array_map(function($item) {
+            return [
+                'dataPoints' => array_map(function($item2) use ($item) {
+                    $value = 0;
+
+                    if ($item->numAnswers > 0) {
+                        $value = round(($item2->count / $item->numAnswers), 2);
+                    }
+
+                    return [
+                        'Question' => $item2->answer,
+                        'Percentage' => $value,
+                        'Percentage_1' => round($value * 100)
+                    ];
+                }, $item->answerFrequency)
+            ];
+        }, $otherCategoryAnswerFrequency);
+
+        $data['yes_or_no'] = array_map(function($item) {
+            return [
+                'id' => $item->id,
+                'categoryId' => $item->categoryId,
+                'category' => $item->category,
+                'yesPercentage' => round($item->yesRatio * 100),
+                'noPercentage' => round($item->noRatio * 100)
+            ];
+        }, $report->yesOrNoQuestions);
 
         return $data;
     }
