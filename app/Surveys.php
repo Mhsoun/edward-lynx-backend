@@ -417,7 +417,7 @@ abstract class Surveys
             $isAlreadyCandidate = $survey->candidates()
                 ->where('surveyId', $survey->id)
                 ->where(function ($query) use ($recipient) {
-                    $query->where('recipientId', $recipientId);
+                    $query->where('recipientId', $recipient->id);
                 })
                 ->first() != null;
 
@@ -463,9 +463,9 @@ abstract class Surveys
             $surveyEmailer->sendToEvaluate($survey, $surveyRecipient, $surveyRecipient->link);
 
             // Send notification for registered users
-            if ($userType == 'users') {
-                $surveyRecipient->recipient->notify(new InviteOthersToEvaluate($survey));
-            }
+            // if ($userType == 'users') {
+                // $surveyRecipient->recipient->notify(new InviteOthersToEvaluate($survey));
+            // }
 
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
