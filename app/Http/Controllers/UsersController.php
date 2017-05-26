@@ -70,6 +70,7 @@ class UsersController extends Controller
         $user->parentId = $request->company;
         $user->name = $request->firstname . ' ' . $request->lastname;
         $user->password = Hash::make($request->password);
+        $user->accessLevel = 3;
         $user->save();
 
         return redirect(route('users.index'));
