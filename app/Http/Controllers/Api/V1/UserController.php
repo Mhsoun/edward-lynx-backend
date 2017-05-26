@@ -157,7 +157,7 @@ class UserController extends Controller
         // (which may have the same token) 
         $device2 = UserDevice::where('deviceId', $deviceId)
                     ->first();
-        if ($device2->userId !== $user->id) {
+        if ($device2 && $device2->userId !== $user->id) {
             $device2->delete();
         }
 
