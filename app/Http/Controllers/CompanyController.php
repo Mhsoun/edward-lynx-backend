@@ -22,7 +22,8 @@ class CompanyController extends Controller
 	*/
 	public function index()
 	{
-		$users = User::all();
+		$users = User::companies()
+                    ->get();
 		return view('user.admin.companies', compact('users'));
 	}
 
