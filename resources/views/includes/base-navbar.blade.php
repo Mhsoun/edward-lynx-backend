@@ -6,7 +6,7 @@
 ?>
 
 <header class="navbar navbar-inverse navbar-fixed-top" id="navColor" role="banner"
-        style="background-color: #{{ $user != null && !$user->isAdmin ? $user->navColor : 'DDDDDD' }}">
+        style="background-color: #{{ $user != null && !$user->isAdmin && $user->navColor ? $user->navColor : 'DDDDDD' }}">
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
