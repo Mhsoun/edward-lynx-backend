@@ -148,6 +148,11 @@ class CompanyController extends Controller
             $file->move($destinationPath, $fileName);
         }
 
+        // Update children's access levels.
+        foreach ($user->subUsers() as $subUser) {
+            $subUser->allowedSurveyTypes = $user->allowedSurveyTypes;
+        }
+
         return redirect()->back();
     }
 

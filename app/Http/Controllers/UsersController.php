@@ -71,6 +71,10 @@ class UsersController extends Controller
         $user->name = $request->firstname . ' ' . $request->lastname;
         $user->password = Hash::make($request->password);
         $user->accessLevel = 3;
+
+        $company = User::find($user->parentId);
+        $user->allowedSurveyTypes = $company->allowedSurveyTypes;
+
         $user->save();
 
         return redirect(route('users.index'));
@@ -129,9 +133,13 @@ class UsersController extends Controller
         $user->parentId = $request->company;
         $user->name = $request->firstname . ' ' . $request->lastname;
 
+        $company = User::find($user->parentId);
+        $user->allowedSurveyTypes = $company->allowedSurveyTypes;
+
         if ($request->has('password')) {
             $user->password = Hash::make($request->password);
         }
+        
         $user->save();
 
         return redirect(route('users.index', ['updated' => $user->id]));
