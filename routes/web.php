@@ -202,7 +202,8 @@ Route::get('/setup-password/{token}', 'UserController@setupPasswordView');
 Route::post('/setup-password/{token}', 'UserController@setupPassword');
 
 /* Routes for answering a survey */
-Route::get('/survey/answer/{link}', 'AnswerController@show');
+Route::get('/survey/answer/{link}', 'AnswerController@show')
+    ->name('survey.answer');
 Route::post('/survey/answer/{link}', 'AnswerController@store');
 
 /* Routes for inviting to a survey */

@@ -5,6 +5,7 @@ use Carbon\Carbon;
 use App\SurveyTypes;
 use App\Models\User;
 use App\Contracts\Routable;
+use App\EmailContentParser;
 use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -785,8 +786,10 @@ class Survey extends Model implements Routable, JsonHalLinking
         $data['endDate'] = $this->endDate->toIso8601String();
 
         $recipient = Recipient::findForOwner($this->ownerId, $currentUser->email);
-        $data['key'] = $this->answerKeyOf($recipient);
+        $key = $this->answerKeyOf($recipient);
+        $data['key'] = $key;
         $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
+        $data['description'] = $this->generateDescription($recipient, $key);
 
         $recipients = $this->recipients();
         $data['stats'] = [
@@ -967,5 +970,30 @@ class Survey extends Model implements Routable, JsonHalLinking
     public function isClosed()
     {
         return $this->endDate->lte(Carbon::now());
+    }
+
+    /**
+     * Generates a description string with user variables replaced.
+     * 
+     * @param   App\Models\Recipient    $recipient
+     * @param   string                  $key
+     * @return  string
+     */
+    protected function generateDescription(Recipient $recipient, $key)
+    {
+        $data = [
+            'surveyName'        => $this->name,
+            'surveyLink'        => route('survey.answer', $this),
+            'surveyEndDate'     => $this->endDate->format('Y-m-d H:i'),
+            'recipientName'     => $recipient->name,
+            'companyName'       => $this->owner->parentId === null ? $this->owner->name : $this->owner->company->name,
+        ];
+
+        if ($key && $surveyRecipient = SurveyRecipient::where('link', $key)->first()) {
+            $evaluated = Recipient::find($surveyRecipient->invitedById);
+            $data['toEvaluateName'] = $evaluated->name;
+        }
+
+        return EmailContentParser::parse($this->description, $data);
     }
 }
