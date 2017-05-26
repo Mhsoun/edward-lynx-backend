@@ -180,8 +180,11 @@ class CompanyController extends Controller
      */
     public function destroy($id)
     {
-        User::find($id)->delete();
-        return redirect()->back();
+        $company = User::findOrFail($id);
+        if ($company->subUsers()->count() == 0) {
+            $company->delete();
+            return redirect()->back();
+        }
     }
 
 	/**

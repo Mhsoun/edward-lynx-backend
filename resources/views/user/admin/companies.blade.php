@@ -67,8 +67,8 @@
                                 </a>
                             </td>
                             <td>
-                                <p data-toggle="tooltip" title="Delete">
-                                    <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modalRemove{!! $user->id !!}">
+                                <p data-toggle="tooltip" title=@if ($user->subUsers()->count() > 0) "Cannot delete: Company has users." @else "Delete" @endif>
+                                    <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modalRemove{!! $user->id !!}" @if($user->subUsers()->count() > 0) disabled @endif>
                                         <span class="glyphicon glyphicon-trash"></span>
                                     </button>
                                 </p>
