@@ -75,7 +75,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     /**
      * Returns registered recipient users of this instant feedback.
      * 
-     * @return  Illuminate\Database\Eloquent\Relations\MorphToMany
+     * @return  Exception
      */
     public function users()
     {
@@ -85,7 +85,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     /**
      * Returns "guest" recipients of this instant feedback.
      * 
-     * @return  Illuminate\Database\Eloquent\Relations\MorphToMany
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function recipients()
     {
