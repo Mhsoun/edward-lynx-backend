@@ -747,17 +747,17 @@ class Survey extends Model implements Routable, JsonHalLinking
     }
     
     /**
-     * Returns the answer key of the provided user.
+     * Returns the answer key of the provided recipient.
      * Returns NULL if the provided user has already answered the survey.
      *
-     * @param   App\Models\User $user
+     * @param   App\Models\Recipient    $recipient
      * @return  string|null
      */
-    public function answerKeyOf(User $user)
+    public function answerKeyOf(Recipient $recipient)
     {
         $recipient = $this->recipients()
                           ->where([
-                              'recipientId'   => $user->id,
+                              'recipientId'   => $recipient->id,
                               'hasAnswered'   => false
                           ])
                           ->first();
