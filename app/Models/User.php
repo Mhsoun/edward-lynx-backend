@@ -854,6 +854,10 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 	 */
 	public function getTypeAttribute()
 	{
+        if (!$this->accessLevel) {
+            return 1;
+        }
+        
 		return self::ACCESS_LEVELS[$this->accessLevel];
 	}
 
