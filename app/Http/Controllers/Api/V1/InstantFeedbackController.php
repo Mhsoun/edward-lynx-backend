@@ -85,7 +85,7 @@ class InstantFeedbackController extends Controller
         $this->notifyRecipients($instantFeedback, $request->recipients);
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
-        return response('', 201, ['Location' => $url]);
+        return response(' ', 201, ['Location' => $url]);
     }
     
     /**
@@ -372,8 +372,8 @@ class InstantFeedbackController extends Controller
 
             if (!$ifRecipient->notified) {
                 $recipient->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name));
-                $recipient->notified = true;
-                $recipient->save();
+                $ifRecipient->notified = true;
+                $ifRecipient->save();
             }
 
             $results[] = $recipient;
