@@ -37,7 +37,8 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
      */
     public function __construct($instantFeedbackId, $sender)
     {
-        $this->instantFeedback = $instantFeedback;
+        $this->instantFeedbackId = $instantFeedbackId;
+        $this->sender = $sender;
     }
 
     /**
