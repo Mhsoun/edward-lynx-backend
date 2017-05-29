@@ -314,6 +314,7 @@ abstract class Surveys
     private static function createIndividual($app, $survey, $surveyData)
     {
         Surveys::inviteCandidates($app, $survey, $surveyData->individual->candidates);
+
     }
 
     /**
@@ -470,6 +471,11 @@ abstract class Surveys
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
                 $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
+            } elseif ($survey->type == SurveyTypes::Individual) {
+                $user = User::where('email', $surveyRecipient->recipient->mail)->first();
+                if ($user) {
+                    $user->notify(new SurveyInvitation($survey, $surveyRecipient->link));
+                }
             }
 
             $invited = true;
