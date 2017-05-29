@@ -85,7 +85,10 @@ class InstantFeedbackController extends Controller
         $this->notifyRecipients($instantFeedback, $request->recipients);
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
-        return response(' ', 201, ['Location' => $url]);
+        return response(' ', 201, [
+            'Location'      => $url,
+            'Content-Type'  => 'application/json'
+        ]);
     }
     
     /**
