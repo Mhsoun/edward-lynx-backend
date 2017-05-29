@@ -49,7 +49,11 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return ['mail', FirebaseChannel::class];
+        if (is_callable($notifiable->deviceTokens)) {
+            return ['mail', FirebaseChannel::class];
+        } else {
+            return ['mail'];
+        }
     }
 
     /**
@@ -60,7 +64,7 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $url = "edwardlynx://instant-feedback/{$this->instantFeedback->id}";
+        $url = "edwardlynx://instant-feedback/{$this->instantFeedbackId}";
         return (new MailMessage)
                     ->subject(trans('instantFeedback.requestedTitle'))
                     ->line(trans('instantFeedback.requested', [
@@ -86,7 +90,7 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
             ]))
             ->data([
                 'type'  => 'instant-request',
-                'id'    => $this->instantFeedback->id
+                'id'    => $this->instantFeedbackId
             ])->to($notifiable->deviceTokens());
     }
 }
