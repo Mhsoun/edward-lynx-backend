@@ -1,12 +1,15 @@
 <?php namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 /**
 * Represents a recipient
 */
 class Recipient extends Model
 {
+    use Notifiable;
+
 	/**
 	* The database table used by the model
 	*/
@@ -60,5 +63,15 @@ class Recipient extends Model
     public function getEmailAttribute()
     {
         return $this->attributes['mail'];
+    }
+
+    /**
+     * Recipient stores email addresses in the 'mail' column.
+     * 
+     * @return  string
+     */
+    public function routeNotificationForMail()
+    {
+        return $this->mail;
     }
 }

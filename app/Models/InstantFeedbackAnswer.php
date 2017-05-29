@@ -91,7 +91,7 @@ class InstantFeedbackAnswer extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'userId');
+        return $this->belongsTo(Recipient::class, 'recipientId');
     }
     
     /**
@@ -108,12 +108,12 @@ class InstantFeedbackAnswer extends Model
      * Creates an answer to a instant feedback question.
      *
      * @param   App\Models\InstantFeedback  $instantFeedback
-     * @param   App\Models\User             $user
+     * @param   App\Models\Recipient        $recipient
      * @param   App\Models\Question         $question
      * @param   array                       $answer
      * @return  App\Models\InstantFeedbackAnswer
      */
-    public static function make(InstantFeedback $instantFeedback, User $user, Question $question, $answer)
+    public static function make(InstantFeedback $instantFeedback, Recipient $recipient, Question $question, $answer)
     {
         $answerType = $question->answerTypeObject();
         if (!$question->isNA && $answer == -1) {
@@ -130,7 +130,7 @@ class InstantFeedbackAnswer extends Model
         
         $ifAnswer = new self;
         $ifAnswer->instantFeedbackId = $instantFeedback->id;
-        $ifAnswer->userId = $user->id;
+        $ifAnswer->recipientId = $recipient->id;
         $ifAnswer->questionId = $question->id;
         $ifAnswer->answer = $answer;
         $ifAnswer->save();
