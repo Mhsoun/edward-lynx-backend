@@ -132,7 +132,7 @@ class SurveyController extends Controller
     public function create()
     {
         if (User::isEdwardLynx(Auth::user()->id)) {
-            $users = User::where('isAdmin', '=', false)->get();
+            $users = User::companies()->get();
             return view('survey.selectCompany', compact('users'));
         } else {
             return $this->createView(Auth::user()->id);

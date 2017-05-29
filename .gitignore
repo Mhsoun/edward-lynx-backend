@@ -4,7 +4,6 @@
 /storage/oauth-public.key
 composer.phar
 composer.lock
-.env
 .env.*.php
 .env.php
 .DS_Store

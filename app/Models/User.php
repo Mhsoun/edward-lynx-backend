@@ -8,6 +8,7 @@ use Illuminate\Support\Collection as IlluminateCollection;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Auth\Access\Authorizable;
@@ -51,7 +52,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
      *
      * @var array
      */
-    protected $fillable = ['name', 'email', 'info', 'password'];
+    protected $fillable = ['name', 'email', 'info', 'password', 'department', 'gender', 'city', 'country', 'role'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -122,6 +123,38 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     public function myDevelopmentPlans()
     {
         return $this->hasMany(DevelopmentPlan::class, 'targetId');
+    }
+
+    /**
+     * Returns the company this user belongs to.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(User::class, 'parentId');
+    }
+
+    /**
+     * Scopes the query to return only users not companies.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeUsers(Builder $query)
+    {
+        return $query->whereNotNull('parentId');
+    }
+
+    /**
+     * Scopes the query to return only parent companies not users under them.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCompanies(Builder $query)
+    {
+        return $query->whereNull('parentId');
     }
 
     /**
@@ -821,6 +854,10 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 	 */
 	public function getTypeAttribute()
 	{
+        if (!$this->accessLevel) {
+            return 1;
+        }
+        
 		return self::ACCESS_LEVELS[$this->accessLevel];
 	}
 

@@ -48,7 +48,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/company/create', 'CompanyController@create');
         Route::post('/company/create', 'CompanyController@store');
 
-        Route::get('/company/{id}/edit', 'CompanyController@edit');
+        Route::get('/company/{id}/edit', 'CompanyController@edit')
+            ->name('companies.edit');
         Route::get('/company/{id}/reset-logo', 'CompanyController@resetLogo');
         Route::get('/company/{id}/delete', 'CompanyController@destroy');
         Route::get('/company/{id}/projects', 'CompanyController@viewProjects');
@@ -64,6 +65,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/survey/{id}/random-answers', 'AnswerController@generateRandomAnswers');
 
         Route::get('/language/export', 'AdminController@exportLanguageStrings');
+
+        Route::resource('users', 'UsersController', [ 'except' => [
+            'show'
+        ]]);
     });
 
     /* Route for index page for groups */
