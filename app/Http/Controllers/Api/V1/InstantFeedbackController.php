@@ -370,7 +370,7 @@ class InstantFeedbackController extends Controller
             $recipient = Recipient::make($currentUser->id, $name, $email, '');
             $ifRecipient = InstantFeedbackRecipient::make($instantFeedback, $recipient);
 
-            if (!$recipient->notified) {
+            if (!$ifRecipient->notified) {
                 $recipient->notify(new InstantFeedbackRequested($instantFeedback));
                 $recipient->notified = true;
                 $recipient->save();

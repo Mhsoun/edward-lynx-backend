@@ -33,21 +33,21 @@ class InstantFeedbackRecipient extends Model
      */
     public static function make(InstantFeedback $instantFeedback, $recipient)
     {
-        $recipient = self::where([
+        $ifRecipient = self::where([
             'instantFeedbackId' => $instantFeedback->id,
             'recipientId'       => $recipient->id
         ])->first();
 
-        if (!$recipient) {
+        if (!$ifRecipient) {
             $key = str_random(32);
-            $recipient = new self;
-            $recipient->instantFeedbackId = $instantFeedback->id;
-            $recipient->recipientId = $recipient->id;
-            $recipient->key = $key;
-            $recipient->save();
+            $ifRecipient = new self;
+            $ifRecipient->instantFeedbackId = $instantFeedback->id;
+            $ifRecipient->recipientId = $recipient->id;
+            $ifRecipient->key = $key;
+            $ifRecipient->save();
         }
 
-        return $recipient;
+        return $ifRecipient;
     }
     
     /**
