@@ -22,6 +22,8 @@ class SurveyPolicy extends Policy
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
+        } elseif ($this->invited($user, $survey)) {
+            return true;
         } else {
             return false;
         }
@@ -96,10 +98,7 @@ class SurveyPolicy extends Policy
      */
     public function answer(User $user, Survey $survey)
     {
-        $recipient = Recipient::findForOwner($survey->ownerId, $user->email);
-        $surveyRecipient = SurveyRecipient::where('recipientId', $recipient)
-                                ->first();
-        return $recipient->count() > 0;
+        return $this->invited($user, $survey);
     }
     
     /**
@@ -117,6 +116,30 @@ class SurveyPolicy extends Policy
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns TRUE if the provided user has been invited to the survey.
+     * 
+     * @param  App\Models\User      $user
+     * @param  App\Models\Survey    $survey
+     * @return boolean
+     */
+    public function invited(User $user, Survey $survey)
+    {
+        if ($recipient = Recipient::findForOwner($survey->ownerId, $user->email)) {
+            $surveyRecipient = SurveyRecipient::where([
+                'surveyId'      => $survey->id,
+                'recipientId'   => $recipient->id
+            ])->first();
+            if ($surveyRecipient) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
