@@ -20,6 +20,7 @@ use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use App\Notifications\SurveyInvitation;
 use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
@@ -580,6 +581,8 @@ class SurveyController extends Controller
 
         $surveyRecipient = $survey->addRecipient($user->id, $role, $inviter->recipientId);
         $this->emailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+        $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
 
         return $surveyRecipient;
     }

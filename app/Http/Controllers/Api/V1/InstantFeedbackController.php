@@ -23,7 +23,7 @@ use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InvalidOperationException;
-use App\Notifications\InstantFeedbackRequested;
+use App\Notifications\InstantFeedbackInvitation;
 use App\Exceptions\InstantFeedbackClosedException;
 
 class InstantFeedbackController extends Controller
@@ -371,7 +371,7 @@ class InstantFeedbackController extends Controller
             $ifRecipient = InstantFeedbackRecipient::make($instantFeedback, $recipient);
 
             if (!$ifRecipient->notified) {
-                $recipient->notify(new InstantFeedbackRequested($instantFeedback));
+                $recipient->notify(new InstantFeedbackInvitation($InstantFeedback->id, $InstantFeedback->owner->name));
                 $recipient->notified = true;
                 $recipient->save();
             }
