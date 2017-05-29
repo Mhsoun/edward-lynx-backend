@@ -201,7 +201,7 @@ class SurveyController extends Controller
         $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
         $questionToAnswers = [];
         $answers = $survey->answers()
-                          ->where('answeredById', $recipientId)
+                          ->where('answeredById', $recipient->id)
                           ->getResults();
 
         foreach ($answers as $answer) {
