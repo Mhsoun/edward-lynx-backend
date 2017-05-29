@@ -42,6 +42,13 @@ return [
 			'expire' => 60,
 		],
 
+		'async' => [
+			'driver' => 'async',
+			'table' => 'jobs',
+			'queue' => 'default',
+			'expire' => 60,
+		],
+
 		'beanstalkd' => [
 			'driver' => 'beanstalkd',
 			'host'   => 'localhost',

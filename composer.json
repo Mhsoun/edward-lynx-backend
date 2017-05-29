@@ -15,7 +15,7 @@
     "alt-three/bus": "^2.0",
     "doctrine/dbal": "^2.5",
     "sentry/sentry-laravel": "^0.6.1",
-    "barryvdh/laravel-async-queue": "0.5.0",
+    "barryvdh/laravel-async-queue": "v0.5.0",
     "laravel/passport": "v1.0.17",
     "alfa6661/laravel-firebase": "^2.0"
   },

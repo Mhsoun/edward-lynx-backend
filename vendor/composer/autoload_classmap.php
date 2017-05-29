@@ -21,6 +21,7 @@ return array(
     'AddLanguageToUser' => $baseDir . '/database/migrations/2015_03_10_191152_add_language_to_user.php',
     'AddNotifiedToInstantFeedbackRecipients' => $baseDir . '/database/migrations/2017_05_24_154658_AddNotifiedToInstantFeedbackRecipients.php',
     'AddParentIdToUsersTable' => $baseDir . '/database/migrations/2017_01_11_064826_add_parent_id_to_users_table.php',
+    'AddReservedFieldToJobs' => $baseDir . '/database/migrations/2017_05_29_081629_AddReservedFieldToJobs.php',
     'AddRoleToGroup' => $baseDir . '/database/migrations/2015_05_30_124701_add_role_to_group.php',
     'AddRoleToUsersTable' => $baseDir . '/database/migrations/2017_01_24_095743_add_role_to_users_table.php',
     'AddedActiveReportTemplateToSurvey' => $baseDir . '/database/migrations/2016_02_29_131133_added_active_report_template_to_survey.php',
