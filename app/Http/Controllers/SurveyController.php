@@ -131,6 +131,7 @@ class SurveyController extends Controller
      */
     public function create()
     {
+        User::find(1)->notify(new \App\Notifications\InstantFeedbackRequested(\App\Models\InstantFeedback::find(1)));
         if (User::isEdwardLynx(Auth::user()->id)) {
             $users = User::where('isAdmin', '=', false)->get();
             return view('survey.selectCompany', compact('users'));
