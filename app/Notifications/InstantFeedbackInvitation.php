@@ -29,16 +29,25 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
     public $sender;
 
     /**
+     * Instant Feedback answer key.
+     * 
+     * @var string
+     */
+    public $key;
+
+    /**
      * Create a new notification instance.
      *
      * @param   int     $instantFeedbackId
      * @param   string  $sender
+     * @param   string  $key
      * @return  void
      */
-    public function __construct($instantFeedbackId, $sender)
+    public function __construct($instantFeedbackId, $sender, $key)
     {
         $this->instantFeedbackId = $instantFeedbackId;
         $this->sender = $sender;
+        $this->key = $key;
     }
 
     /**
@@ -64,7 +73,7 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $url = "edwardlynx://instant-feedback/{$this->instantFeedbackId}";
+        $url = route('answer-instant-feedback', $this->key);
         return (new MailMessage)
                     ->subject(trans('instantFeedback.requestedTitle'))
                     ->line(trans('instantFeedback.requested', [
