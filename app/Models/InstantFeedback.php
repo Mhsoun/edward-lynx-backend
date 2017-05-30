@@ -227,6 +227,13 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
             'name'  => $author->name
         ];
 
+        // Retrieve emails of all users.
+        $emails = User::all()
+                    ->map(function($user) {
+                        return $user->email;
+                    })
+                    ->toArray();
+
         // Build recipients array
         $data['recipients'] = [];
         foreach ($this->recipients as $recipient) {
@@ -234,7 +241,7 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
                 'id'    => $recipient->id,
                 'name'  => $recipient->name,
                 'email' => $recipient->email,
-                'isUser'=> false
+                'isUser'=> in_array($recipient->email, $emails)
             ];
         }
         
