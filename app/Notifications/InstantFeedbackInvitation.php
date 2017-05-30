@@ -49,7 +49,7 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        if (is_callable($notifiable->deviceTokens)) {
+        if (method_exists($notifiable, 'deviceTokens')) {
             return ['mail', FirebaseChannel::class];
         } else {
             return ['mail'];
