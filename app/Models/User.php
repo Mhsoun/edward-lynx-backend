@@ -944,9 +944,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     public function answerableCount()
     {
         $count = 0;
-        $count += $this->developmentPlans()->count();
         $count += InstantFeedback::answerableBy($this)->count();
-        $count += SurveyRecipient::answerableBy($this)->unanswered()->count();
         return $count;
     }
 }
