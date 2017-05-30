@@ -217,7 +217,7 @@ class InstantFeedbackController extends Controller
         $ifRecipient->markAnswered();
         $ifRecipient->save();
         
-        return response('', 201);
+        return createdResponse();
     }
     
     /**
