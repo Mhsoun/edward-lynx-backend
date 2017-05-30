@@ -144,4 +144,29 @@ class SurveyPolicy extends Policy
             return false;
         }
     }
+
+    /**
+     * Returns TRUE if the provided user can invite others in a survey.
+     * 
+     * @param  App\Models\User  $user
+     * @param  App\ModelsSurvey $survey
+     * @return boolean
+     */
+    public function invite(User $user, Survey $survey)
+    {
+        if ($recipient = Recipient::findForOwner($survey->ownerId, $user->email)) {
+            $surveyRecipient = SurveyRecipient::where([
+                'surveyId'      => $survey->id,
+                'recipientId'   => $recipient->id,
+                'roleId'        => 1
+            ])->first();
+            if ($surveyRecipient) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 }
