@@ -29,7 +29,11 @@ class InstantFeedbackPolicy extends Policy
                 'ownerId'   => $instantFeedback->user->id,
                 'mail'      => $user->email
             ])->first();
-            return $instantFeedback->recipients()->where('recipientId', $recipient->id)->count() > 0;
+            if ($recipient) {
+                return $instantFeedback->recipients()->where('recipientId', $recipient->id)->count() > 0;
+            } else {
+                return false;
+            }
         }
     }
 
