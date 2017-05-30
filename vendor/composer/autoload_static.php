@@ -485,6 +485,7 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'CandidateParticipantsEndDate' => __DIR__ . '/../..' . '/database/migrations/2016_03_09_175914_candidate_participants_end_date.php',
         'ChangdAnswerAndRecipients' => __DIR__ . '/../..' . '/database/migrations/2015_03_23_181133_changd_answer_and_recipients.php',
         'ChangeAnswerInAnswersTableToText' => __DIR__ . '/../..' . '/database/migrations/2017_01_16_184150_change_answer_in_answers_table_to_text.php',
+        'ChangeRecipientIdForeignKeyInInstantFeedbackAnswers' => __DIR__ . '/../..' . '/database/migrations/2017_05_30_101109_ChangeRecipientIdForeignKeyInInstantFeedbackAnswers.php',
         'ChangedGroupTables' => __DIR__ . '/../..' . '/database/migrations/2015_05_29_150717_changed-group-tables.php',
         'ChangedGroupTables2' => __DIR__ . '/../..' . '/database/migrations/2015_05_29_151423_changed-group-tables2.php',
         'ChangedRecipientsPk' => __DIR__ . '/../..' . '/database/migrations/2015_08_27_114655_changed_recipients_pk.php',
