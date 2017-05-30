@@ -172,7 +172,8 @@ class InstantFeedbackController extends Controller
     {
         // Prevent owners from answering their instant feedback.
         if ($instantFeedback->user->id == $request->user()->id) {
-            throw new InvalidOperationException('Answering your own instant feedback is not allowed.');
+            //throw new InvalidOperationException('Answering your own instant feedback is not allowed.');
+            // Allow for now.
         }
 
         // Do not accept answers on closed instant feedbacks.
