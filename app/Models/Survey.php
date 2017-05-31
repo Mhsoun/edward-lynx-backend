@@ -1155,6 +1155,8 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 		            $highestLowestResults['highest'] = array_map(function($item) {
 
+		            	error_log(json_encode($item));
+
 			            return [
 			                'category' => $item->category,
 			                'question' => $item->title,
@@ -1182,10 +1184,19 @@ class Survey extends Model implements Routable, JsonHalLinking
             $report = \App\SurveyReportNormal::create($survey, null);
         }
 
-        $data['response_rate'] = array_map(function($item) {
+        $data['response_rate'] = array_map(function($item) use ($selfRoleId) {
+        	if($item->id == $selfRoleId) {
+        		$role_style = "selfColor";
+        	}else if($item->id == -1) {
+        		$role_style = "otherColor";
+        	}else {
+        		$role_style = "orangeColor";
+        	}
+
         	return [
         		'title' => $item->name,
-        		'percentage' => $item->count
+        		'percentage' => $item->count,
+        		'role_style' => $role_style
         	];
         }, $roles);
 
@@ -1197,29 +1208,47 @@ class Survey extends Model implements Routable, JsonHalLinking
             ];
         }, $averageCategories);
 
-        $data['ioc'] = array_map(function($item) {
+        $data['ioc'] = array_map(function($item) use ($selfRoleId) {
             return [
                 'id'        => $item->id,
                 'name'      => $item->name,
-                'roles'     => array_map(function($item2) {
+                'roles'     => array_map(function($item2) use ($selfRoleId) {
+                	if($item2->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($item2->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
+
                     return [
-                        'id'        => $item2->id,
-                        'name'      => $item2->name,
-                        'average'   => $item2->average
+                        'id' => $item2->id,
+                        'name' => $item2->name,
+                        'average' => $item2->average,
+                        'role_style' => $role_style
                     ];
                 }, $item->roles)
             ];
         }, $report->selfAndOthersCategories);
 
-        $data['radar_diagram'] = array_map(function($item) {
+        $data['radar_diagram'] = array_map(function($item) use ($selfRoleId) {
             return [
                 'id' => $item->id,
                 'name' => $item->name,
-                'roles' => array_map(function($item2) {
+                'roles' => array_map(function($item2) use ($selfRoleId) {
+                	if($item2->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($item2->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
+
                     return [
                         'id' => $item2->id,
                         'name' => $item2->name,
-                        'average' => $item2->average
+                        'average' => $item2->average,
+                        'role_style' => $role_style
                     ];
                 }, $item->roles)
             ];
@@ -1253,6 +1282,8 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 		        	if($item2->id == $selfRoleId) {
 		        		$role_style = "selfColor";
+		        	}else if($item2->id == -1) {
+		        		$role_style = "otherColor";
 		        	}else {
 		        		$role_style = "orangeColor";
 		        	}
