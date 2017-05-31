@@ -10,25 +10,35 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class InviteOthersToEvaluate extends Notification implements ShouldQueue
+class SurveyInvitation extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
-     * The survey.
+     * The survey ID.
      * 
      * @var App\Models\Survey
      */
-    public $survey;
+    public $surveyId;
+
+    /**
+     * Survey answer key.
+     * 
+     * @var string
+     */
+    public $key;
 
     /**
      * Create a new notification instance.
      *
+     * @param   int     $surveyId
+     * @param   string  $key
      * @return  void
      */
-    public function __construct(Survey $survey)
+    public function __construct($surveyId, $key)
     {
-        $this->survey = $survey;
+        $this->surveyId = $surveyId;
+        $this->key = $key;
     }
 
     /**
@@ -55,7 +65,8 @@ class InviteOthersToEvaluate extends Notification implements ShouldQueue
             ->body(trans('surveys.toEvaluateBody'))
             ->data([
                 'type'  => 'survey',
-                'id'    => $this->survey->id
+                'id'    => $this->surveyId,
+                'key'   => $this->key
             ])->to($notifiable->deviceTokens());
     }
 

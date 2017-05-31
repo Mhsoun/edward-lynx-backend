@@ -17,13 +17,7 @@ class DatabaseServiceProvider extends ServiceProvider
      * @return  void
      */
     public function boot()
-    {
-        // Define database morph mappings.
-        Relation::morphMap([
-            'users'         => \App\Models\User::class,
-            'recipients'    => \App\Models\Recipient::class
-        ]);
-        
+    {   
         $this->registerModelHooks();
     }
 
