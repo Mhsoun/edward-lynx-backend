@@ -927,6 +927,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 
     	$recipients = [];
+    	$averageCategories = [];
 
         $questions = $this->questions->map(function($q) {
             return $q->question;
@@ -970,7 +971,12 @@ class Survey extends Model implements Routable, JsonHalLinking
 	        $selfRoleName = "";
 	        $toEvaluate = null;
 
+	        $averageCategories = $report->categories;
+
 	        if ($isIndividual) {
+
+	        	$averageCategories = $getDataFromHelper->otherCategories;
+
 	            if ($toEvaluate != null) {
 	                $selfRoleName = Lang::get('roles.self');
 	            } else {
@@ -1159,9 +1165,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 			        $highestLowestResults['lowest'] = array_map(function($item) {
 
-		            	
-	            		error_log($item->title);
-
 			            return [
 			                'category' => $item->category,
 			                'question' => $item->title,
@@ -1181,7 +1184,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         $data['response_rate'] = array_map(function($item) {
         	return [
-        		'title' => json_encode($item->name),
+        		'title' => $item->name,
         		'percentage' => $item->count
         	];
         }, $roles);
@@ -1192,7 +1195,7 @@ class Survey extends Model implements Routable, JsonHalLinking
                 'name'      => $item->name,
                 'average'   => $item->average
             ];
-        }, $report->categories);
+        }, $averageCategories);
 
         $data['ioc'] = array_map(function($item) {
             return [
@@ -1254,7 +1257,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 		        		$role_style = "orangeColor";
 		        	}
                     return [
-                        'title' => json_encode($item2->name),
+                        'title' => $item2->name,
                         'percentage' => round($item2->average, 2),
                         'role_style' => $role_style
                     ];
@@ -1289,7 +1292,8 @@ class Survey extends Model implements Routable, JsonHalLinking
                 'category' => $item->category,
                 'question' => $item->title,
                 'yesPercentage' => round($item->yesRatio * 100),
-                'noPercentage' => round($item->noRatio * 100)
+                'noPercentage' => round($item->noRatio * 100),
+                'naPercentage' => round($item->naRatio * 100)
             ];
         }, $report->yesOrNoQuestions);
 
