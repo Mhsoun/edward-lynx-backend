@@ -1165,12 +1165,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 			        $highestLowestResults['lowest'] = array_map(function($item) {
 
-<<<<<<< HEAD
-=======
-		            	
-	            		error_log($item->title);
-
->>>>>>> upstream/dev
 			            return [
 			                'category' => $item->category,
 			                'question' => $item->title,
@@ -1190,11 +1184,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         $data['response_rate'] = array_map(function($item) {
         	return [
-<<<<<<< HEAD
         		'title' => $item->name,
-=======
-        		'title' => json_encode($item->name),
->>>>>>> upstream/dev
         		'percentage' => $item->count
         	];
         }, $roles);
@@ -1267,11 +1257,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 		        		$role_style = "orangeColor";
 		        	}
                     return [
-<<<<<<< HEAD
                         'title' => $item2->name,
-=======
-                        'title' => json_encode($item2->name),
->>>>>>> upstream/dev
                         'percentage' => round($item2->average, 2),
                         'role_style' => $role_style
                     ];
