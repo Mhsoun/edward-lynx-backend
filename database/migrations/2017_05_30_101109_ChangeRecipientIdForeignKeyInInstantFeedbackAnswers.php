@@ -14,7 +14,11 @@ class ChangeRecipientIdForeignKeyInInstantFeedbackAnswers extends Migration
     public function up()
     {
         Schema::table('instant_feedback_answers', function (Blueprint $table) {
-            $table->dropForeign('instant_feedback_answers_user_id_foreign');
+            if ($this->hasForeignKey('instant_feedback_answers', 'instant_feedback_answers_user_id_foreign')) {
+                $table->dropForeign('instant_feedback_answers_user_id_foreign');
+            } elseif ($this->hasForeignKey('instant_feedback_answers', 'instant_feedback_answers_userid_foreign')) {
+                $table->dropForeign('instant_feedback_answers_userid_foreign');
+            }
             $table->foreign('recipientId', 'instant_feedback_answers_user_id_foreign')
                   ->references('id')->on('recipients')
                   ->onDelete('cascade');
@@ -33,5 +37,14 @@ class ChangeRecipientIdForeignKeyInInstantFeedbackAnswers extends Migration
                   ->references('id')->on('users')
                   ->onDelete('cascade');
         });
+    }
+
+    protected function hasForeignKey($table, $key)
+    {
+        $foreignKeys = Schema::getConnection()->getDoctrineSchemaManager()->listTableForeignKeys('instant_feedback_answers');
+        $foreignKeys = array_map(function ($foreignKey) {
+            return $foreignKey->getName();
+        }, $foreignKeys);
+        return in_array($key, $foreignKeys);
     }
 }
