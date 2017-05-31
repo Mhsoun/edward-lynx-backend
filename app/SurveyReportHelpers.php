@@ -922,16 +922,19 @@ abstract class SurveyReportHelpers
             if ($question->answerType->id() == \App\AnswerType::YES_OR_NO_TYPE) {
                 $numYes = 0;
                 $numNo = 0;
+                $numNa = 0;
 
                 foreach ($question->answers as $answer) {
                     if ($answer->value == 1) {
                         $numYes++;
                     } else if ($answer->value == 0) {
                         $numNo++;
+                    } else {
+                        $numNa++;
                     }
                 }
 
-                $total = $numYes + $numNo;
+                $total = $numYes + $numNo + $numNa;
 
                 array_push($yesOrNoQuestions, (object)[
                     'id' => $question->id,
@@ -940,6 +943,7 @@ abstract class SurveyReportHelpers
                     'title' => $question->title,
                     'yesRatio' => $total > 0 ? $numYes / $total : 0,
                     'noRatio' => $total > 0 ? $numNo / $total : 0,
+                    'naRatio' => $total > 0 ? $numNa / $total : 0,
                 ]);
             }
         }
