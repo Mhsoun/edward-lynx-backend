@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Models\Recipient;
 use App\Models\InstantFeedback;
 
 class InstantFeedbackPolicy extends Policy
@@ -21,12 +22,18 @@ class InstantFeedbackPolicy extends Policy
             return true;
         } elseif ($instantFeedback->userId == $user->id) {
             return true;
-        } elseif ($instantFeedback->recipients()->where('userId', $user->id)->count() > 0) {
-            return true;
         } elseif ($instantFeedback->isSharedTo($user)) {
             return true;
         } else {
-            return false;
+            $recipient = Recipient::where([
+                'ownerId'   => $instantFeedback->user->id,
+                'mail'      => $user->email
+            ])->first();
+            if ($recipient) {
+                return $instantFeedback->recipients()->where('recipientId', $recipient->id)->count() > 0;
+            } else {
+                return false;
+            }
         }
     }
 

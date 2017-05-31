@@ -6,6 +6,7 @@ use App\SurveyTypes;
 use App\SurveyReportHelpers;
 use App\Models\User;
 use App\Contracts\Routable;
+use App\EmailContentParser;
 use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -97,11 +98,13 @@ class Survey extends Model implements Routable, JsonHalLinking
 
     public function scopeAnswerableBy(Builder $query, User $user)
     {
+        $recipients = Recipient::where('mail', $user->email)
+                        ->get()
+                        ->map(function($recipient) {
+                            return $recipient->id;
+                        });
         return $query->join('survey_recipients', 'surveys.id', '=', 'survey_recipients.surveyId')
-                    ->where([
-                        'survey_recipients.recipientId'     => $user->id,
-                        'survey_recipients.recipientType'   => 'users',
-                    ]);
+                    ->whereIn('survey_recipients.recipientId', $recipients);
     }
 
 	/**
@@ -176,7 +179,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 	/**
 	* Adds the recipient to the survey
 	*/
-	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null, $recipientType = 'recipients')
+	public function addRecipient($recipientId, $roleId, $invitedById, $groupId = null)
 	{
 		$surveyRecipient = new \App\Models\SurveyRecipient;
 		$surveyRecipient->recipientId = $recipientId;
@@ -184,7 +187,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 		$surveyRecipient->roleId = $roleId;
 		$surveyRecipient->invitedById = $invitedById;
 		$surveyRecipient->groupId = $groupId;
-        $surveyRecipient->recipientType = $recipientType;
 		$this->recipients()->save($surveyRecipient);
 		return $surveyRecipient;
 	}
@@ -747,18 +749,17 @@ class Survey extends Model implements Routable, JsonHalLinking
     }
     
     /**
-     * Returns the answer key of the provided user.
+     * Returns the answer key of the provided recipient.
      * Returns NULL if the provided user has already answered the survey.
      *
-     * @param   App\Models\User $user
+     * @param   App\Models\Recipient    $recipient
      * @return  string|null
      */
-    public function answerKeyOf(User $user)
+    public function answerKeyOf(Recipient $recipient)
     {
         $recipient = $this->recipients()
                           ->where([
-                              'recipientId'   => $user->id,
-                              'recipientType' => 'users',
+                              'recipientId'   => $recipient->id,
                               'hasAnswered'   => false
                           ])
                           ->first();
@@ -784,8 +785,12 @@ class Survey extends Model implements Routable, JsonHalLinking
         
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
-        $data['key'] = $this->answerKeyOf($currentUser);
-        $data['status'] = SurveyRecipient::surveyStatus($this, $currentUser);
+
+        $recipient = Recipient::findForOwner($this->ownerId, $currentUser->email);
+        $key = $this->answerKeyOf($recipient);
+        $data['key'] = $key;
+        $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
+        $data['description'] = $this->generateDescription($recipient, $key);
 
         $recipients = $this->recipients();
         $data['stats'] = [
@@ -1160,6 +1165,12 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 			        $highestLowestResults['lowest'] = array_map(function($item) {
 
+<<<<<<< HEAD
+=======
+		            	
+	            		error_log($item->title);
+
+>>>>>>> upstream/dev
 			            return [
 			                'category' => $item->category,
 			                'question' => $item->title,
@@ -1179,7 +1190,11 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         $data['response_rate'] = array_map(function($item) {
         	return [
+<<<<<<< HEAD
         		'title' => $item->name,
+=======
+        		'title' => json_encode($item->name),
+>>>>>>> upstream/dev
         		'percentage' => $item->count
         	];
         }, $roles);
@@ -1252,7 +1267,11 @@ class Survey extends Model implements Routable, JsonHalLinking
 		        		$role_style = "orangeColor";
 		        	}
                     return [
+<<<<<<< HEAD
                         'title' => $item2->name,
+=======
+                        'title' => json_encode($item2->name),
+>>>>>>> upstream/dev
                         'percentage' => round($item2->average, 2),
                         'role_style' => $role_style
                     ];
@@ -1335,7 +1354,8 @@ class Survey extends Model implements Routable, JsonHalLinking
 
     public function status(User $user)
     {
-        return SurveyRecipient::surveyStatus($this, $user);
+        $recipient = Recipient::findForOwner($this->ownerId, $user->email);
+        return SurveyRecipient::surveyStatus($this, $recipient);
     }
 
     /**
@@ -1347,5 +1367,30 @@ class Survey extends Model implements Routable, JsonHalLinking
     public function isClosed()
     {
         return $this->endDate->lte(Carbon::now());
+    }
+
+    /**
+     * Generates a description string with user variables replaced.
+     * 
+     * @param   App\Models\Recipient    $recipient
+     * @param   string                  $key
+     * @return  string
+     */
+    protected function generateDescription(Recipient $recipient, $key)
+    {
+        $data = [
+            'surveyName'        => $this->name,
+            'surveyLink'        => route('survey.answer', $this),
+            'surveyEndDate'     => $this->endDate->format('Y-m-d H:i'),
+            'recipientName'     => $recipient->name,
+            'companyName'       => $this->owner->parentId === null ? $this->owner->name : $this->owner->company->name,
+        ];
+
+        if ($key && $surveyRecipient = SurveyRecipient::where('link', $key)->first()) {
+            $evaluated = Recipient::find($surveyRecipient->invitedById);
+            $data['toEvaluateName'] = $evaluated->name;
+        }
+
+        return EmailContentParser::parse($this->description, $data);
     }
 }

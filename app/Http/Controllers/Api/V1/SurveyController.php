@@ -20,6 +20,7 @@ use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use App\Notifications\SurveyInvitation;
 use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
@@ -55,6 +56,15 @@ class SurveyController extends Controller
         
         $num = intval($request->input('num', 10));
         $user = $request->user();
+        $statusSorter = function($a, $b) use ($user) {
+            if ($a->status($user) < $b->status($user)) {
+                return -1;
+            } elseif ($a->status($user) > $b->status($user)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        };
 
         if ($request->filter === 'answerable') {
             $surveys = Survey::answerableBy($user)
@@ -63,25 +73,11 @@ class SurveyController extends Controller
                             ->latest('endDate')
                             ->orderByRaw('survey_recipients.hasAnswered ASC')
                             ->paginate($num)
-                            ->sort(function($a, $b) use ($user) {
-                                if ($a->status($user) < $b->status($user)) {
-                                    return -1;
-                                } elseif ($a->status($user) > $b->status($user)) {
-                                    return 1;
-                                } else {
-                                    return 0;
-                                }
-                            });
+                            ->sort($statusSorter);
 
         } else {
-            // Fetch all surveys if we are a superadmin.
-            if ($user->can('viewAll', Survey::class)) {
-                $surveys = Survey::select('*');
-            } else {
-                $surveys = Survey::where('ownerId', $user->id);
-            }
-
-            $surveys = $surveys->valid()
+            $surveys = Survey::where('ownerId', $user->id)
+                           ->valid()
                            ->where('type', SurveyTypes::Individual)
                            ->latest('endDate')
                            ->paginate($num);
@@ -199,13 +195,14 @@ class SurveyController extends Controller
     public function questions(Request $request, Survey $survey)
     {
         $url = route('api1-survey-questions', $survey);
+        $currentUser = $request->user();
         
         // Fetch the user's answers
+        $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
         $questionToAnswers = [];
-        $answers = $survey->answers()->where([
-            'answeredById'      => $request->user()->id,
-            'answeredByType'    => 'users'
-        ])->getResults();
+        $answers = $survey->answers()
+                          ->where('answeredById', $recipient->id)
+                          ->getResults();
 
         foreach ($answers as $answer) {
             $questionToAnswers[$answer->questionId] = is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue;
@@ -236,15 +233,17 @@ class SurveyController extends Controller
     public function exchange(Request $request, $key)
     {
         $currentUser = $request->user();
-        $recipient = SurveyRecipient::where([
-                            'link'          => $key,
-                            'recipientType' => 'users',
-                            'recipientId'   => $currentUser->id
-                        ])
+        $recipients = Recipient::where('mail', $currentUser->email)
+                        ->get()
+                        ->map(function($recipient) {
+                            return $recipient->id;
+                        });
+        $surveyRecipient = SurveyRecipient::where('link', $key)
+                        ->whereIn('recipientId', $recipients)
                         ->firstOrFail();
 
         return response()->jsonHal([
-            'survey_id' => $recipient->surveyId
+            'survey_id' => $surveyRecipient->surveyId
         ]);
     }
 
@@ -269,10 +268,7 @@ class SurveyController extends Controller
             throw new SurveyExpiredException;
         }
 
-        $inviter = SurveyCandidate::where([
-            'recipientId'   => $request->user()->id,
-            'recipientType' => 'users'
-        ])->first();
+        $inviter = SurveyCandidate::where('recipientId', $request->user()->id)->first();
 
         if (!$inviter) {
             abort(403, 'Candidate is not invited to the survey.');
@@ -529,7 +525,6 @@ class SurveyController extends Controller
         $recipient = Recipient::make($owner, $name, $email, '');
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $recipient->id)
-            ->where('recipientType', '=', 'recipients')
             ->where('surveyId', '=', $survey->id)
             ->where('invitedById', '=', $owner)
             ->first();
@@ -568,7 +563,6 @@ class SurveyController extends Controller
 
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $user->id)
-            ->where('recipientType', '=', 'users')
             ->where('surveyId', '=', $survey->id)
             ->where('invitedById', '=', $owner)
             ->first();
@@ -587,6 +581,8 @@ class SurveyController extends Controller
 
         $surveyRecipient = $survey->addRecipient($user->id, $role, $inviter->recipientId);
         $this->emailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+        $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
 
         return $surveyRecipient;
     }

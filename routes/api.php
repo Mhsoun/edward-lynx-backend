@@ -42,6 +42,7 @@ Route::group(['prefix' => '/surveys'], function() {
         ->name('ap1-survey-results');
 
     Route::post('/{survey}/recipients', 'SurveyController@recipients')
+        ->middleware('can:invite,survey')
         ->name('api1-survey-recipients');
 
     Route::get('/exchange/{key}', 'SurveyController@exchange')

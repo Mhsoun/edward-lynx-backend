@@ -32,71 +32,31 @@ class SurveyRecipient extends Model
      * Returns the status of a recipient for a given survey.
      *
      * @param   App\Models\Survey       $survey
-     * @param   App\Models\User|array   $user
+     * @param   App\Models\Recipient    $recipient
      * @return  int
      */
-    public static function surveyStatus(Survey $survey, $user)
+    public static function surveyStatus(Survey $survey, Recipient $recipient)
     {
-        if ($user instanceof User) {
-            $recipient = $survey->recipients()
-                                ->where([
-                                    'recipientId'   => $user->id,
-                                    'recipientType' => 'users'
-                                ])->first();
-        } elseif (is_array($user)) {
-            // Make sure we have the correct keys.
-            if (empty($user['name']) || empty($user['email'])) {
-                throw new InvalidArgumentException('Missing user name and email details.');
-            }
-            
-            $recipientRecord = Recipient::where([
-                'ownerId'   => $survey->ownerId,
-                'name'      => $user['name'],
-                'mail'      => $user['email']
-            ]);
-            $recipient = $survey->recipients()
-                                ->where([
-                                    'recipientId'   => $recipientRecord->id,
-                                    'recipientType' => 'recipients'
-                                ])->first();
-        }
+        $surveyRecipient = $survey->recipients()
+                                  ->where('recipientId', $recipient->id)
+                                  ->first();
         
         // If we can't find an invite, then the user is not
         // invited to answer the survey.
-        if (!$recipient) {
+        if (!$surveyRecipient) {
             return self::NO_INVITE;
         }
         
         // If this invite has been marked answered then it is complete.
-        if ($recipient->hasAnswered) {
+        if ($surveyRecipient->hasAnswered) {
             return self::COMPLETE_ANSWERS;
         }
         
-        if ($recipient->answers()->count() > 0) {
+        if ($surveyRecipient->answers()->count() > 0) {
             return self::PENDING_ANSWERS;
         } else {
             return self::NO_ANSWERS;
         }
-    }
-    
-    /**
-     * Creates an invite for a given user.
-     *
-     * @param   App\Models\Survey   $survey
-     * @param   App\Models\User     $user
-     * @param   App\Models\User     $invitedBy
-     * @return  App\Models\SurveyRecipient
-     */
-    public static function make(Survey $survey, User $user, User $invitedBy = null)
-    {
-        $surveyRecipient = new self;
-        $surveyRecipient->recipientId = $user->id;
-        $surveyRecipient->link = str_random(32);
-        $surveyRecipient->invitedById = $invitedBy ? $invitedBy->id : $user->id;
-        $surveyRecipient->recipientType = 'users';
-        $survey->recipients()->save($surveyRecipient);
-        
-        return $surveyRecipient;
     }
 
     /**
@@ -108,10 +68,12 @@ class SurveyRecipient extends Model
      */
     public function scopeAnswerableBy(Builder $query, User $user)
     {
-        return $query->where([
-            'recipientType' => 'users',
-            'recipientId'   => $user->id
-        ]);
+      $ids = Recipient::where('mail', $user->email)
+                      ->get()
+                      ->map(function ($recipient) {
+                        return $recipient->id;
+                      });
+        return $query->whereIn('recipientId', $ids);
     }
 
     /**
@@ -139,7 +101,7 @@ class SurveyRecipient extends Model
     */
     public function recipient()
     {
-        return $this->morphTo('recipient', 'recipientType', 'recipientId');
+        return $this->belongsTo(Recipient::class, 'recipientId');
     }
 
     /**
@@ -157,10 +119,7 @@ class SurveyRecipient extends Model
      */
     public function answers()
     {
-        return $this->survey->answers()->where([
-            'answeredById'      => $this->recipientId,
-            'answeredByType'    => $this->recipientType
-        ]);
+        return $this->survey->answers()->where('answeredById', $this->recipientId);
     }
 
     /**

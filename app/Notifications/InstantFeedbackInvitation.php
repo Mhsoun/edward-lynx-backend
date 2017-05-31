@@ -10,26 +10,35 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class InstantFeedbackRequested extends Notification implements ShouldQueue
+class InstantFeedbackInvitation extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
-     * The Instant Feedback instance.
-     *
-     * @var App\Models\InstantFeedback
+     * Instant Feedback ID.
+     * 
+     * @var int
      */
-    public $instantFeedback;
+    public $instantFeedbackId;
+
+    /**
+     * Instant Feedback owner name.
+     * 
+     * @var string
+     */
+    public $sender;
 
     /**
      * Create a new notification instance.
      *
-     * @param   App\Models\InstantFeedback  $instantFeedback
+     * @param   int     $instantFeedbackId
+     * @param   string  $sender
      * @return  void
      */
-    public function __construct(InstantFeedback $instantFeedback)
+    public function __construct($instantFeedbackId, $sender)
     {
-        $this->instantFeedback = $instantFeedback;
+        $this->instantFeedbackId = $instantFeedbackId;
+        $this->sender = $sender;
     }
 
     /**
@@ -40,7 +49,11 @@ class InstantFeedbackRequested extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return ['mail', FirebaseChannel::class];
+        if (method_exists($notifiable, 'deviceTokens')) {
+            return ['mail', FirebaseChannel::class];
+        } else {
+            return ['mail'];
+        }
     }
 
     /**
@@ -51,10 +64,13 @@ class InstantFeedbackRequested extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $url = "edwardlynx://instant-feedback/{$this->instantFeedback->id}";
+        $url = "edwardlynx://instant-feedback/{$this->instantFeedbackId}";
         return (new MailMessage)
                     ->subject(trans('instantFeedback.requestedTitle'))
-                    ->line($this->message($notifiable))
+                    ->line(trans('instantFeedback.requested', [
+                        'recipient' => $notifiable->name,
+                        'sender'    => $this->sender
+                    ]))
                     ->action(trans('instantFeedback.requestedAction'), $url);
     }
     
@@ -68,24 +84,13 @@ class InstantFeedbackRequested extends Notification implements ShouldQueue
     {
         return (new FirebaseNotification)
             ->title(trans('instantFeedback.requestedTitle'))
-            ->body($this->message($notifiable))
+            ->body(trans('instantFeedback.requested', [
+                'recipient' => $notifiable->name,
+                'sender'    => $this->sender
+            ]))
             ->data([
                 'type'  => 'instant-request',
-                'id'    => $this->instantFeedback->id
+                'id'    => $this->instantFeedbackId
             ])->to($notifiable->deviceTokens());
-    }
-    
-    /**
-     * Generates the notification message.
-     *
-     * @param   mixed   $notifiable
-     * @return  string
-     */
-    protected function message($recipient)
-    {
-        return trans('instantFeedback.requested', [
-            'recipient' => $recipient->name,
-            'sender'    => $this->instantFeedback->user->name
-        ]);
     }
 }

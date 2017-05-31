@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Survey;
+use App\Models\Recipient;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
@@ -25,20 +26,17 @@ class AnswerController extends Controller
      */
     public function index(Request $request, Survey $survey)
     {
-        $user = $request->user();
-        $recipient = SurveyRecipient::where([
+        $currentUser = $request->user();
+        $recipient = Recipient::where([
+            'ownerId'   => $survey->ownerId,
+            'mail'      => $currentUser->email
+        ])->first();
+        $surveyRecipient = SurveyRecipient::where([
             'surveyId'      => $survey->id,
-            'recipientId'   => $user->id,
-            'recipientType' => 'users'
+            'recipientId'   => $recipient->id
         ])->first();
         
-        // If we can't find an invite then the user is an admin.
-        // Create an invite for him/her.
-        if (!$recipient && $user->can('administer', $survey)) {
-            $recipient = SurveyRecipient::make($survey, $user);
-        }
-        
-        return response()->jsonHal($recipient);
+        return response()->jsonHal($surveyRecipient);
     }
     
     /**
@@ -51,7 +49,7 @@ class AnswerController extends Controller
     public function answer(Request $request, Survey $survey)
     {   
         $this->validate($request, [
-            'key'                   => 'required|string',
+            'key'                   => 'required|exists:survey_recipients,link',
             'answers'               => 'required|array',
             'answers.*.question'    => 'required|integer|exists:questions,id',
             'answers.*.value'       => 'required',
@@ -65,35 +63,12 @@ class AnswerController extends Controller
             $answers[$answer['question']] = $answer['value'];
         }
         $final = $request->input('final', true);
+        $recipient = SurveyRecipient::where([
+            'surveyId'  => $survey->id,
+            'link'      => $key
+        ])->first();
         $user = $request->user();
         $questions = $survey->questions;
-        
-        if (empty($key)) {
-            if (!$user->can('administer', $survey)) {
-                throw new CustomValidationException([
-                    'key'   => ['Missing answer key.']
-                ]);
-            }
-            
-            $recipient = SurveyRecipient::make($survey, $user);
-            $key = $recipient->link;
-        } else {
-            $this->validate($request, ['key' => 'exists:survey_recipients,link']);
-            $recipient = SurveyRecipient::where([
-                'surveyId'      => $survey->id,
-                'link'          => $key,
-                // 'recipientId'   => $user->id,
-                'recipientType' => 'users'
-            ])->first();
-                
-            if (!$recipient) {
-                throw new CustomValidationException([
-                    'key'   => ['Invalid answer key.']
-                ]);
-            }
-            
-            $key = $recipient->link;
-        }
         
         // Make sure this survey hasn't expired yet.
         if ($survey->endDate->isPast()) {
@@ -128,8 +103,7 @@ class AnswerController extends Controller
             
             // Try to check if we have an answer to the question
             $surveyAnswer = SurveyAnswer::where([
-                'answeredById'      => $user->id,
-                'answeredByType'    => 'users',
+                'answeredById'      => $recipient->id,
                 'questionId'        => $question->id,
                 'invitedById'       => $recipient->invitedById
             ])->first();
@@ -138,7 +112,6 @@ class AnswerController extends Controller
             if (!$surveyAnswer) {
                 $surveyAnswer = new SurveyAnswer();
                 $surveyAnswer->answeredById = $user->id;
-                $surveyAnswer->answeredByType = 'users';
                 $surveyAnswer->questionId = $question->id;
                 $surveyAnswer->invitedById = $recipient->invitedById;
             }
@@ -159,13 +132,6 @@ class AnswerController extends Controller
             $recipient->hasAnswered = 1;
             $recipient->save();
         }
-        
-        $recipient = SurveyRecipient::where([
-            'surveyId'      => $recipient->survey->id,
-            'recipientId'   => $recipient->recipientId,
-            'invitedById'   => $recipient->invitedById,
-            'recipientType' => $recipient->recipientType
-        ])->first();
         
         return response()->jsonHal($recipient);
     }

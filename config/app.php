@@ -154,6 +154,7 @@ return [
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
         Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
+        Barryvdh\Queue\AsyncServiceProvider::class,
 
 
         /*

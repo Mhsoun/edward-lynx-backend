@@ -156,9 +156,10 @@ class UserController extends Controller
         // Delete the old user on the same device if another user uses it.
         // (which may have the same token) 
         $device2 = UserDevice::where('deviceId', $deviceId)
-                    ->first();
-        if ($device2 && $device2->userId !== $user->id) {
-            $device2->delete();
+                    ->where('userId', '!=', $user->id)
+                    ->get();
+        foreach ($device2 as $d2) {
+            $d2->delete();
         }
 
         if (!$device) {
