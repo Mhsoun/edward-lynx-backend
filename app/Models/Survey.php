@@ -925,6 +925,17 @@ class Survey extends Model implements Routable, JsonHalLinking
 	        return array_slice($questions, 0, 5);
 	    } 
 
+	    function isValidRole($survey, $role) {
+            $isIndividual = $survey->type == \App\SurveyTypes::Individual || $survey->type == \App\SurveyTypes::Progress;
+            $isGroup = \App\SurveyTypes::isGroupLike($survey->type);
+            $isNormal = $survey->type == \App\SurveyTypes::Normal;
+
+            return
+                ($isIndividual && ($role->id != \App\Roles::selfRoleId() && $role->id != \App\Roles::candidatesRoleId()))
+                || ($isGroup && $role->id != $survey->toEvaluateRole()->id)
+                || $isNormal;
+        }
+
 
     	$recipients = [];
     	$averageCategories = [];
@@ -1072,111 +1083,122 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 		    $highestIndex = 0;
 
-		    $highestLowestResults = [];
-
 		    foreach ($highestLowestRoles as $role) {
 
-		    	$roleQuestions = (object)[
-	                'id' => $role->id,
-	                'name' => $role->name,
-	                'highest' => [],
-	                'lowest' => []
-	            ];
+		    	if (isValidRole($this, $role)) {
+		    		if($role->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($role->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
 
-		    	$roleHighestLowestQuestions = [];
-        		$sum = 0.0;
+		    		$roleQuestions = (object)[
+		                'id' => $role->id,
+		                'name' => $role->name,
+		                'role_style' => $role_style,
+		                'highest' => [],
+		                'lowest' => []
+		            ];
 
-	        	foreach ($role->questions as $question) {
-	        		$selfQuestion = \App\SurveyReportHelpers::findQuestionById($highestLowestRoles[count($highestLowestRoles) - 1]->questions, $question->id);
+					$highestLowestResults = [
+						'id' => $role->id,
+		                'name' => $role->name,
+		                'role_style' => $role_style
+					];
 
-	        		if ($selfQuestion != null) {
-		                array_push($roleHighestLowestQuestions, (object)[
-		                    'title' => $question->title,
-		                    'id' => $question->id,
-		                    'categoryId' => $question->categoryId,
-		                    'category' => $question->category,
-		                    'answerType' => $question->answerType,
-		                    'self' => round($selfQuestion->average * 100),
-		                    'others' => round($question->average * 100),
-		                    'order' => round($question->average * 100)
-		                ]);
+			    	$roleHighestLowestQuestions = [];
+	        		$sum = 0.0;
+
+		        	foreach ($role->questions as $question) {
+		        		$selfQuestion = \App\SurveyReportHelpers::findQuestionById($highestLowestRoles[count($highestLowestRoles) - 1]->questions, $question->id);
+
+		        		if ($selfQuestion != null) {
+			                array_push($roleHighestLowestQuestions, (object)[
+			                    'title' => $question->title,
+			                    'id' => $question->id,
+			                    'categoryId' => $question->categoryId,
+			                    'category' => $question->category,
+			                    'answerType' => $question->answerType,
+			                    'self' => round($selfQuestion->average * 100),
+			                    'others' => round($question->average * 100),
+			                    'order' => round($question->average * 100)
+			                ]);
+			            }
+
+			            $sum += $question->average;
+		        	}
+
+		        	usort($roleHighestLowestQuestions, function($x, $y) {
+		                if ($x->order > $y->order) {
+		                    return 1;
+		                } else if ($x->order < $y->order) {
+		                    return -1;
+		                } else {
+		                    return 0;
+		                }
+		            });
+
+		            $roleQuestions->highest = extractQuestions2($roleHighestLowestQuestions, true);
+		            $roleQuestions->lowest = extractQuestions2($roleHighestLowestQuestions, false);
+		            $roleQuestions->possibleHighest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->highest, true);
+		            $roleQuestions->possibleLowest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->lowest, false);
+
+		            if (count($role->questions) > 0) {
+		                $roleQuestions->average = $sum / count($role->questions);
+		            } else {
+		                $roleQuestions->average = 0;
 		            }
 
-		            $sum += $question->average;
-	        	}
+		            $roleQuestions->count = count($role->questions);
 
-	        	usort($roleHighestLowestQuestions, function($x, $y) {
-	                if ($x->order > $y->order) {
-	                    return 1;
-	                } else if ($x->order < $y->order) {
-	                    return -1;
-	                } else {
-	                    return 0;
-	                }
-	            });
+		            //Sort first by value, than by category
+		            usort($roleQuestions->lowest, function($x, $y) {
+		                if ($x->order > $y->order) {
+		                    return 1;
+		                } else if ($x->order < $y->order) {
+		                    return -1;
+		                } else {
+		                    return $x->categoryId - $y->categoryId;
+		                }
+		            });
 
-	            $roleQuestions->highest = extractQuestions2($roleHighestLowestQuestions, true);
-	            $roleQuestions->lowest = extractQuestions2($roleHighestLowestQuestions, false);
-	            $roleQuestions->possibleHighest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->highest, true);
-	            $roleQuestions->possibleLowest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->lowest, false);
+		            usort($roleQuestions->highest, function($x, $y) {
+		                if ($x->order > $y->order) {
+		                    return -1;
+		                } else if ($x->order < $y->order) {
+		                    return 1;
+		                } else {
+		                    return $x->categoryId - $y->categoryId;
+		                }
+		            });
 
-	            if (count($role->questions) > 0) {
-	                $roleQuestions->average = $sum / count($role->questions);
-	            } else {
-	                $roleQuestions->average = 0;
-	            }
+		            // error_log(json_encode($highestLowestQuestions));
 
-	            $roleQuestions->count = count($role->questions);
-
-	            //Sort first by value, than by category
-	            usort($roleQuestions->lowest, function($x, $y) {
-	                if ($x->order > $y->order) {
-	                    return 1;
-	                } else if ($x->order < $y->order) {
-	                    return -1;
-	                } else {
-	                    return $x->categoryId - $y->categoryId;
-	                }
-	            });
-
-	            usort($roleQuestions->highest, function($x, $y) {
-	                if ($x->order > $y->order) {
-	                    return -1;
-	                } else if ($x->order < $y->order) {
-	                    return 1;
-	                } else {
-	                    return $x->categoryId - $y->categoryId;
-	                }
-	            });
-
-	            $highestLowestQuestions[$role->id] = $roleQuestions;
-
-	            if ($highestIndex < 1) {
+		            $highestLowestQuestions[$role->id] = $roleQuestions;
 
 		            $highestLowestResults['highest'] = array_map(function($item) {
-
-		            	error_log(json_encode($item));
-
 			            return [
 			                'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
+			                'answerType' => $item->answerType,
 			                'others' => $item->others
 			            ];
 			        }, $roleQuestions->highest);
 
 			        $highestLowestResults['lowest'] = array_map(function($item) {
-
 			            return [
 			                'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
-			                'others' => $item->others
+			                'others' => $item->others,
 			            ];
 			        }, $roleQuestions->lowest);
 
-			        $highestIndex++;
-		        }
+		    	}
+
 		    }
         } elseif ($this->type == \App\SurveyTypes::Progress) {
             $report = \App\SurveyReportProgress::create($survey, null);
