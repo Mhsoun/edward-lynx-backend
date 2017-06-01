@@ -1083,17 +1083,30 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 		    $highestIndex = 0;
 
-		    $highestLowestResults = [];
-
 		    foreach ($highestLowestRoles as $role) {
 
 		    	if (isValidRole($this, $role)) {
+		    		if($role->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($role->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
+
 		    		$roleQuestions = (object)[
 		                'id' => $role->id,
 		                'name' => $role->name,
+		                'role_style' => $role_style,
 		                'highest' => [],
 		                'lowest' => []
 		            ];
+
+					$highestLowestResults = [
+						'id' => $role->id,
+		                'name' => $role->name,
+		                'role_style' => $role_style
+					];
 
 			    	$roleHighestLowestQuestions = [];
 	        		$sum = 0.0;
@@ -1170,6 +1183,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 			                'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
+			                'answerType' => $item->answerType,
 			                'others' => $item->others
 			            ];
 			        }, $roleQuestions->highest);
