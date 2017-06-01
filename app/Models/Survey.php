@@ -1081,11 +1081,18 @@ class Survey extends Model implements Routable, JsonHalLinking
 		        $highestLowestRoles = $questionsByRole;
 		    }
 
-		    $highestIndex = 0;
+		    $highestLowestResults = [
+                'highest' => [],
+                'lowest' => []
+			];
+
+			$allRoles = [];
 
 		    foreach ($highestLowestRoles as $role) {
 
 		    	if (isValidRole($this, $role)) {
+		    		array_push($allRoles, $role->name);
+
 		    		if($role->id == $selfRoleId) {
 		        		$role_style = "selfColor";
 		        	}else if($role->id == -1) {
@@ -1094,6 +1101,8 @@ class Survey extends Model implements Routable, JsonHalLinking
 		        		$role_style = "orangeColor";
 		        	}
 
+		        	$highestLowestResults['id'] = $role->id;
+
 		    		$roleQuestions = (object)[
 		                'id' => $role->id,
 		                'name' => $role->name,
@@ -1101,12 +1110,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 		                'highest' => [],
 		                'lowest' => []
 		            ];
-
-					$highestLowestResults = [
-						'id' => $role->id,
-		                'name' => $role->name,
-		                'role_style' => $role_style
-					];
 
 			    	$roleHighestLowestQuestions = [];
 	        		$sum = 0.0;
@@ -1174,32 +1177,82 @@ class Survey extends Model implements Routable, JsonHalLinking
 		                }
 		            });
 
-		            // error_log(json_encode($highestLowestQuestions));
-
 		            $highestLowestQuestions[$role->id] = $roleQuestions;
 
-		            $highestLowestResults['highest'] = array_map(function($item) {
-			            return [
-			                'category' => $item->category,
+		            foreach ($roleQuestions->highest as $item) {
+
+		            	if($role->id == $selfRoleId) {
+			        		$role_style = "selfColor";
+			        	}else if($role->id == -1) {
+			        		$role_style = "otherColor";
+			        	}else {
+			        		$role_style = "orangeColor";
+			        	}
+
+		            	$highestTemp = [
+		            		'role_name' => $role->name,
+		            		'role_style' => $role_style,
+			            	'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
 			                'answerType' => $item->answerType,
 			                'others' => $item->others
 			            ];
-			        }, $roleQuestions->highest);
 
-			        $highestLowestResults['lowest'] = array_map(function($item) {
-			            return [
-			                'category' => $item->category,
+			            array_push($highestLowestResults['highest'], $highestTemp);
+		            }
+
+		            foreach ($roleQuestions->lowest as $item) {
+
+		            	if($role->id == $selfRoleId) {
+			        		$role_style = "selfColor";
+			        	}else if($role->id == -1) {
+			        		$role_style = "otherColor";
+			        	}else {
+			        		$role_style = "orangeColor";
+			        	}
+
+		            	$highestTemp = [
+		            		'role_name' => $role->name,
+		            		'role_style' => $role_style,
+			            	'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
-			                'others' => $item->others,
+			                'answerType' => $item->answerType,
+			                'others' => $item->others
 			            ];
-			        }, $roleQuestions->lowest);
 
+			            array_push($highestLowestResults['lowest'], $highestTemp);
+		            }
+		    	}
+		    }
+
+		    $highestLowestResultsFinal = [
+		    	'highest' => [],
+		    	'lowest' => []
+		    ];
+
+		    error_log(json_encode($allRoles));
+
+		    foreach ($allRoles as $role) {
+
+		    	$highestLowestResultsFinal['highest'][$role] = [];
+
+		    	foreach ($highestLowestResults['highest'] as $highest) {
+		    		if ($role == $highest['role_name']) {
+		    			array_push($highestLowestResultsFinal['highest'][$role], $highest);
+		    		}
 		    	}
 
+		    	$highestLowestResultsFinal['lowest'][$role] = [];
+
+		    	foreach ($highestLowestResults['lowest'] as $highest) {
+		    		if ($role == $highest['role_name']) {
+		    			array_push($highestLowestResultsFinal['lowest'][$role], $highest);
+		    		}
+		    	}
 		    }
+
         } elseif ($this->type == \App\SurveyTypes::Progress) {
             $report = \App\SurveyReportProgress::create($survey, null);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
@@ -1291,7 +1344,7 @@ class Survey extends Model implements Routable, JsonHalLinking
             ];
         }, $report->comments);
 
-        $data['highestLowestIndividual'] = $highestLowestResults;
+        $data['highestLowestIndividual'] = $highestLowestResultsFinal;
 
         $data['blindspot'] = $report->blindSpots;
 
