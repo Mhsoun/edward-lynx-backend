@@ -24,11 +24,19 @@ if ($name_count == 1) {
 </div>
 
 <div class="row">
-    <div class="col-md-6 form-group">
+    <div class="col-md-4 form-group">
         <label for="email">Email</label>
         <input type="email" name="email" id="email" class="form-control" value="{{ old('email', $user->email) }}" required>
     </div>
-    <div class="col-md-6 form-group">
+    <div class="col-md-4 form-group">
+        <label for="accessLevel">Type</label>
+        <select name="accessLevel" id="accessLevel" class="form-control">
+            <option value="1" {{ old('accessLevel', $user->accessLevel) == 1 ? 'selected' : '' }}>Admin</option>
+            <option value="2" {{ old('accessLevel', $user->accessLevel) == 2 ? 'selected' : '' }}>Supervisor</option>
+            <option value="3" {{ old('accessLevel', $user->accessLevel) == 3 ? 'selected' : '' }}>Participant</option>
+        </select>
+    </div>
+    <div class="col-md-4 form-group">
         <label for="gender-x">Gender</label><br>
         <label class="radio-inline">
             <input type="radio" name="gender" value="male" @if(old('gender', $user->gender) == 'male') checked @endif>

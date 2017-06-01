@@ -50,6 +50,7 @@ class UsersController extends Controller
             'firstname'         => 'required|max:127',
             'lastname'          => 'required|max:127',
             'email'             => 'required|email|unique:users,email',
+            'accessLevel'       => 'required|in:1,2,3',
             'gender'            => 'in:male,female',
             'company'           => [
                 'required',
@@ -70,7 +71,7 @@ class UsersController extends Controller
         $user->parentId = $request->company;
         $user->name = $request->firstname . ' ' . $request->lastname;
         $user->password = Hash::make($request->password);
-        $user->accessLevel = 3;
+        $user->accessLevel = $request->accessLevel;
 
         $company = User::find($user->parentId);
         $user->allowedSurveyTypes = $company->allowedSurveyTypes;
@@ -114,6 +115,7 @@ class UsersController extends Controller
                 'email',
                 Rule::unique('users')->ignore($user->id)
             ],
+            'accessLevel'       => 'required|in:1,2,3',
             'gender'            => 'in:male,female',
             'company'           => [
                 'required',
@@ -132,6 +134,7 @@ class UsersController extends Controller
         $user->fill($request->only('email', 'gender', 'department', 'role', 'country', 'city', 'info'));
         $user->parentId = $request->company;
         $user->name = $request->firstname . ' ' . $request->lastname;
+        $user->accessLevel = $request->accessLevel;
 
         $company = User::find($user->parentId);
         $user->allowedSurveyTypes = $company->allowedSurveyTypes;
