@@ -1,6 +1,7 @@
 <?php namespace App\Models;
 
 use Lang;
+use App\Roles;
 use Carbon\Carbon;
 use App\SurveyTypes;
 use App\SurveyReportHelpers;
@@ -1006,7 +1007,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 
             foreach ($recipients as $recipient) {
             	$roleId = $recipient->roleId;
-            	$roleName = $questionAndComments->roleNames[$roleId];
+            	$roleName = Roles::name($roleId);
 
             	if ($isGroupReport && $roleId == $selfRoleActualId) {
             		$roleId = $selfRoleId;
