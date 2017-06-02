@@ -129,10 +129,12 @@ class DevelopmentPlanController extends Controller
         $this->validate($request, [
             'title'         => 'string|max:255',
             'description'   => 'string',
+            'checked'       => 'boolean',
             'position'      => 'integer|min:0'
         ]);
             
-        $goal->fill($request->all());
+        $goal->fill($request->only('title', 'description', 'position'));
+        $goal->checked = $request->checked;
         $goal->save();
         $goal = $goal->fresh();
         
@@ -170,7 +172,8 @@ class DevelopmentPlanController extends Controller
             'position'  => 'integer|min:0'
         ]);
         
-        $action->fill($request->all());
+        $action->fill($request->only('title', 'description', 'position'));
+        $action->checked = $request->checked;
         $action->save();
         $action = $action->fresh();
         
