@@ -400,9 +400,9 @@ class InstantFeedbackController extends Controller
 
             if (!$ifRecipient->notified) {
                 if (isset($user)) {
-                    $user->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name));
+                    $user->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name, $ifRecipient->key));
                 } else {
-                    $recipient->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name));
+                    $recipient->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name, $ifRecipient->key));
                 }
                 $ifRecipient->notified = true;
                 $ifRecipient->save();
