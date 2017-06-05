@@ -10,13 +10,14 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class DevelopmentPlanControllerTest extends TestCase
 {
-    use AssertsCreatedResource, AssertsCreatedResponse;
+    use AssertsCreatedResource;
 
     public function testIndex()
     {
         $devPlans = factory(DevelopmentPlanGoalAction::class, 3)->create();
 
-        $this->api('GET', '/api/v1/dev-plans')
+        $this->apiAuthenticate()
+             ->getJson('/api/v1/dev-plans')
              ->seeJsonStructure([
                 'items' => ['*' => [
                     'id',
@@ -49,7 +50,7 @@ class DevelopmentPlanControllerTest extends TestCase
     {
         $category = factory(QuestionCategory::class)->create();
 
-        $this->authenticateApi()
+        $this->apiAuthenticate()
              ->postJson('/api/v1/dev-plans', [
                 'name'          => 'test dev plan',
                 'categoryId'    => $category->id,
@@ -98,9 +99,7 @@ class DevelopmentPlanControllerTest extends TestCase
             ]);
 
         $this->assertCreatedResponse();
-
-        $devPlanId = $this->getResourceId();
-        $this->assertCreatedResource('development_plans', $devPlanId);
+        $this->assertCreatedResource('development_plans');
     }
 
     public function testShow()
