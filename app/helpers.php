@@ -22,5 +22,5 @@ function createdResponse(array $headers = []) {
     $headers = array_merge($headers, [
         'Content-type' => 'application/json'
     ]);
-    return response(' ', 201, $headers);
+    return response('', 201, $headers);
 }

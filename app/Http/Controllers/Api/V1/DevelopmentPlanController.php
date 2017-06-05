@@ -101,7 +101,7 @@ class DevelopmentPlanController extends Controller
         $devPlan->updateGoalPositions();
 
         $url = route('api1-dev-plan', ['devPlan' => $devPlan]);
-        return response('', 201, ['Location' => $url]);
+        return createdResponse(['Location' => $url]);
     }
     
     /**
