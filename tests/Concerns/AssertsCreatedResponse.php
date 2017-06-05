@@ -6,10 +6,9 @@ trait AssertsCreatedResponse
     /**
      * Checks if the response is a valid REST "Created" response.
      * 
-     * @param  string   $namespace
      * @return void
      */
-    public function assertCreatedResponse($namespace)
+    public function assertCreatedResponse()
     {
         $headers = $this->response->headers;
         $location = $headers->get('Location');
