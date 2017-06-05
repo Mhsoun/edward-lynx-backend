@@ -12,7 +12,8 @@ class CategoryControllerTest extends TestCase
     {
         $categories = factory(QuestionCategory::class, 3)->create();
 
-        $this->api('GET', '/api/v1/categories')
+        $this->apiAuthenticate()
+             ->getJson('/api/v1/categories')
              ->seeJsonStructure([
                 'items' => [
                     '*' => [
@@ -26,7 +27,8 @@ class CategoryControllerTest extends TestCase
     {
         $category = factory(QuestionCategory::class)->create();
 
-        $this->api('GET', '/api/v1/categories/' . $category->id)
+        $this->apiAuthenticate()
+             ->getJson('/api/v1/categories/' . $category->id)
              ->seeJsonStructure([
                 'id',
                 'title',

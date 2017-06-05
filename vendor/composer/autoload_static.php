@@ -482,7 +482,6 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'Answer2' => __DIR__ . '/../..' . '/database/migrations/2015_02_27_175258_answer2.php',
         'Answers' => __DIR__ . '/../..' . '/database/migrations/2015_02_24_215752_answers.php',
         'AssertsCreatedResource' => __DIR__ . '/../..' . '/tests/Concerns/AssertsCreatedResource.php',
-        'AssertsCreatedResponse' => __DIR__ . '/../..' . '/tests/Concerns/AssertsCreatedResponse.php',
         'CGIF' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/gif.php',
         'CGIFCOLORTABLE' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/gif.php',
         'CGIFFILEHEADER' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/gif.php',

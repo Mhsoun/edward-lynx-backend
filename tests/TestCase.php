@@ -28,11 +28,20 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase
         });
     }
 
-    protected function authenticateApi()
+    /**
+     * Authenticates the user for API access.
+     *
+     * @param  App\Models\User $user
+     * @return $this
+     */
+    protected function apiAuthenticate(App\Models\User $user = null)
     {
-        $user = App\Models\User::find(1);
+        if (!$user) {
+            $user = App\Models\User::find(1);
+        }
+
         $this->actingAs($user, 'api');
-        
+
         return $this;
     }
 
