@@ -117,45 +117,6 @@ class DevelopmentPlanController extends Controller
     }
     
     /**
-     * Updates a development plan goal's details.
-     *
-     * @param   Illuminate\Http\Request         $request
-     * @param   App\Models\DevelopmentPlan      $devPlan
-     * @param   App\Models\DevelopmentPlanGoal  $goal
-     * @return  App\Http\JsonHalResponse
-     */
-    public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
-    {
-        $this->validate($request, [
-            'title'         => 'string|max:255',
-            'description'   => 'string',
-            'checked'       => 'boolean',
-            'position'      => 'integer|min:0'
-        ]);
-            
-        $goal->fill($request->only('title', 'description', 'position'));
-        $goal->checked = $request->checked;
-        $goal->save();
-        $goal = $goal->fresh();
-        
-        return response()->jsonHal($goal);
-    }
-    
-    /**
-     * Delete a development plan goal.
-     *
-     * @param   Illuminate\Http\Request         $request
-     * @param   App\Models\DevelopmentPlan      $devPlan
-     * @param   App\Models\DevelopmentPlanGoal  $goal
-     * @return  Illuminate\Http\Response
-     */
-    public function deleteGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
-    {
-        $goal->delete();
-        return response('', 204);
-    }
-    
-    /**
      * Update a goal action's details.
      *
      * @param   Illuminate\Http\Request                 $request
