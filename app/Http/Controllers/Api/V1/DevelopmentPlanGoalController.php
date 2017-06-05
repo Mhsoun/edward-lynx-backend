@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\DevelopmentPlan;
+use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
 
 class DevelopmentPlanGoalController extends Controller
@@ -28,8 +31,17 @@ class DevelopmentPlanGoalController extends Controller
             'actions.*.position'    => 'required|integer|min:0'
         ]);
 
-        $goal = new DevelopmentPlanGoal($request->only('title', 'description', 'position', 'dueDate'));
-        $goal->save();
+        $attributes = $request->only('title', 'description', 'position', 'dueDate');
+        $attributes['dueDate'] = Carbon::parse($attributes['dueDate']);
+
+        $goal = $devPlan->goals()
+                        ->create($attributes);
+        foreach ($request->actions as $action) {
+            $goal->actions()->create($action);
+        }
+
+        $devPlan->checked = false;
+        $devPlan->save();
 
         return createdResponse();
     }
