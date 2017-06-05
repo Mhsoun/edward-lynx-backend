@@ -99,6 +99,7 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'F' => 
         array (
             'Firebase\\JWT\\' => 13,
+            'Faker\\' => 6,
         ),
         'D' => 
         array (
@@ -290,6 +291,10 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
+        'Faker\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/fzaninotto/faker/src/Faker',
+        ),
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
@@ -476,6 +481,8 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'AddeddUserReportText' => __DIR__ . '/../..' . '/database/migrations/2016_03_01_193420_addedd_user_report_text.php',
         'Answer2' => __DIR__ . '/../..' . '/database/migrations/2015_02_27_175258_answer2.php',
         'Answers' => __DIR__ . '/../..' . '/database/migrations/2015_02_24_215752_answers.php',
+        'AssertsCreatedResource' => __DIR__ . '/../..' . '/tests/Concerns/AssertsCreatedResource.php',
+        'AssertsCreatedResponse' => __DIR__ . '/../..' . '/tests/Concerns/AssertsCreatedResponse.php',
         'CGIF' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/gif.php',
         'CGIFCOLORTABLE' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/gif.php',
         'CGIFFILEHEADER' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/gif.php',

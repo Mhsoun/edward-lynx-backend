@@ -71,6 +71,8 @@ return array(
     'AddeddUserReportText' => $baseDir . '/database/migrations/2016_03_01_193420_addedd_user_report_text.php',
     'Answer2' => $baseDir . '/database/migrations/2015_02_27_175258_answer2.php',
     'Answers' => $baseDir . '/database/migrations/2015_02_24_215752_answers.php',
+    'AssertsCreatedResource' => $baseDir . '/tests/Concerns/AssertsCreatedResource.php',
+    'AssertsCreatedResponse' => $baseDir . '/tests/Concerns/AssertsCreatedResponse.php',
     'CGIF' => $vendorDir . '/kartik-v/mpdf/classes/gif.php',
     'CGIFCOLORTABLE' => $vendorDir . '/kartik-v/mpdf/classes/gif.php',
     'CGIFFILEHEADER' => $vendorDir . '/kartik-v/mpdf/classes/gif.php',
