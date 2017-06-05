@@ -13,7 +13,15 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase
         $app->loadEnvironmentFrom('.env.testing.php');
         $app->make(Kernel::class)->bootstrap();
 
+        $this->setupDatabase();
+
         return $app;
+    }
+
+    protected function setupDatabase()
+    {
+        Artisan::call('migrate');
+        Artisan::call('db:seed');
     }
 
     protected function authenticateApi()
