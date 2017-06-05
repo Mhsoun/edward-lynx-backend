@@ -22,6 +22,10 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase
     {
         Artisan::call('migrate');
         Artisan::call('db:seed');
+        
+        $this->beforeApplicationDestroyed(function () {
+            Artisan::call('migrate:rollback');
+        });
     }
 
     protected function authenticateApi()
