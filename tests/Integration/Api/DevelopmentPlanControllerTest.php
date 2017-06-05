@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class DevelopmentPlanControllerTest extends TestCase
 {
-    use AssertsCreatedResource, AssertsCreatedResponse;
+    use AssertsCreatedResource;
 
     public function testIndex()
     {
@@ -98,9 +98,7 @@ class DevelopmentPlanControllerTest extends TestCase
             ]);
 
         $this->assertCreatedResponse();
-
-        $devPlanId = $this->getResourceId();
-        $this->assertCreatedResource('development_plans', $devPlanId);
+        $this->assertCreatedResource('development_plans');
     }
 
     public function testShow()

@@ -41,8 +41,7 @@
   "autoload-dev": {
     "classmap": [
       "tests/TestCase.php",
-      "tests/Concerns/AssertsCreatedResource.php",
-      "tests/Concerns/AssertsCreatedResponse.php"
+      "tests/Concerns/AssertsCreatedResource.php"
     ]
   },
   "scripts": {
