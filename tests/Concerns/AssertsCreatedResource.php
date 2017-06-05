@@ -13,6 +13,8 @@ trait AssertsCreatedResource
      */
     public function assertCreatedResource($table, $id = null)
     {
+        $this->assertCreatedResponse();
+
         if (!$id) {
             $id = $this->getResourceId();
         }
