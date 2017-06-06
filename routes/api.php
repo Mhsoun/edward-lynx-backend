@@ -87,12 +87,17 @@ Route::group(['prefix' => '/dev-plans'], function() {
         ->middleware('can:view,devPlan')
         ->name('api1-dev-plan');
     
-    Route::patch('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@updateGoal')
+    Route::post('/{devPlan}/goals', 'DevelopmentPlanGoalController@create')
+        ->middleware('can:create,devPlan');
+    Route::patch('/{devPlan}/goals/{goal}', 'DevelopmentPlanGoalController@update')
         ->middleware('can:update,devPlan');
-    Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanController@deleteGoal')
+    Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanGoalController@destroy')
         ->middleware('can:update,devPlan');
     
-    Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanController@updateGoalAction')
+    Route::post('/{devPlan}/goals/{goal}/actions', 'DevelopmentPlanGoalActionController@create')
+        ->middleware('can:update,devPlan');
+    Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanGoalActionController@update');
+    Route::delete('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanGoalActionController@delete')
         ->middleware('can:update,devPlan');
 });
 
