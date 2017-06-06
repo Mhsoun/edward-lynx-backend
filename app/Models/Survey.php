@@ -105,6 +105,7 @@ class Survey extends Model implements Routable, JsonHalLinking
                             return $recipient->id;
                         });
         return $query->join('survey_recipients', 'surveys.id', '=', 'survey_recipients.surveyId')
+                    ->where('survey_recipients.hasAnswered', false)
                     ->whereIn('survey_recipients.recipientId', $recipients);
     }
 
