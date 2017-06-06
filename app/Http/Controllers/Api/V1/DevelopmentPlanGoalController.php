@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\v1;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
+use App\Models\QuestionCategory;
 use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
+use App\Exceptions\CustomValidationException;
 
 class DevelopmentPlanGoalController extends Controller
 {
@@ -56,15 +58,33 @@ class DevelopmentPlanGoalController extends Controller
      */
     public function update(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
     {
+        $currentUser = $request->user();
+
         $this->validate($request, [
             'title'         => 'string|max:255',
             'description'   => 'string',
-            'checked'       => 'boolean',
-            'position'      => 'integer|min:0'
+            'position'      => 'integer|min:0',
+            'dueDate'       => 'isodate'
         ]);
             
         $goal->fill($request->only('title', 'description', 'position'));
         $goal->checked = $request->checked;
+
+        if ($request->has('dueDate')) {
+            $goal->dueDate = Carbon::parse($request->dueDate);
+        }
+
+        if ($request->has('categoryId')) {
+            $category = QuestionCategory::find($request->categoryId);
+            if ($currentUser->can('view', $category)) {
+                $goal->categoryId = $request->categoryId;
+            } else {
+                throw new CustomValidationException([
+                    'categoryId' => ['Invalid category id.']
+                ]);
+            }
+        }
+
         $goal->save();
         $goal = $goal->fresh();
         
