@@ -105,7 +105,6 @@ class Survey extends Model implements Routable, JsonHalLinking
                             return $recipient->id;
                         });
         return $query->join('survey_recipients', 'surveys.id', '=', 'survey_recipients.surveyId')
-                    ->where('survey_recipients.hasAnswered', false)
                     ->whereIn('survey_recipients.recipientId', $recipients);
     }
 
@@ -757,12 +756,12 @@ class Survey extends Model implements Routable, JsonHalLinking
      * @param   App\Models\Recipient    $recipient
      * @return  string|null
      */
-    public function answerKeyOf(Recipient $recipient)
+    public function answerKeyOf(Recipient $recipient, $exceptHasAnswered = true)
     {
         $recipient = $this->recipients()
                           ->where([
                               'recipientId'   => $recipient->id,
-                              'hasAnswered'   => false
+                              'hasAnswered'   => !$exceptHasAnswered
                           ])
                           ->first();
         if ($recipient) {
@@ -792,7 +791,7 @@ class Survey extends Model implements Routable, JsonHalLinking
         $key = $this->answerKeyOf($recipient);
         $data['key'] = $key;
         $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
-        $data['description'] = $this->generateDescription($recipient, $key);
+        $data['description'] = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
 
         $recipients = $this->recipients();
         $data['stats'] = [
