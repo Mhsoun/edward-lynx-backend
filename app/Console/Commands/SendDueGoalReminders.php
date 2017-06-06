@@ -44,7 +44,7 @@ class SendDueGoalReminders extends Command
                     ->where('reminderSent', false)
                     ->get();
         foreach ($goals as $goal) {
-            $goal->developmentPlan->target->notify(new DevelopmentPlanGoalDue($goal));
+            $goal->developmentPlan->owner->notify(new DevelopmentPlanGoalDue($goal));
             $goal->reminderSent = true;
             $goal->save();
         }
