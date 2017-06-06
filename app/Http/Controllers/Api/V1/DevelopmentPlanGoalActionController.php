@@ -66,6 +66,7 @@ class DevelopmentPlanGoalActionController extends Controller
      */
     public function delete(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal, DevelopmentPlanGoalAction $action)
     {
+        $action->delete();
         return response('', 204, ['Content-type' => 'application/json']);
     }
 
