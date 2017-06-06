@@ -29,7 +29,8 @@ class Kernel extends ConsoleKernel {
         //$schedule->command('mailSchedul')->daily();
         
         $schedule->command(Commands\SendDueGoalReminders::class)
-        		 ->everyFiveMinutes();
+        		 ->everyFiveMinutes()
+        		 ->withoutOverlapping();
 	}
 
 }
