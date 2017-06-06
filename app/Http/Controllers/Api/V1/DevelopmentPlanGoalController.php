@@ -43,7 +43,7 @@ class DevelopmentPlanGoalController extends Controller
         $devPlan->checked = false;
         $devPlan->save();
 
-        return createdResponse();
+        return createdResponse(['Location' => route('api1-dev-plan', $devPlan)]);
     }
     
     /**
