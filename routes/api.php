@@ -94,7 +94,9 @@ Route::group(['prefix' => '/dev-plans'], function() {
     Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanGoalController@destroy')
         ->middleware('can:update,devPlan');
     
-    Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanController@updateGoalAction')
+    Route::post('/{devPlan}/goals/{goal}/actions', 'DevelopmentPlanGoalActionController@create')
+        ->middleware('can:update,devPlan');
+    Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanGoalActionController@update')
         ->middleware('can:update,devPlan');
 });
 
