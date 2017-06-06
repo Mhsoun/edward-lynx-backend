@@ -67,7 +67,6 @@ class AnswerController extends Controller
             'surveyId'  => $survey->id,
             'link'      => $key
         ])->first();
-        $user = $request->user();
         $questions = $survey->questions;
         
         // Make sure this survey hasn't expired yet.
@@ -111,7 +110,7 @@ class AnswerController extends Controller
             // Create our answer if there is none.
             if (!$surveyAnswer) {
                 $surveyAnswer = new SurveyAnswer();
-                $surveyAnswer->answeredById = $user->id;
+                $surveyAnswer->answeredById = $recipient->recipient->id;
                 $surveyAnswer->questionId = $question->id;
                 $surveyAnswer->invitedById = $recipient->invitedById;
             }
@@ -133,7 +132,7 @@ class AnswerController extends Controller
             $recipient->save();
         }
         
-        return response()->jsonHal($recipient);
+        return createdResponse(['Location' => route('api1-survey-answers', $survey)]);
     }
     
     /**
