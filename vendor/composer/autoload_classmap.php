@@ -72,6 +72,7 @@ return array(
     'Answer2' => $baseDir . '/database/migrations/2015_02_27_175258_answer2.php',
     'Answers' => $baseDir . '/database/migrations/2015_02_24_215752_answers.php',
     'AssertsCreatedResource' => $baseDir . '/tests/Concerns/AssertsCreatedResource.php',
+    'AssertsDeletedResource' => $baseDir . '/tests/Concerns/AssertsDeletedResource.php',
     'CGIF' => $vendorDir . '/kartik-v/mpdf/classes/gif.php',
     'CGIFCOLORTABLE' => $vendorDir . '/kartik-v/mpdf/classes/gif.php',
     'CGIFFILEHEADER' => $vendorDir . '/kartik-v/mpdf/classes/gif.php',

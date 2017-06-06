@@ -55,4 +55,18 @@ class DevelopmentPlanGoalActionController extends Controller
         return response()->jsonHal($action);
     }
 
+    /**
+     * Delete a goal action.
+     *
+     * @param   Illuminate\Http\Request                 $request
+     * @param   App\Models\DevelopmentPlan              $devPlan
+     * @param   App\Models\DevelopmentPlanGoal          $goal
+     * @param   App\Models\DevelopmentPlanGoalAction    $action
+     * @return  App\Http\JsonHalResponse
+     */
+    public function delete(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal, DevelopmentPlanGoalAction $action)
+    {
+        return response('', 204, ['Content-type' => 'application/json']);
+    }
+
 }
