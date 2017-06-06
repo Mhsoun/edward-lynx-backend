@@ -32,7 +32,6 @@ class DevelopmentPlanGoalControllerTest extends TestCase
                 ]
             ]);
 
-        dd($this->response->content());
         $this->assertCreatedResource('development_plan_goals');
     }
 
