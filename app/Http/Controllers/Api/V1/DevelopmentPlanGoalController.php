@@ -64,24 +64,32 @@ class DevelopmentPlanGoalController extends Controller
             'title'         => 'string|max:255',
             'description'   => 'string',
             'position'      => 'integer|min:0',
-            'dueDate'       => 'isodate'
         ]);
             
         $goal->fill($request->only('title', 'description', 'position'));
         $goal->checked = $request->checked;
 
-        if ($request->has('dueDate')) {
-            $goal->dueDate = Carbon::parse($request->dueDate);
+        if ($request->exists('dueDate')) {
+            if ($request->dueDate) {
+                $this->validate($request, ['dueDate' => 'isodate']);
+                $goal->dueDate = Carbon::parse($request->dueDate);
+            } else {
+                $goal->dueDate = null;
+            }
         }
 
-        if ($request->has('categoryId')) {
-            $category = QuestionCategory::find($request->categoryId);
-            if ($currentUser->can('view', $category)) {
-                $goal->categoryId = $request->categoryId;
-            } else {
-                throw new CustomValidationException([
-                    'categoryId' => ['Invalid category id.']
-                ]);
+        if ($request->exists('categoryId')) {
+            if ($request->categoryId) {
+                $category = QuestionCategory::find($request->categoryId);
+                if ($currentUser->can('view', $category)) {
+                    $goal->categoryId = $request->categoryId;
+                } else {
+                    throw new CustomValidationException([
+                        'categoryId' => ['Invalid category id.']
+                    ]);
+                }
+            } else { // categoryId is null, remove it.
+                $goal->categoryId = null;
             }
         }
 
