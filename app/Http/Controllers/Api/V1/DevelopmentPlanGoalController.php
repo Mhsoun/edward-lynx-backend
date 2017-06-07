@@ -64,10 +64,15 @@ class DevelopmentPlanGoalController extends Controller
             'title'         => 'string|max:255',
             'description'   => 'string',
             'position'      => 'integer|min:0',
+            'checked'       => 'boolean'
         ]);
-            
-        $goal->fill($request->only('title', 'description', 'position'));
-        $goal->checked = $request->checked;
+
+        $fields = ['title', 'description', 'position', 'checked'];
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $goal->{$field} = $request->{$field};
+            }
+        }
 
         if ($request->exists('dueDate')) {
             if ($request->dueDate) {

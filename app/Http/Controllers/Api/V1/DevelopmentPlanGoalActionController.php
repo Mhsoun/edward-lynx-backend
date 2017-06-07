@@ -47,8 +47,12 @@ class DevelopmentPlanGoalActionController extends Controller
             'position'  => 'integer|min:0'
         ]);
         
-        $action->fill($request->only('title', 'description', 'position'));
-        $action->checked = $request->checked;
+        $fields = ['title', 'checked', 'position'];
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $action->{$field} = $request->{$field};
+            }
+        }
         $action->save();
         $action = $action->fresh();
         
