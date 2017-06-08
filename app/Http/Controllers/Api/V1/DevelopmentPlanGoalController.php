@@ -37,6 +37,13 @@ class DevelopmentPlanGoalController extends Controller
         $attributes = $request->only('title', 'description', 'position', 'dueDate');
         $attributes['dueDate'] = dateFromIso8601String($attributes['dueDate']);
 
+        if ($request->has('categoryId')) {
+            $category = QuestionCategory::find($request->categoryId);
+            if ($user->can('view', $category)) {
+                $attributes['categoryId'] = $request->categoryId;
+            }
+        }
+
         $goal = $devPlan->goals()
                         ->create($attributes);
         foreach ($request->actions as $action) {
