@@ -36,7 +36,7 @@ class DevelopmentPlanGoalController extends Controller
 
         $currentUser = $request->user();
         $attributes = $request->only('title', 'description', 'position');
-        $attributes['dueDate'] = dateFromIso8601String($attributes['dueDate']);
+        $attributes['dueDate'] = $request->has('dueDate') ? dateFromIso8601String($request->dueDate) : null;
 
         if ($request->has('categoryId')) {
             $category = QuestionCategory::find($request->categoryId);
