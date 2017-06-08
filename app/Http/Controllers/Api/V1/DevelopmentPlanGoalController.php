@@ -34,12 +34,13 @@ class DevelopmentPlanGoalController extends Controller
             'actions.*.position'    => 'required|integer|min:0'
         ]);
 
+        $currentUser = $request->user();
         $attributes = $request->only('title', 'description', 'position', 'dueDate');
         $attributes['dueDate'] = dateFromIso8601String($attributes['dueDate']);
 
         if ($request->has('categoryId')) {
             $category = QuestionCategory::find($request->categoryId);
-            if ($user->can('view', $category)) {
+            if ($currentUser->can('view', $category)) {
                 $attributes['categoryId'] = $request->categoryId;
             }
         }
