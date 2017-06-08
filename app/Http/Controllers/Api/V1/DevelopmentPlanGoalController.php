@@ -48,8 +48,10 @@ class DevelopmentPlanGoalController extends Controller
         $goal = $devPlan->goals()
                         ->create($attributes);
 
-        $goal->categoryId = $attributes['categoryId'];
-        $goal->save();
+        if (isset($attributes['categoryId'])) {
+            $goal->categoryId = $attributes['categoryId'];
+            $goal->save();
+        }
 
         foreach ($request->actions as $action) {
             $goal->actions()->create($action);
