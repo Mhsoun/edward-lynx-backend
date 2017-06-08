@@ -25,9 +25,9 @@ class DevelopmentPlanGoalController extends Controller
     public function create(Request $request, DevelopmentPlan $devPlan)
     {
         $this->validate($request, [
-            'title'                 => 'string|max:255',
+            'title'                 => 'required|string|max:255',
             'description'           => 'string',
-            'position'              => 'integer|min:0',
+            'position'              => 'required|integer|min:0',
             'dueDate'               => 'isodate',
             'actions'               => 'required|array',
             'actions.*.title'       => 'required|string|max:255',
