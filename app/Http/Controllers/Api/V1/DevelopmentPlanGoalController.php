@@ -42,6 +42,10 @@ class DevelopmentPlanGoalController extends Controller
             $category = QuestionCategory::find($request->categoryId);
             if ($currentUser->can('view', $category)) {
                 $attributes['categoryId'] = $category->id;
+            } else {
+                throw new CustomValidationException([
+                    'categoryId' => ['Invalid category id.']
+                ]);
             }
         }
 
