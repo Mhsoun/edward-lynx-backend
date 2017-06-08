@@ -534,6 +534,7 @@ class ComposerStaticInitd76aaa9b13551da241983ceb9c72599a
         'Invitelang' => __DIR__ . '/../..' . '/database/migrations/2015_02_27_160323_invitelang.php',
         'IsValidUsers' => __DIR__ . '/../..' . '/database/migrations/2015_04_02_203247_isValid_Users.php',
         'MYANMAR' => __DIR__ . '/..' . '/kartik-v/mpdf/classes/myanmar.php',
+        'MakeDevelopmentPlanGoalDescriptionOptional' => __DIR__ . '/../..' . '/database/migrations/2017_06_08_110832_MakeDevelopmentPlanGoalDescriptionOptional.php',
         'MakeInstantFeedbackRecipientsPolymorphic' => __DIR__ . '/../..' . '/database/migrations/2017_02_06_062405_make_instant_feedback_recipients_polymorphic.php',
         'MakeInstantFeedbackRecipientsUnaswerableByDefault' => __DIR__ . '/../..' . '/database/migrations/2017_01_16_065654_make_instant_feedback_recipients_unaswerable_by_default.php',
         'MakeSurveyAnswersTablePolymorphic' => __DIR__ . '/../..' . '/database/migrations/2017_01_22_205531_make_survey_answers_table_polymorphic.php',

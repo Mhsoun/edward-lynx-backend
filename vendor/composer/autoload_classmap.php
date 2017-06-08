@@ -124,6 +124,7 @@ return array(
     'Invitelang' => $baseDir . '/database/migrations/2015_02_27_160323_invitelang.php',
     'IsValidUsers' => $baseDir . '/database/migrations/2015_04_02_203247_isValid_Users.php',
     'MYANMAR' => $vendorDir . '/kartik-v/mpdf/classes/myanmar.php',
+    'MakeDevelopmentPlanGoalDescriptionOptional' => $baseDir . '/database/migrations/2017_06_08_110832_MakeDevelopmentPlanGoalDescriptionOptional.php',
     'MakeInstantFeedbackRecipientsPolymorphic' => $baseDir . '/database/migrations/2017_02_06_062405_make_instant_feedback_recipients_polymorphic.php',
     'MakeInstantFeedbackRecipientsUnaswerableByDefault' => $baseDir . '/database/migrations/2017_01_16_065654_make_instant_feedback_recipients_unaswerable_by_default.php',
     'MakeSurveyAnswersTablePolymorphic' => $baseDir . '/database/migrations/2017_01_22_205531_make_survey_answers_table_polymorphic.php',
