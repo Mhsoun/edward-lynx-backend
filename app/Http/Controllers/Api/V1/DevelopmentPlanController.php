@@ -95,11 +95,6 @@ class DevelopmentPlanController extends Controller
         // Ensure goal positions are in sequence.
         $devPlan->updateGoalPositions();
 
-        // Set the category if it is present
-        if ($request->has('categoryId')) {
-            $goal->categoryId = $request->categoryId;
-        }
-
         $url = route('api1-dev-plan', ['devPlan' => $devPlan]);
         return createdResponse(['Location' => $url]);
     }
