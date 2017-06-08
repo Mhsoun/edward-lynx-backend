@@ -76,7 +76,7 @@ class DevelopmentPlanController extends Controller
             }
 
             $goal = $devPlan->goals()->create($attributes);
-            $goal->categoryId = $attributes['categoryId'];
+            $goal->categoryId = !empty($attributes['categoryId']) ? $attributes['categoryId'] : null;
             $goal->save();
             
             // Create actions under each goal.
