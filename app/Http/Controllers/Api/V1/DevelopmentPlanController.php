@@ -54,7 +54,7 @@ class DevelopmentPlanController extends Controller
         $user = $request->user();
         
         // Create initial dev plan
-        $devPlan = new DevelopmentPlan($request->all());
+        $devPlan = new DevelopmentPlan($request->only('name'));
         $devPlan->ownerId = $user->id;
         $devPlan->save();
 
