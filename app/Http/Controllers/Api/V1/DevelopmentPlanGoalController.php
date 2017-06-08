@@ -47,12 +47,13 @@ class DevelopmentPlanGoalController extends Controller
 
         $goal = $devPlan->goals()
                         ->create($attributes);
+
+        $goal->categoryId = $attributes['categoryId'];
+        $goal->save();
+
         foreach ($request->actions as $action) {
             $goal->actions()->create($action);
         }
-
-        $devPlan->checked = false;
-        $devPlan->save();
 
         return createdResponse(['Location' => route('api1-dev-plan', $devPlan)]);
     }

@@ -82,6 +82,7 @@ class DevelopmentPlanController extends Controller
             }
 
             $goal = $devPlan->goals()->create($attributes);
+            $goal->categoryId = $attributes['categoryId'];
             
             // Create actions under each goal.
             foreach ($g['actions'] as $a) {
