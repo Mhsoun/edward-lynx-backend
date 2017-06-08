@@ -41,12 +41,6 @@ class DevelopmentPlanController extends Controller
     {
         $this->validate($request, [
             'name'                          => 'required|string|max:255',
-            'categoryId'                    => [
-                'integer',
-                Rule::exists('question_categories', 'id')->where(function ($query) {
-                    $query->where('isSurvey', true);
-                })
-            ],
             'goals'                         => 'required|array',
             'goals.*.title'                 => 'required|string|max:255',
             'goals.*.description'           => 'string',
