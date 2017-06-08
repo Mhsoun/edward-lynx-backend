@@ -79,7 +79,7 @@ class DevelopmentPlanController extends Controller
             $goal = $devPlan->goals()->create([
                 'title'         => sanitize($g['title']),
                 'description'   => empty($g['description']) ? '' : sanitize($g['description']),
-                'dueDate'       => empty($g['dueDate']) ? null : Carbon::parse($g['dueDate']),
+                'dueDate'       => empty($g['dueDate']) ? null : dateFromIso8601String($g['dueDate']),
                 'position'      => $g['position']
             ]);
             $goal->save();

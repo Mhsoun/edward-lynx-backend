@@ -174,7 +174,7 @@ class SurveyController extends Controller
                 $val = $request->{$field};
                 
                 if (in_array($field, $dates)) {
-                    $val = Carbon::parse($val);
+                    $val = dateFromIso8601String($val);
                 }
                 
                 $survey->{$field} = $val;
@@ -313,8 +313,8 @@ class SurveyController extends Controller
         $data->type         = $type;
         $data->lang         = $request->lang;
         $data->ownerId      = $request->user()->id;
-        $data->startDate    = Carbon::parse($request->startDate);
-        $data->endDate      = $request->has('endDate') ? Carbon::parse($request->endDate) : null;
+        $data->startDate    = dateFromIso8601String($request->startDate);
+        $data->endDate      = $request->has('endDate') ? dateFromIso8601String($request->endDate) : null;
         
         $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText', $data->type);
         $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText', $data->type);

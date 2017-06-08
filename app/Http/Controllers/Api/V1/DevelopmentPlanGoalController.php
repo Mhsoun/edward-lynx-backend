@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use DateTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
@@ -34,7 +35,7 @@ class DevelopmentPlanGoalController extends Controller
         ]);
 
         $attributes = $request->only('title', 'description', 'position', 'dueDate');
-        $attributes['dueDate'] = Carbon::parse($attributes['dueDate']);
+        $attributes['dueDate'] = dateFromIso8601String($attributes['dueDate']);
 
         $goal = $devPlan->goals()
                         ->create($attributes);
@@ -77,7 +78,7 @@ class DevelopmentPlanGoalController extends Controller
         if ($request->exists('dueDate')) {
             if ($request->dueDate) {
                 $this->validate($request, ['dueDate' => 'isodate']);
-                $goal->dueDate = Carbon::parse($request->dueDate);
+                $goal->dueDate = dateFromIso8601String($request->dueDate);
             } else {
                 $goal->dueDate = null;
             }
