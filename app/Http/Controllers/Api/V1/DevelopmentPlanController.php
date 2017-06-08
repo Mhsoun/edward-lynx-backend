@@ -59,16 +59,6 @@ class DevelopmentPlanController extends Controller
             
         $user = $request->user();
         
-        // Make sure the category is visible for the current user
-        if ($request->has('categoryId')) {
-            $category = QuestionCategory::find($request->categoryId);
-            if (!$user->can('view', $category)) {
-                throw new CustomValidationException([
-                    'categoryId' => ['Invalid category id.']
-                ]);
-            }
-        }
-        
         // Create initial dev plan
         $devPlan = new DevelopmentPlan($request->all());
         $devPlan->ownerId = $user->id;
@@ -76,13 +66,22 @@ class DevelopmentPlanController extends Controller
 
         // Process development plan goals
         foreach ($request->goals as $g) {
-            $goal = $devPlan->goals()->create([
+            $attributes = [
                 'title'         => sanitize($g['title']),
                 'description'   => empty($g['description']) ? '' : sanitize($g['description']),
                 'dueDate'       => empty($g['dueDate']) ? null : dateFromIso8601String($g['dueDate']),
-                'position'      => $g['position']
-            ]);
-            $goal->save();
+                'position'      => $g['position'],
+            ];
+
+            // Process category ID for goal.
+            if (!empty($g['categoryId'])) {
+                $category = QuestionCategory::find($g['categoryId']);
+                if ($user->can('view', $category)) {
+                    $attributes['categoryId'] = $g['categoryId'];
+                }
+            }
+
+            $goal = $devPlan->goals()->create($attributes);
             
             // Create actions under each goal.
             foreach ($g['actions'] as $a) {
