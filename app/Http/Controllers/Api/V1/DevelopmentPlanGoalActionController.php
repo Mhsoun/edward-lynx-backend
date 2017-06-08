@@ -23,7 +23,7 @@ class DevelopmentPlanGoalActionController extends Controller
     {
         $this->validate($request, [
             'title'     => 'required|string|max:255',
-            'position'  => 'integer|min:0'
+            'position'  => 'required|integer|min:0'
         ]);
 
         $action = $goal->actions()->create($request->only('title', 'position'));
