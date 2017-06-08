@@ -41,7 +41,7 @@ class DevelopmentPlanGoalController extends Controller
         if ($request->has('categoryId')) {
             $category = QuestionCategory::find($request->categoryId);
             if ($currentUser->can('view', $category)) {
-                $attributes['categoryId'] = $request->categoryId;
+                $attributes['categoryId'] = $category->id;
             }
         }
 
