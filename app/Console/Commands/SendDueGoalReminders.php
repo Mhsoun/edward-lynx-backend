@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use App\Models\DevelopmentPlanGoal;
-use App\Notifications\DevelopmentPlanGoalDue;
+use App\Notifications\DevelopmentPlanGoalReminder;
 
 class SendDueGoalReminders extends Command
 {    
@@ -44,7 +44,7 @@ class SendDueGoalReminders extends Command
                     ->where('reminderSent', false)
                     ->get();
         foreach ($goals as $goal) {
-            $goal->developmentPlan->owner->notify(new DevelopmentPlanGoalDue($goal));
+            $goal->developmentPlan->owner->notify(new DevelopmentPlanGoalReminder($goal));
             $goal->reminderSent = true;
             $goal->save();
         }
