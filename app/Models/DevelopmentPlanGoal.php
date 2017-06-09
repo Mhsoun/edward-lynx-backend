@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model as EloquentModel;
 class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
 {
 
-    const DUE_THRESHOLD = 2;
+    const DUE_THRESHOLD = 3;
 
     public $fillable = ['title', 'description', 'position', 'dueDate'];
 
