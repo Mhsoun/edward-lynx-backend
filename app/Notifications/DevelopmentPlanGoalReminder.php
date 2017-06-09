@@ -75,7 +75,8 @@ class DevelopmentPlanGoalReminder extends Notification
                 'recipient' => $notifiable->name,
                 'goal'      => $this->goal,
                 'due'       => $this->dueDate->diffForHumans()
-            ]));
+            ]))
+            ->action(trans('developmentPlan.reminderAction'), route('dev-plan.view', $this->devPlanId));
     }
 
     /**
