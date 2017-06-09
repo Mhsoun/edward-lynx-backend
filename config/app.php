@@ -39,7 +39,7 @@ return [
 	|
 	*/
 
-	'url' => 'http://lynxtool.edwardlynx.com',
+	'url' => env('APP_URL', 'http://lynxtool.edwardlynx.com'),
 
 	/*
 	|--------------------------------------------------------------------------
