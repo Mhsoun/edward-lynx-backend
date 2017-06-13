@@ -283,7 +283,7 @@ class SurveyController extends Controller
             }
         }
 
-        return response('', 201);
+        return createdResponse();
     }
     
     /**
