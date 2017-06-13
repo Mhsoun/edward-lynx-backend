@@ -460,7 +460,10 @@ abstract class Surveys
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
                 $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
-            } elseif ($survey->type == SurveyTypes::Individual) {
+            }
+
+            // Send push notifications for 360 surveys.
+            if ($survey->type == SurveyTypes::Individual) {
                 if ($user = User::where('email', $surveyRecipient->recipient->mail)->first()) {
                     $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
                 }
