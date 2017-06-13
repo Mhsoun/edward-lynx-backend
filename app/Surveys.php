@@ -401,17 +401,7 @@ abstract class Surveys
         $surveyEmailer = $app->app->make('SurveyEmailer');
 
         foreach ($candidates as $candidate) {
-            $recipient = !empty($candidate->userId) ? User::find($candidate->userId) : null;
-            
-            // Make a recipient record if the candidate is not a
-            // registered user.
-            if (!$recipient) {
-                $recipient = \App\Models\Recipient::make(
-                    $survey->ownerId,
-                    $candidate->name,
-                    $candidate->email,
-                    $candidate->position);
-            }
+            $recipient = \App\Models\Recipient::make($survey->ownerId, $candidate->name, $candidate->email, $candidate->position);
 
             //If the recipient already is added as candidate, continue.
             $isAlreadyCandidate = $survey->candidates()
