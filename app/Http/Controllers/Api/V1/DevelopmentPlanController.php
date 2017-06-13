@@ -41,12 +41,6 @@ class DevelopmentPlanController extends Controller
     {
         $this->validate($request, [
             'name'                          => 'required|string|max:255',
-            'categoryId'                    => [
-                'integer',
-                Rule::exists('question_categories', 'id')->where(function ($query) {
-                    $query->where('isSurvey', true);
-                })
-            ],
             'goals'                         => 'required|array',
             'goals.*.title'                 => 'required|string|max:255',
             'goals.*.description'           => 'string',
@@ -59,29 +53,30 @@ class DevelopmentPlanController extends Controller
             
         $user = $request->user();
         
-        // Make sure the category is visible for the current user
-        if ($request->has('categoryId')) {
-            $category = QuestionCategory::find($request->categoryId);
-            if (!$user->can('view', $category)) {
-                throw new CustomValidationException([
-                    'categoryId' => ['Invalid category id.']
-                ]);
-            }
-        }
-        
         // Create initial dev plan
-        $devPlan = new DevelopmentPlan($request->all());
+        $devPlan = new DevelopmentPlan($request->only('name'));
         $devPlan->ownerId = $user->id;
         $devPlan->save();
 
         // Process development plan goals
         foreach ($request->goals as $g) {
-            $goal = $devPlan->goals()->create([
+            $attributes = [
                 'title'         => sanitize($g['title']),
                 'description'   => empty($g['description']) ? '' : sanitize($g['description']),
-                'dueDate'       => empty($g['dueDate']) ? null : Carbon::parse($g['dueDate']),
-                'position'      => $g['position']
-            ]);
+                'dueDate'       => empty($g['dueDate']) ? null : dateFromIso8601String($g['dueDate']),
+                'position'      => $g['position'],
+            ];
+
+            // Process category ID for goal.
+            if (!empty($g['categoryId'])) {
+                $category = QuestionCategory::find($g['categoryId']);
+                if ($user->can('view', $category)) {
+                    $attributes['categoryId'] = $g['categoryId'];
+                }
+            }
+
+            $goal = $devPlan->goals()->create($attributes);
+            $goal->categoryId = !empty($attributes['categoryId']) ? $attributes['categoryId'] : null;
             $goal->save();
             
             // Create actions under each goal.
@@ -101,7 +96,7 @@ class DevelopmentPlanController extends Controller
         $devPlan->updateGoalPositions();
 
         $url = route('api1-dev-plan', ['devPlan' => $devPlan]);
-        return response('', 201, ['Location' => $url]);
+        return createdResponse(['Location' => $url]);
     }
     
     /**
@@ -116,64 +111,4 @@ class DevelopmentPlanController extends Controller
         return response()->jsonHal($devPlan);
     }
     
-    /**
-     * Updates a development plan goal's details.
-     *
-     * @param   Illuminate\Http\Request         $request
-     * @param   App\Models\DevelopmentPlan      $devPlan
-     * @param   App\Models\DevelopmentPlanGoal  $goal
-     * @return  App\Http\JsonHalResponse
-     */
-    public function updateGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
-    {
-        $this->validate($request, [
-            'title'         => 'string|max:255',
-            'description'   => 'string',
-            'position'      => 'integer|min:0'
-        ]);
-            
-        $goal->fill($request->all());
-        $goal->save();
-        $goal = $goal->fresh();
-        
-        return response()->jsonHal($goal);
-    }
-    
-    /**
-     * Delete a development plan goal.
-     *
-     * @param   Illuminate\Http\Request         $request
-     * @param   App\Models\DevelopmentPlan      $devPlan
-     * @param   App\Models\DevelopmentPlanGoal  $goal
-     * @return  Illuminate\Http\Response
-     */
-    public function deleteGoal(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal)
-    {
-        $goal->delete();
-        return response('', 204);
-    }
-    
-    /**
-     * Update a goal action's details.
-     *
-     * @param   Illuminate\Http\Request                 $request
-     * @param   App\Models\DevelopmentPlan              $devPlan
-     * @param   App\Models\DevelopmentPlanGoal          $goal
-     * @param   App\Models\DevelopmentPlanGoalAction    $action
-     * @return  App\Http\JsonHalResponse
-     */
-    public function updateGoalAction(Request $request, DevelopmentPlan $devPlan, DevelopmentPlanGoal $goal, DevelopmentPlanGoalAction $action)
-    {
-        $this->validate($request, [
-            'title'     => 'string|max:255',
-            'checked'   => 'boolean',
-            'position'  => 'integer|min:0'
-        ]);
-        
-        $action->fill($request->all());
-        $action->save();
-        $action = $action->fresh();
-        
-        return response()->jsonHal($action);
-    }
 }

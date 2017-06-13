@@ -1,44 +1,54 @@
 <?php
 
-use App\User;
+use Illuminate\Contracts\Console\Kernel;
 
-/**
-* The base class for test cases
-*/
-class TestCase extends Illuminate\Foundation\Testing\TestCase {
-	public function setUp()
-	{
-		parent::setUp();
-		$this->seed('TestDatabaseSeeder');
-	}
+class TestCase extends Illuminate\Foundation\Testing\TestCase
+{
 
-	/**
-	 * Creates the application.
-	 *
-	 * @return \Illuminate\Foundation\Application
-	 */
-	public function createApplication()
-	{
-		$app = require __DIR__.'/../bootstrap/app.php';
-		$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
-		return $app;
-	}
+    protected $baseUrl = 'http://localhost';
 
-	/**
-    * Helper function for signing in in test cases
-    */
-    protected function signIn()
+    public function createApplication()
     {
-        $user = User::where('name', '=', 'Pizza AB')->get()->first();
-        $this->be($user);
-        return $user;
+        $app = require __DIR__ . '/../bootstrap/app.php';
+        $app->loadEnvironmentFrom('.env.testing.php');
+        $app->make(Kernel::class)->bootstrap();
+
+        $this->setupDatabase();
+
+        return $app;
     }
 
-	/**
-    * Adds the CSRF token to the given request parameters
-    */
-    protected function withCSRF($params) {
-        $params['_token'] = csrf_token();
-        return $params;
+    protected function setupDatabase()
+    {
+        Artisan::call('migrate');
+        Artisan::call('db:seed');
+        
+        $this->beforeApplicationDestroyed(function () {
+            Artisan::call('migrate:rollback');
+        });
     }
+
+    /**
+     * Authenticates the user for API access.
+     *
+     * @param  App\Models\User $user
+     * @return $this
+     */
+    protected function apiAuthenticate(App\Models\User $user = null)
+    {
+        if (!$user) {
+            $user = App\Models\User::find(1);
+        }
+
+        $this->actingAs($user, 'api');
+
+        return $this;
+    }
+
+    protected function api($method, $uri, array $data = [], array $headers = [])
+    {
+        return $this->authenticateApi()
+                    ->json($method, $uri, $data, $headers);
+    }
+
 }

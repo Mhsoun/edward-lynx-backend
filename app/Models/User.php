@@ -69,8 +69,9 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 	protected $appends = ['type', 'registeredOn'];
 
     protected $attributes = [
-        'isAdmin' => false,
-        'navColor' => ''
+        'isAdmin'       => false,
+        'navColor'      => '',
+        'accessLevel'   => 3
     ];
 
     /**

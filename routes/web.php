@@ -215,6 +215,14 @@ Route::get('/survey-invite/{link}', 'InviteController@show');
 Route::get('/survey/user-report', 'ReportController@showUserReport');
 Route::post('/survey/generate-user-report', 'ReportController@createUserPDF');
 
+/* Routes for answering an instant feedback */
+Route::get('/instant-feedbacks/answer/{link}', 'InstantFeedbackController@answer')
+    ->name('answer-instant-feedback');
+
+/* Routes for viewing a development plan */
+Route::get('/dev-plan/{devPlan}', 'DevelopmentPlanController@show')
+    ->name('dev-plan.view');
+
 /* Controller for Auth*/
 // Route::controllers([
 //     'auth' => 'Auth\AuthController',

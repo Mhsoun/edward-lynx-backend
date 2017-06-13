@@ -278,6 +278,30 @@ class InstantFeedbackController extends Controller
         
         return response('', 201);
     }
+
+    /**
+     * Exchanges an instant feedback answer key to a instant feedback id.
+     * 
+     * @param  Illuminate\Http\Request  $request
+     * @param  string                   $key
+     * @return App\Http\JsonHalResponse
+     */
+    public function exchange(Request $request, $key)
+    {
+        $currentUser = $request->user();
+        $recipients = Recipient::where('mail', $currentUser->email)
+                        ->get()
+                        ->map(function($recipient) {
+                            return $recipient->id;
+                        });
+        $ifRecipient = InstantFeedbackRecipient::where('key', $key)
+                        ->whereIn('recipientId', $recipients)
+                        ->firstOrFail();
+
+        return response()->jsonHal([
+            'instant_feedback_id' => $ifRecipient->instantFeedbackId
+        ]);
+    }
     
     /**
      * Processes submitted questions and creates the appropriate
@@ -376,9 +400,9 @@ class InstantFeedbackController extends Controller
 
             if (!$ifRecipient->notified) {
                 if (isset($user)) {
-                    $user->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name));
+                    $user->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name, $ifRecipient->key));
                 } else {
-                    $recipient->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name));
+                    $recipient->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name, $ifRecipient->key));
                 }
                 $ifRecipient->notified = true;
                 $ifRecipient->save();

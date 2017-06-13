@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use App\Models\DevelopmentPlanGoal;
 use App\Services\Firebase\FirebaseChannel;
@@ -10,16 +11,30 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class DevelopmentPlanGoalDue extends Notification implements ShouldQueue
+class DevelopmentPlanGoalReminder extends Notification
 {
     use Queueable;
 
     /**
-     * The Development Plan goal.
-     *
-     * @var App\Models\DevelopmentPlanGoal
+     * Goal title.
+     * 
+     * @var string
      */
     public $goal;
+
+    /**
+     * Due Date.
+     * 
+     * @var Carbon\Carbon
+     */
+    public $dueDate;
+
+    /**
+     * ID of the development plan.
+     * 
+     * @var int
+     */
+    public $devPlanId;
 
     /**
      * Create a new notification instance.
@@ -28,7 +43,9 @@ class DevelopmentPlanGoalDue extends Notification implements ShouldQueue
      */
     public function __construct(DevelopmentPlanGoal $goal)
     {
-        $this->goal = $goal;
+        $this->goal = $goal->title;
+        $this->dueDate = $goal->dueDate;
+        $this->devPlanId = $goal->developmentPlan->id;
     }
 
     /**
@@ -50,19 +67,18 @@ class DevelopmentPlanGoalDue extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $url = "edwardlynx:development-plan-{$this->goal->developmentPlan->id}";
         return (new MailMessage)
-                    ->subject(trans('developmentPlan.reminderTitle', [
-                        'goal'  => $this->goal->title 
-                    ]))
-                    ->line(trans('developmentPlan.reminderMessage', [
-                        'recipient' => $notifiable->name,
-                        'goal'      => $this->goal->title,
-                        'due'       => $this->goal->dueDate->diffForHumans()
-                    ]))
-                    ->action(trans('developmentPlan.reminderAction'), $url);
+            ->subject(trans('developmentPlan.reminderTitle', [
+                'goal'  => $this->goal
+            ]))
+            ->line(trans('developmentPlan.reminderMessage', [
+                'recipient' => $notifiable->name,
+                'goal'      => $this->goal,
+                'due'       => $this->dueDate->diffForHumans()
+            ]))
+            ->action(trans('developmentPlan.reminderAction'), route('dev-plan.view', $this->devPlanId));
     }
-    
+
     /**
      * Get the firebase representation of the notification.
      * 
@@ -72,17 +88,17 @@ class DevelopmentPlanGoalDue extends Notification implements ShouldQueue
     public function toFirebase($notifiable)
     {
         return (new FirebaseNotification)
-            ->title(trans('instantFeedback.requestedTitle', [
-                'goal'  => $this->goal->title
+            ->title(trans('developmentPlan.reminderTitle', [
+                'goal'  => $this->goal
             ]))
             ->body(trans('developmentPlan.reminderMessage', [
                 'recipient' => $notifiable->name,
-                'goal'      => $this->goal->title,
-                'due'       => $this->goal->dueDate->diffForHumans()
+                'goal'      => $this->goal,
+                'due'       => $this->dueDate->diffForHumans()
             ]))
             ->data([
                 'type'  => 'dev-plan',
-                'id'    => $this->goal->developmentPlan->id
+                'id'    => $this->devPlanId
             ])->to($notifiable->deviceTokens());
     }
 }

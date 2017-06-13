@@ -1,6 +1,7 @@
 <?php namespace App\Models;
 
 use Lang;
+use App\Roles;
 use Carbon\Carbon;
 use App\SurveyTypes;
 use App\SurveyReportHelpers;
@@ -755,12 +756,12 @@ class Survey extends Model implements Routable, JsonHalLinking
      * @param   App\Models\Recipient    $recipient
      * @return  string|null
      */
-    public function answerKeyOf(Recipient $recipient)
+    public function answerKeyOf(Recipient $recipient, $exceptHasAnswered = true)
     {
         $recipient = $this->recipients()
                           ->where([
                               'recipientId'   => $recipient->id,
-                              'hasAnswered'   => false
+                              'hasAnswered'   => !$exceptHasAnswered
                           ])
                           ->first();
         if ($recipient) {
@@ -790,7 +791,7 @@ class Survey extends Model implements Routable, JsonHalLinking
         $key = $this->answerKeyOf($recipient);
         $data['key'] = $key;
         $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
-        $data['description'] = $this->generateDescription($recipient, $key);
+        $data['description'] = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
 
         $recipients = $this->recipients();
         $data['stats'] = [
@@ -925,8 +926,20 @@ class Survey extends Model implements Routable, JsonHalLinking
 	        return array_slice($questions, 0, 5);
 	    } 
 
+	    function isValidRole($survey, $role) {
+            $isIndividual = $survey->type == \App\SurveyTypes::Individual || $survey->type == \App\SurveyTypes::Progress;
+            $isGroup = \App\SurveyTypes::isGroupLike($survey->type);
+            $isNormal = $survey->type == \App\SurveyTypes::Normal;
+
+            return
+                ($isIndividual && ($role->id != \App\Roles::selfRoleId() && $role->id != \App\Roles::candidatesRoleId()))
+                || ($isGroup && $role->id != $survey->toEvaluateRole()->id)
+                || $isNormal;
+        }
+
 
     	$recipients = [];
+    	$averageCategories = [];
 
         $questions = $this->questions->map(function($q) {
             return $q->question;
@@ -970,7 +983,12 @@ class Survey extends Model implements Routable, JsonHalLinking
 	        $selfRoleName = "";
 	        $toEvaluate = null;
 
+	        $averageCategories = $report->categories;
+
 	        if ($isIndividual) {
+
+	        	$averageCategories = $getDataFromHelper->otherCategories;
+
 	            if ($toEvaluate != null) {
 	                $selfRoleName = Lang::get('roles.self');
 	            } else {
@@ -989,7 +1007,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 
             foreach ($recipients as $recipient) {
             	$roleId = $recipient->roleId;
-            	$roleName = $questionAndComments->roleNames[$roleId];
+            	$roleName = Roles::name($roleId);
 
             	if ($isGroupReport && $roleId == $selfRoleActualId) {
             		$roleId = $selfRoleId;
@@ -1064,125 +1082,197 @@ class Survey extends Model implements Routable, JsonHalLinking
 		        $highestLowestRoles = $questionsByRole;
 		    }
 
-		    $highestIndex = 0;
+		    $highestLowestResults = [
+                'highest' => [],
+                'lowest' => []
+			];
 
-		    $highestLowestResults = [];
+			$allRoles = [];
 
 		    foreach ($highestLowestRoles as $role) {
 
-		    	$roleQuestions = (object)[
-	                'id' => $role->id,
-	                'name' => $role->name,
-	                'highest' => [],
-	                'lowest' => []
-	            ];
+		    	if (isValidRole($this, $role)) {
+		    		array_push($allRoles, $role->name);
 
-		    	$roleHighestLowestQuestions = [];
-        		$sum = 0.0;
+		    		if($role->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($role->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
 
-	        	foreach ($role->questions as $question) {
-	        		$selfQuestion = \App\SurveyReportHelpers::findQuestionById($highestLowestRoles[count($highestLowestRoles) - 1]->questions, $question->id);
+		        	$highestLowestResults['id'] = $role->id;
 
-	        		if ($selfQuestion != null) {
-		                array_push($roleHighestLowestQuestions, (object)[
-		                    'title' => $question->title,
-		                    'id' => $question->id,
-		                    'categoryId' => $question->categoryId,
-		                    'category' => $question->category,
-		                    'answerType' => $question->answerType,
-		                    'self' => round($selfQuestion->average * 100),
-		                    'others' => round($question->average * 100),
-		                    'order' => round($question->average * 100)
-		                ]);
+		    		$roleQuestions = (object)[
+		                'id' => $role->id,
+		                'name' => $role->name,
+		                'role_style' => $role_style,
+		                'highest' => [],
+		                'lowest' => []
+		            ];
+
+			    	$roleHighestLowestQuestions = [];
+	        		$sum = 0.0;
+
+		        	foreach ($role->questions as $question) {
+		        		$selfQuestion = \App\SurveyReportHelpers::findQuestionById($highestLowestRoles[count($highestLowestRoles) - 1]->questions, $question->id);
+
+		        		if ($selfQuestion != null) {
+			                array_push($roleHighestLowestQuestions, (object)[
+			                    'title' => $question->title,
+			                    'id' => $question->id,
+			                    'categoryId' => $question->categoryId,
+			                    'category' => $question->category,
+			                    'answerType' => $question->answerType,
+			                    'self' => round($selfQuestion->average * 100),
+			                    'others' => round($question->average * 100),
+			                    'order' => round($question->average * 100)
+			                ]);
+			            }
+
+			            $sum += $question->average;
+		        	}
+
+		        	usort($roleHighestLowestQuestions, function($x, $y) {
+		                if ($x->order > $y->order) {
+		                    return 1;
+		                } else if ($x->order < $y->order) {
+		                    return -1;
+		                } else {
+		                    return 0;
+		                }
+		            });
+
+		            $roleQuestions->highest = extractQuestions2($roleHighestLowestQuestions, true);
+		            $roleQuestions->lowest = extractQuestions2($roleHighestLowestQuestions, false);
+		            $roleQuestions->possibleHighest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->highest, true);
+		            $roleQuestions->possibleLowest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->lowest, false);
+
+		            if (count($role->questions) > 0) {
+		                $roleQuestions->average = $sum / count($role->questions);
+		            } else {
+		                $roleQuestions->average = 0;
 		            }
 
-		            $sum += $question->average;
-	        	}
+		            $roleQuestions->count = count($role->questions);
 
-	        	usort($roleHighestLowestQuestions, function($x, $y) {
-	                if ($x->order > $y->order) {
-	                    return 1;
-	                } else if ($x->order < $y->order) {
-	                    return -1;
-	                } else {
-	                    return 0;
-	                }
-	            });
+		            //Sort first by value, than by category
+		            usort($roleQuestions->lowest, function($x, $y) {
+		                if ($x->order > $y->order) {
+		                    return 1;
+		                } else if ($x->order < $y->order) {
+		                    return -1;
+		                } else {
+		                    return $x->categoryId - $y->categoryId;
+		                }
+		            });
 
-	            $roleQuestions->highest = extractQuestions2($roleHighestLowestQuestions, true);
-	            $roleQuestions->lowest = extractQuestions2($roleHighestLowestQuestions, false);
-	            $roleQuestions->possibleHighest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->highest, true);
-	            $roleQuestions->possibleLowest = countPossibleExtractedQuestions($roleHighestLowestQuestions, $roleQuestions->lowest, false);
+		            usort($roleQuestions->highest, function($x, $y) {
+		                if ($x->order > $y->order) {
+		                    return -1;
+		                } else if ($x->order < $y->order) {
+		                    return 1;
+		                } else {
+		                    return $x->categoryId - $y->categoryId;
+		                }
+		            });
 
-	            if (count($role->questions) > 0) {
-	                $roleQuestions->average = $sum / count($role->questions);
-	            } else {
-	                $roleQuestions->average = 0;
-	            }
+		            $highestLowestQuestions[$role->id] = $roleQuestions;
 
-	            $roleQuestions->count = count($role->questions);
+		            foreach ($roleQuestions->highest as $item) {
 
-	            //Sort first by value, than by category
-	            usort($roleQuestions->lowest, function($x, $y) {
-	                if ($x->order > $y->order) {
-	                    return 1;
-	                } else if ($x->order < $y->order) {
-	                    return -1;
-	                } else {
-	                    return $x->categoryId - $y->categoryId;
-	                }
-	            });
+		            	if($role->id == $selfRoleId) {
+			        		$role_style = "selfColor";
+			        	}else if($role->id == -1) {
+			        		$role_style = "otherColor";
+			        	}else {
+			        		$role_style = "orangeColor";
+			        	}
 
-	            usort($roleQuestions->highest, function($x, $y) {
-	                if ($x->order > $y->order) {
-	                    return -1;
-	                } else if ($x->order < $y->order) {
-	                    return 1;
-	                } else {
-	                    return $x->categoryId - $y->categoryId;
-	                }
-	            });
-
-	            $highestLowestQuestions[$role->id] = $roleQuestions;
-
-	            if ($highestIndex < 1) {
-
-		            $highestLowestResults['highest'] = array_map(function($item) {
-
-			            return [
-			                'category' => $item->category,
+		            	$highestTemp = [
+		            		'role_name' => $role->name,
+		            		'role_style' => $role_style,
+			            	'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
+			                'answerType' => $item->answerType,
 			                'others' => $item->others
 			            ];
-			        }, $roleQuestions->highest);
 
-			        $highestLowestResults['lowest'] = array_map(function($item) {
+			            array_push($highestLowestResults['highest'], $highestTemp);
+		            }
 
-		            	
-	            		error_log($item->title);
+		            foreach ($roleQuestions->lowest as $item) {
 
-			            return [
-			                'category' => $item->category,
+		            	if($role->id == $selfRoleId) {
+			        		$role_style = "selfColor";
+			        	}else if($role->id == -1) {
+			        		$role_style = "otherColor";
+			        	}else {
+			        		$role_style = "orangeColor";
+			        	}
+
+		            	$highestTemp = [
+		            		'role_name' => $role->name,
+		            		'role_style' => $role_style,
+			            	'category' => $item->category,
 			                'question' => $item->title,
 			                'candidates' => $item->self,
+			                'answerType' => $item->answerType,
 			                'others' => $item->others
 			            ];
-			        }, $roleQuestions->lowest);
 
-			        $highestIndex++;
-		        }
+			            array_push($highestLowestResults['lowest'], $highestTemp);
+		            }
+		    	}
 		    }
+
+		    $highestLowestResultsFinal = [
+		    	'highest' => [],
+		    	'lowest' => []
+		    ];
+
+		    error_log(json_encode($allRoles));
+
+		    foreach ($allRoles as $role) {
+
+		    	$highestLowestResultsFinal['highest'][$role] = [];
+
+		    	foreach ($highestLowestResults['highest'] as $highest) {
+		    		if ($role == $highest['role_name']) {
+		    			array_push($highestLowestResultsFinal['highest'][$role], $highest);
+		    		}
+		    	}
+
+		    	$highestLowestResultsFinal['lowest'][$role] = [];
+
+		    	foreach ($highestLowestResults['lowest'] as $highest) {
+		    		if ($role == $highest['role_name']) {
+		    			array_push($highestLowestResultsFinal['lowest'][$role], $highest);
+		    		}
+		    	}
+		    }
+
         } elseif ($this->type == \App\SurveyTypes::Progress) {
             $report = \App\SurveyReportProgress::create($survey, null);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
             $report = \App\SurveyReportNormal::create($survey, null);
         }
 
-        $data['response_rate'] = array_map(function($item) {
+        $data['response_rate'] = array_map(function($item) use ($selfRoleId) {
+        	if($item->id == $selfRoleId) {
+        		$role_style = "selfColor";
+        	}else if($item->id == -1) {
+        		$role_style = "otherColor";
+        	}else {
+        		$role_style = "orangeColor";
+        	}
+
         	return [
-        		'title' => json_encode($item->name),
-        		'percentage' => $item->count
+        		'title' => $item->name,
+        		'percentage' => $item->count,
+        		'role_style' => $role_style
         	];
         }, $roles);
 
@@ -1192,31 +1282,49 @@ class Survey extends Model implements Routable, JsonHalLinking
                 'name'      => $item->name,
                 'average'   => $item->average
             ];
-        }, $report->categories);
+        }, $averageCategories);
 
-        $data['ioc'] = array_map(function($item) {
+        $data['ioc'] = array_map(function($item) use ($selfRoleId) {
             return [
                 'id'        => $item->id,
                 'name'      => $item->name,
-                'roles'     => array_map(function($item2) {
+                'roles'     => array_map(function($item2) use ($selfRoleId) {
+                	if($item2->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($item2->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
+
                     return [
-                        'id'        => $item2->id,
-                        'name'      => $item2->name,
-                        'average'   => $item2->average
+                        'id' => $item2->id,
+                        'name' => $item2->name,
+                        'average' => $item2->average,
+                        'role_style' => $role_style
                     ];
                 }, $item->roles)
             ];
         }, $report->selfAndOthersCategories);
 
-        $data['radar_diagram'] = array_map(function($item) {
+        $data['radar_diagram'] = array_map(function($item) use ($selfRoleId) {
             return [
                 'id' => $item->id,
                 'name' => $item->name,
-                'roles' => array_map(function($item2) {
+                'roles' => array_map(function($item2) use ($selfRoleId) {
+                	if($item2->id == $selfRoleId) {
+		        		$role_style = "selfColor";
+		        	}else if($item2->id == -1) {
+		        		$role_style = "otherColor";
+		        	}else {
+		        		$role_style = "orangeColor";
+		        	}
+
                     return [
                         'id' => $item2->id,
                         'name' => $item2->name,
-                        'average' => $item2->average
+                        'average' => $item2->average,
+                        'role_style' => $role_style
                     ];
                 }, $item->roles)
             ];
@@ -1237,7 +1345,7 @@ class Survey extends Model implements Routable, JsonHalLinking
             ];
         }, $report->comments);
 
-        $data['highestLowestIndividual'] = $highestLowestResults;
+        $data['highestLowestIndividual'] = $highestLowestResultsFinal;
 
         $data['blindspot'] = $report->blindSpots;
 
@@ -1250,11 +1358,13 @@ class Survey extends Model implements Routable, JsonHalLinking
 
 		        	if($item2->id == $selfRoleId) {
 		        		$role_style = "selfColor";
+		        	}else if($item2->id == -1) {
+		        		$role_style = "otherColor";
 		        	}else {
 		        		$role_style = "orangeColor";
 		        	}
                     return [
-                        'title' => json_encode($item2->name),
+                        'title' => $item2->name,
                         'percentage' => round($item2->average, 2),
                         'role_style' => $role_style
                     ];
@@ -1289,7 +1399,8 @@ class Survey extends Model implements Routable, JsonHalLinking
                 'category' => $item->category,
                 'question' => $item->title,
                 'yesPercentage' => round($item->yesRatio * 100),
-                'noPercentage' => round($item->noRatio * 100)
+                'noPercentage' => round($item->noRatio * 100),
+                'naPercentage' => round($item->naRatio * 100)
             ];
         }, $report->yesOrNoQuestions);
 
