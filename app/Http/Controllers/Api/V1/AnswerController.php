@@ -58,9 +58,13 @@ class AnswerController extends Controller
             
         // Input items
         $key = $request->key;
+        $explanations = [];
         $answers = [];
         foreach ($request->answers as $answer) {
             $answers[$answer['question']] = $answer['value'];
+            if (isset($answer['explanation'])) {
+                $explanations[$answer['question']] = $answer['explanation'];
+            }
         }
         $final = $request->input('final', true);
         $recipient = SurveyRecipient::where([
@@ -80,7 +84,7 @@ class AnswerController extends Controller
         }
         
         // Validate answers.
-        $errors = $this->validateAnswers($questions, $answers, $final);
+        $errors = $this->validateAnswers($questions, $answers, $explanations);
         if (!empty($errors)) {
             throw new CustomValidationException($errors);
         }
@@ -121,6 +125,11 @@ class AnswerController extends Controller
                 $surveyAnswer->answerValue = $answer;
             } else {
                 $surveyAnswer->answerText = $answer;
+            }
+
+            // If this is a 1-10 scale with explanation, save the explanation as well.
+            if ($question->answerType == 7 && isset($explanations[$question->id])) {
+                $surveyAnswer->answerText = $explanations[$question->id];
             }
 
             $survey->answers()->save($surveyAnswer);
@@ -164,9 +173,10 @@ class AnswerController extends Controller
      *
      * @param   Illuminate\Database\Eloquent\Collection $questions
      * @param   array                                   $answers
+     * @param   array                                   $explanations
      * @return  array
      */
-    protected function validateAnswers(Collection $questions, array $answers)
+    protected function validateAnswers(Collection $questions, array $answers, array $explanations)
     {
         $errors = [];
         
@@ -181,6 +191,8 @@ class AnswerController extends Controller
                 $errors[$key][] = "N/A answer is not accepted.";
             } elseif (!$answerType->isValidValue($answer)) {
                 $errors[$key][] = "'{$answer}' is not a valid answer.";
+            } elseif ($question->answerType == 7 && !isset($explanations[$question->id])) {
+                $errors[$key][] = 'Answer explanation is required.';
             }
         }
         
