@@ -911,7 +911,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
             }
         }
 
-        $sorted = $collection->sortByDesc(function ($item) {
+        $sorted = $collection->sortBy(function ($item) {
             if ($item instanceof DevelopmentPlanGoal) {
                 return $item->developmentPlan->createdAt->timestamp;
             } elseif ($item instanceof InstantFeedback) {
