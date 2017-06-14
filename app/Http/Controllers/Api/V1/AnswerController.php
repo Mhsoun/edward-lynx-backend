@@ -211,7 +211,7 @@ class AnswerController extends Controller
         $errors = [];
         foreach ($survey->questions as $question) {
             $questionId = $question->questionId;
-            if (!isset($answerVals[$questionId]) && !$question->optional) {
+            if (!isset($answerVals[$questionId]) && !$question->question->optional) {
                 $errors[] = [
                     'question'  => $questionId,
                     'message'   => "Question with ID {$questionId} is missing an answer."     ];
