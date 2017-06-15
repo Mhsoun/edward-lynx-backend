@@ -7,7 +7,7 @@ use App\Models\DevelopmentPlanGoal;
 class DevelopmentPlanGoalObserver
 {
 
-    public function saved(DevelopmentPlanGoal $goal)
+    public function updated(DevelopmentPlanGoal $goal)
     {
         $changed = $goal->getDirty();
 

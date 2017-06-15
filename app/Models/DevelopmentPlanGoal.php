@@ -120,12 +120,18 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
      */
     public function updateChecked()
     {
-        $notDone = $this->actions()
-                        ->where('checked', false)
-                        ->count();
-        $this->checked = !$notDone > 0;
+        $this->load('actions');
+        
+        if ($this->actions()->count() == 0) {
+            $this->checked = false;
+        } else {
+            $notDone = $this->actions()
+                            ->where('checked', false)
+                            ->count();
+            $this->checked = $notDone == 0;
+        }
+        
         $this->save();
-
         return $this->checked;
     }
 
