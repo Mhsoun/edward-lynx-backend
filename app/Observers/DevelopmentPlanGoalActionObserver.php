@@ -7,6 +7,11 @@ use App\Models\DevelopmentPlanGoalAction;
 class DevelopmentPlanGoalActionObserver
 {
 
+    public function created(DevelopmentPlanGoalAction $action)
+    {
+        $action->goal->updateActionPositions();
+    }
+
     public function updated(DevelopmentPlanGoalAction $action)
     {
         $changed = $action->getDirty();
