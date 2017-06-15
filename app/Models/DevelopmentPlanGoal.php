@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model as EloquentModel;
 class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
 {
 
-    const DUE_THRESHOLD = 2;
+    const DUE_THRESHOLD = 3;
 
     public $fillable = ['title', 'description', 'position', 'dueDate'];
 
@@ -42,6 +42,17 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
 
         return $query->whereDate('dueDate', '>=', $now)
                      ->whereDate('dueDate', '<=', $due);
+    }
+
+    /**
+     * Scopes results to open/unchecked development plans goals only.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOpen(Builder $query)
+    {
+        return $query->where('checked', false);
     }
 
     /**
@@ -109,14 +120,13 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
      */
     public function updateChecked()
     {
-        $done = true;
-        foreach ($this->actions as $action) {
-            if (!$action->checked && $done) {
-                $done = false;
-            }
-        }
-        $this->checked = $done;
+        $notDone = $this->actions()
+                        ->where('checked', false)
+                        ->count();
+        $this->checked = !$notDone > 0;
         $this->save();
+
+        return $this->checked;
     }
 
     /**

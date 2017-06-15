@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
+use Illuminate\Database\Eloquent\Builder;
 
 class DevelopmentPlan extends BaseModel implements Routable
 {
@@ -13,8 +14,8 @@ class DevelopmentPlan extends BaseModel implements Routable
     
     public $fillable = ['name'];
     
-    protected $visible = ['id', 'name', 'createdAt', 'updatedAt'];
-    
+    protected $visible = ['id', 'name', 'checked', 'createdAt', 'updatedAt'];
+
     /**
      * Returns the API url to this development plan.
      *
@@ -24,6 +25,17 @@ class DevelopmentPlan extends BaseModel implements Routable
     public function url()
     {
         return route('api1-dev-plan', $this);
+    }
+
+    /**
+     * Scopes results to open/unchecked development plans goals only.
+     *
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOpen(Builder $query)
+    {
+        return $query->where('checked', false);
     }
     
     /**

@@ -23,7 +23,7 @@ class DevelopmentPlanGoalObserver
     public function deleted(DevelopmentPlanGoal $goal)
     {
         $goal->developmentPlan->updateChecked();
-        $goal->developmentPlan->updateActionPositions();
+        $goal->developmentPlan->updateGoalPositions();
     }
 
 }

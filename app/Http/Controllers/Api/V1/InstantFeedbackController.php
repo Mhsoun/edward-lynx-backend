@@ -22,7 +22,8 @@ use App\Models\InstantFeedbackRecipient;
 use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
-use App\Notifications\InstantFeedbackRequested;
+use App\Exceptions\InvalidOperationException;
+use App\Notifications\InstantFeedbackInvitation;
 use App\Exceptions\InstantFeedbackClosedException;
 
 class InstantFeedbackController extends Controller
@@ -81,23 +82,13 @@ class InstantFeedbackController extends Controller
         $instantFeedback->save();
         
         $this->processQuestions($request->user(), $instantFeedback, $request->questions);
-        $this->processRecipients($instantFeedback, $request->recipients);
-        
-        $notif = new InstantFeedbackRequested($instantFeedback);
-
-        foreach ($instantFeedback->users as $user) {
-            $user->notify($notif);
-        }
-
-        foreach ($request->recipients as $recipient) {
-            if (!empty($recipient['email'])) {
-                $anonUser = new AnonymousUser($recipient['name'], $recipient['email']);
-                $anonUser->notify($notif);
-            }
-        }
+        $this->notifyRecipients($instantFeedback, $request->recipients);
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
-        return response('', 201, ['Location' => $url]);
+        return response(' ', 201, [
+            'Location'      => $url,
+            'Content-Type'  => 'application/json'
+        ]);
     }
     
     /**
@@ -110,7 +101,13 @@ class InstantFeedbackController extends Controller
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         $currentUser = $request->user();
-        $key = $instantFeedback->answerKeyOf($currentUser);
+
+        if ($instantFeedback->user->id === $currentUser->id) {
+            $key = null;
+        } else {
+            $recipient = $this->findRecipient($instantFeedback, $currentUser);
+            $key = $instantFeedback->answerKeyOf($recipient);
+        }
         
         return response()->jsonHal($instantFeedback)
                          ->with([
@@ -159,40 +156,7 @@ class InstantFeedbackController extends Controller
         }
 
         $recipients = $request->recipients;
-
-        // Retrieve a list of users who have been notified already.
-        $notifiedUsers = [];
-        foreach ($instantFeedback->users()->where('user_type', 'users') as $user) {
-            $notifiedUsers[] = $user->id;
-        }
-
-        // Update instant feedback recipients.
-        $this->processRecipients($instantFeedback, $recipients);
-
-        // Build a list of recipients that will be notified.
-        $newRecipients = [];
-        $anonRecipients = [];
-        foreach ($recipients as $r) {
-            if (!isset($r['id'])) {
-                $anonRecipients[] = new AnonymousUser($r['name'], $r['email']);
-            } else {
-                if (in_array($r['id'], $notifiedUsers)) {
-                    continue; // Do not notify already saved users.
-                }
-
-                $newRecipients[] = User::find($r['id']);
-            }
-        }
-
-        $notif = new InstantFeedbackRequested($instantFeedback);
-
-        foreach ($newRecipients as $user) {
-            $user->notify($notif);
-        }
-
-        foreach ($anonRecipients as $recipient) {
-            $recipient->notify($notif);
-        }
+        $this->notifyRecipients($instantFeedback, $request->recipients);
 
         return response('', 201);
     }
@@ -206,6 +170,17 @@ class InstantFeedbackController extends Controller
      */
     public function answer(Request $request, InstantFeedback $instantFeedback)
     {
+        // Prevent owners from answering their instant feedback.
+        if ($instantFeedback->user->id == $request->user()->id) {
+            //throw new InvalidOperationException('Answering your own instant feedback is not allowed.');
+            // Allow for now.
+        }
+
+        // Do not accept answers on closed instant feedbacks.
+        if ($instantFeedback->closed) {
+            throw new InvalidOperationException('Instant feedback already closed for answers.');
+        }
+
         $this->validate($request, [
             'key'                   => [
                 'required',
@@ -220,13 +195,9 @@ class InstantFeedbackController extends Controller
         ]);
             
         $currentUser = $request->user();
+        $recipient = $this->findRecipient($instantFeedback, $currentUser);
         $key = $request->key;
         $question = Question::find(intval($request->answers[0]['question']));
-        
-        // Make sure the instant feedback is still open.
-        if ($instantFeedback->closed) {
-            throw new InstantFeedbackClosedException;
-        }
         
         if (isset($request->answers[0]['value'])) {
             $answer = $request->answers[0]['value'];
@@ -235,21 +206,18 @@ class InstantFeedbackController extends Controller
         }
         
         try {
-            InstantFeedbackAnswer::make($instantFeedback, $currentUser, $question, $answer);
+            InstantFeedbackAnswer::make($instantFeedback, $recipient, $question, $answer);
         } catch (InvalidArgumentException $e) {
             throw new CustomValidationException([
                 'answers.0.answer'  => $e->getMessage()
             ]);
         }
         
-        $recipient = InstantFeedbackRecipient::where([
-            'userId'    => $currentUser->id,
-            'key'       => $key
-        ])->first();
-        $recipient->markAnswered();
-        $recipient->save();
+        $ifRecipient = InstantFeedbackRecipient::where('key', $key)->first();
+        $ifRecipient->markAnswered();
+        $ifRecipient->save();
         
-        return response('', 201);
+        return createdResponse();
     }
     
     /**
@@ -309,6 +277,30 @@ class InstantFeedbackController extends Controller
         event(new InstantFeedbackResultsShared($instantFeedback, $userObjects));
         
         return response('', 201);
+    }
+
+    /**
+     * Exchanges an instant feedback answer key to a instant feedback id.
+     * 
+     * @param  Illuminate\Http\Request  $request
+     * @param  string                   $key
+     * @return App\Http\JsonHalResponse
+     */
+    public function exchange(Request $request, $key)
+    {
+        $currentUser = $request->user();
+        $recipients = Recipient::where('mail', $currentUser->email)
+                        ->get()
+                        ->map(function($recipient) {
+                            return $recipient->id;
+                        });
+        $ifRecipient = InstantFeedbackRecipient::where('key', $key)
+                        ->whereIn('recipientId', $recipients)
+                        ->firstOrFail();
+
+        return response()->jsonHal([
+            'instant_feedback_id' => $ifRecipient->instantFeedbackId
+        ]);
     }
     
     /**
@@ -373,6 +365,68 @@ class InstantFeedbackController extends Controller
         }
         
         return $results;
+    }
+
+    /**
+     * Sends notifications to instant feedback recipients.
+     * 
+     * @param  App\Models\InstantFeedback   $instantFeedback
+     * @param  array                        $recipients
+     * @return array
+     */
+    protected function notifyRecipients(InstantFeedback $instantFeedback, array $recipients)
+    {
+        $currentUser = request()->user();
+        $results = [];
+
+        foreach ($recipients as $r) {
+            $user = null;
+
+            if (!empty($r['id'])) {
+                $user = User::find($r['id']);
+                if (!$currentUser->can('view', $user)) {
+                    throw new InvalidArgumentException("Current user cannot access user with ID $user->id.");
+                }
+
+                $name = $user->name;
+                $email = $user->email;
+            } else {
+                $name = $r['name'];
+                $email = $r['email'];
+            }
+
+            $recipient = Recipient::make($currentUser->id, $name, $email, '');
+            $ifRecipient = InstantFeedbackRecipient::make($instantFeedback, $recipient);
+
+            if (!$ifRecipient->notified) {
+                if (isset($user)) {
+                    $user->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name, $ifRecipient->key));
+                } else {
+                    $recipient->notify(new InstantFeedbackInvitation($instantFeedback->id, $instantFeedback->user->name, $ifRecipient->key));
+                }
+                $ifRecipient->notified = true;
+                $ifRecipient->save();
+            }
+
+            $results[] = $recipient;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Finds the recipient record for the provided user.
+     * 
+     * @param  App\Models\InstantFeedback   $instantFeedback
+     * @param  App\Models\User              $user
+     * @return App\Models\Recipient
+     */
+    protected function findRecipient(InstantFeedback $instantFeedback, User $user)
+    {
+        return Recipient::where([
+            'ownerId'   => $instantFeedback->user->id,
+            'mail'      => $user->email
+        ])->first();
     }
     
 }

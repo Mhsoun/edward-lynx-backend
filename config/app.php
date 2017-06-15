@@ -39,7 +39,7 @@ return [
 	|
 	*/
 
-	'url' => 'http://lynxtool.edwardlynx.com',
+	'url' => env('APP_URL', 'http://lynxtool.edwardlynx.com'),
 
 	/*
 	|--------------------------------------------------------------------------
@@ -154,6 +154,7 @@ return [
         'Collective\Html\HtmlServiceProvider',
         'Laravel\Passport\PassportServiceProvider',
         Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
+        Barryvdh\Queue\AsyncServiceProvider::class,
 
 
         /*

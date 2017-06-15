@@ -1,10 +1,12 @@
 <?php namespace App\Http\Controllers\Api\V1;
 
 use stdClass;
+use App\Roles;
 use App\Surveys;
 use Carbon\Carbon;
 use App\SurveyTypes;
 use App\Models\User;
+use App\SurveyEmailer;
 use App\Models\Survey;
 use App\Models\Question;
 use App\Models\EmailText;
@@ -13,16 +15,31 @@ use App\Models\DefaultText;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
+use App\Models\SurveyCandidate;
 use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
 use App\Http\Controllers\Controller;
+use App\Notifications\SurveyInvitation;
+use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class SurveyController extends Controller
 {
+
+    protected $emailer;
+
+    /**
+     * Creates a new controller instance.
+     * 
+     * @param   App\SurveyEmailer   $emailer
+     */
+    public function __construct(SurveyEmailer $emailer)
+    {
+        $this->emailer = $emailer;
+    }
 
     /**
      * Returns a list of surveys the user can access.
@@ -33,23 +50,38 @@ class SurveyController extends Controller
     public function index(Request $request)
     {
         $this->validate($request, [
-            'num'   => 'integer|between:1,50'
+            'num'       => 'integer|between:1,50',
+            'filter'    => 'string'
         ]);
         
         $num = intval($request->input('num', 10));
         $user = $request->user();
+        $statusSorter = function($a, $b) use ($user) {
+            if ($a->status($user) < $b->status($user)) {
+                return -1;
+            } elseif ($a->status($user) > $b->status($user)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        };
 
-        // Fetch all surveys if we are a superadmin.
-        if ($user->can('viewAll', Survey::class)) {
-            $surveys = Survey::select('*');
+        if ($request->filter === 'answerable') {
+            $surveys = Survey::answerableBy($user)
+                            ->valid()
+                            ->where('type', SurveyTypes::Individual)
+                            ->latest('endDate')
+                            ->orderByRaw('survey_recipients.hasAnswered ASC')
+                            ->paginate($num)
+                            ->sort($statusSorter);
+
         } else {
-            $surveys = Survey::where('ownerId', $user->id);
-        }
-
-        $surveys = $surveys->valid()
+            $surveys = Survey::where('ownerId', $user->id)
+                           ->valid()
                            ->where('type', SurveyTypes::Individual)
                            ->latest('endDate')
                            ->paginate($num);
+        }
         
         return response()->jsonHal($surveys)
                          ->summarize();
@@ -142,7 +174,7 @@ class SurveyController extends Controller
                 $val = $request->{$field};
                 
                 if (in_array($field, $dates)) {
-                    $val = Carbon::parse($val);
+                    $val = dateFromIso8601String($val);
                 }
                 
                 $survey->{$field} = $val;
@@ -163,13 +195,14 @@ class SurveyController extends Controller
     public function questions(Request $request, Survey $survey)
     {
         $url = route('api1-survey-questions', $survey);
+        $currentUser = $request->user();
         
         // Fetch the user's answers
+        $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
         $questionToAnswers = [];
-        $answers = $survey->answers()->where([
-            'answeredById'      => $request->user()->id,
-            'answeredByType'    => 'users'
-        ])->getResults();
+        $answers = $survey->answers()
+                          ->where('answeredById', $recipient->id)
+                          ->getResults();
 
         foreach ($answers as $answer) {
             $questionToAnswers[$answer->questionId] = is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue;
@@ -200,16 +233,57 @@ class SurveyController extends Controller
     public function exchange(Request $request, $key)
     {
         $currentUser = $request->user();
-        $recipient = SurveyRecipient::where([
-                            'link'          => $key,
-                            'recipientType' => 'users',
-                            'recipientId'   => $currentUser->id
-                        ])
+        $recipients = Recipient::where('mail', $currentUser->email)
+                        ->get()
+                        ->map(function($recipient) {
+                            return $recipient->id;
+                        });
+        $surveyRecipient = SurveyRecipient::where('link', $key)
+                        ->whereIn('recipientId', $recipients)
                         ->firstOrFail();
 
         return response()->jsonHal([
-            'survey_id' => $recipient->surveyId
+            'survey_id' => $surveyRecipient->surveyId
         ]);
+    }
+
+    /**
+     * Invites recipients to rate a candidate.
+     * 
+     * @param  App\Http\Request     $request
+     * @param  App\Models\Survey    $survey
+     * @return App\Http\JsonHalResponse
+     */
+    public function recipients(Request $request, Survey $survey)
+    {
+        $this->validate($request, [
+            'recipients'                        => 'required|array',
+            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
+            'recipients.*.name'                 => 'required_without:recipients.*.id|string',
+            'recipients.*.email'                => 'required_without:recipients.*.id|email',
+            'recipients.*.role'                 => 'required|in:2,3,4,5,6,7'
+        ]);
+
+        if ($survey->isClosed()) {
+            throw new SurveyExpiredException;
+        }
+
+        $currentUser = $request->user();
+        $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
+        $inviter = SurveyCandidate::where([
+            'recipientId'   => $recipient->id,
+            'surveyId'      => $survey->id
+        ])->first();
+
+        foreach ($request->recipients as $recipient) {
+            if (!empty($recipient['id'])) {
+                $this->inviteUserRecipient($survey, $inviter, $recipient);
+            } else {
+                $this->inviteAnonymousRecipient($survey, $inviter, $recipient);
+            }
+        }
+
+        return createdResponse();
     }
     
     /**
@@ -239,8 +313,8 @@ class SurveyController extends Controller
         $data->type         = $type;
         $data->lang         = $request->lang;
         $data->ownerId      = $request->user()->id;
-        $data->startDate    = Carbon::parse($request->startDate);
-        $data->endDate      = $request->has('endDate') ? Carbon::parse($request->endDate) : null;
+        $data->startDate    = dateFromIso8601String($request->startDate);
+        $data->endDate      = $request->has('endDate') ? dateFromIso8601String($request->endDate) : null;
         
         $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText', $data->type);
         $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText', $data->type);
@@ -432,6 +506,86 @@ class SurveyController extends Controller
         if (!empty($errors)) {
             throw new CustomValidationException($errors);
         }
+    }
+
+    /**
+     * Invites a guest recipient to rate a candidate.
+     * 
+     * @param  App\Models\Survey            $survey
+     * @param  App\Models\SurveyCandidate   $inviter
+     * @param  array                        $recipient
+     * @return App\Models\SurveyRecipient
+     */
+    public function inviteAnonymousRecipient(Survey $survey, SurveyCandidate $inviter, $recipient)
+    {
+        $owner = $survey->ownerId;
+        $name = $recipient['name'];
+        $email = $recipient['email'];
+        $role = Roles::valid($recipient['role']) ? $recipient['role'] : 1;
+
+        $recipient = Recipient::make($owner, $name, $email, '');
+        $existingRecipient = $survey->recipients()
+            ->where('recipientId', '=', $recipient->id)
+            ->where('surveyId', '=', $survey->id)
+            ->where('invitedById', '=', $owner)
+            ->first();
+
+        if ($existingRecipient) {
+            return $existingRecipient;
+        }
+
+        $endDatePassed = false;
+        // $endDatePassed = $survey->endDatePassed($inviter->recipientId, $inviter->recipientId);
+        // TODO: check if the candidate has reached it's end date.
+        
+        if ($endDatePassed) {
+            throw new Exception('Candidate has reached the end date!');
+        }
+        
+        $surveyRecipient = $survey->addRecipient($recipient->id, $role, $inviter->recipientId);
+        $this->emailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+        return $surveyRecipient;
+    }
+
+    /**
+     * Invites an existing user recipient to rate a candidate.
+     * 
+     * @param  App\Models\Survey            $survey
+     * @param  App\Models\SurveyCandidate   $inviter
+     * @param  array                        $recipient
+     * @return App\Models\SurveyRecipient
+     */
+    public function inviteUserRecipient(Survey $survey, SurveyCandidate $inviter, $recipient)
+    {
+        $user = User::find($recipient['id']);
+        $role = Roles::valid($recipient['role']) ? $recipient['role'] : 1;
+        $owner = $survey->ownerId;
+
+        $existingRecipient = $survey->recipients()
+            ->where('recipientId', '=', $user->id)
+            ->where('surveyId', '=', $survey->id)
+            ->where('invitedById', '=', $owner)
+            ->first();
+
+        if ($existingRecipient) {
+            return $existingRecipient;
+        }
+
+        $endDatePassed = false;
+        // $endDatePassed = $survey->endDatePassed($inviter->recipientId, $inviter->recipientId);
+        // TODO: check if the candidate has reached it's end date.
+        
+        if ($endDatePassed) {
+            throw new Exception('Candidate has reached the end date!');
+        }
+
+        $surveyRecipient = $survey->addRecipient($user->id, $role, $inviter->recipientId);
+        $this->emailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+        $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
+
+        return $surveyRecipient;
     }
 
 }

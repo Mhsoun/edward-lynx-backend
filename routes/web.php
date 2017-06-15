@@ -48,7 +48,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/company/create', 'CompanyController@create');
         Route::post('/company/create', 'CompanyController@store');
 
-        Route::get('/company/{id}/edit', 'CompanyController@edit');
+        Route::get('/company/{id}/edit', 'CompanyController@edit')
+            ->name('companies.edit');
         Route::get('/company/{id}/reset-logo', 'CompanyController@resetLogo');
         Route::get('/company/{id}/delete', 'CompanyController@destroy');
         Route::get('/company/{id}/projects', 'CompanyController@viewProjects');
@@ -64,6 +65,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/survey/{id}/random-answers', 'AnswerController@generateRandomAnswers');
 
         Route::get('/language/export', 'AdminController@exportLanguageStrings');
+
+        Route::resource('users', 'UsersController', [ 'except' => [
+            'show'
+        ]]);
     });
 
     /* Route for index page for groups */
@@ -197,7 +202,8 @@ Route::get('/setup-password/{token}', 'UserController@setupPasswordView');
 Route::post('/setup-password/{token}', 'UserController@setupPassword');
 
 /* Routes for answering a survey */
-Route::get('/survey/answer/{link}', 'AnswerController@show');
+Route::get('/survey/answer/{link}', 'AnswerController@show')
+    ->name('survey.answer');
 Route::post('/survey/answer/{link}', 'AnswerController@store');
 
 /* Routes for inviting to a survey */
@@ -208,6 +214,14 @@ Route::get('/survey-invite/{link}', 'InviteController@show');
 /* User reports */
 Route::get('/survey/user-report', 'ReportController@showUserReport');
 Route::post('/survey/generate-user-report', 'ReportController@createUserPDF');
+
+/* Routes for answering an instant feedback */
+Route::get('/instant-feedbacks/answer/{link}', 'InstantFeedbackController@answer')
+    ->name('answer-instant-feedback');
+
+/* Routes for viewing a development plan */
+Route::get('/dev-plan/{devPlan}', 'DevelopmentPlanController@show')
+    ->name('dev-plan.view');
 
 /* Controller for Auth*/
 // Route::controllers([

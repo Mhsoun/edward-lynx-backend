@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Survey;
+use App\Models\Recipient;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
@@ -25,20 +26,17 @@ class AnswerController extends Controller
      */
     public function index(Request $request, Survey $survey)
     {
-        $user = $request->user();
-        $recipient = SurveyRecipient::where([
+        $currentUser = $request->user();
+        $recipient = Recipient::where([
+            'ownerId'   => $survey->ownerId,
+            'mail'      => $currentUser->email
+        ])->first();
+        $surveyRecipient = SurveyRecipient::where([
             'surveyId'      => $survey->id,
-            'recipientId'   => $user->id,
-            'recipientType' => 'users'
+            'recipientId'   => $recipient->id
         ])->first();
         
-        // If we can't find an invite then the user is an admin.
-        // Create an invite for him/her.
-        if (!$recipient && $user->can('administer', $survey)) {
-            $recipient = SurveyRecipient::make($survey, $user);
-        }
-        
-        return response()->jsonHal($recipient);
+        return response()->jsonHal($surveyRecipient);
     }
     
     /**
@@ -51,7 +49,7 @@ class AnswerController extends Controller
     public function answer(Request $request, Survey $survey)
     {   
         $this->validate($request, [
-            'key'                   => 'required|string',
+            'key'                   => 'required|exists:survey_recipients,link',
             'answers'               => 'required|array',
             'answers.*.question'    => 'required|integer|exists:questions,id',
             'answers.*.value'       => 'required',
@@ -60,40 +58,20 @@ class AnswerController extends Controller
             
         // Input items
         $key = $request->key;
+        $explanations = [];
         $answers = [];
         foreach ($request->answers as $answer) {
             $answers[$answer['question']] = $answer['value'];
+            if (isset($answer['explanation'])) {
+                $explanations[$answer['question']] = $answer['explanation'];
+            }
         }
         $final = $request->input('final', true);
-        $user = $request->user();
+        $recipient = SurveyRecipient::where([
+            'surveyId'  => $survey->id,
+            'link'      => $key
+        ])->first();
         $questions = $survey->questions;
-        
-        if (empty($key)) {
-            if (!$user->can('administer', $survey)) {
-                throw new CustomValidationException([
-                    'key'   => ['Missing answer key.']
-                ]);
-            }
-            
-            $recipient = SurveyRecipient::make($survey, $user);
-            $key = $recipient->link;
-        } else {
-            $this->validate($request, ['key' => 'exists:survey_recipients,link']);
-            $recipient = SurveyRecipient::where([
-                'surveyId'      => $survey->id,
-                'link'          => $key,
-                // 'recipientId'   => $user->id,
-                'recipientType' => 'users'
-            ])->first();
-                
-            if (!$recipient) {
-                throw new CustomValidationException([
-                    'key'   => ['Invalid answer key.']
-                ]);
-            }
-            
-            $key = $recipient->link;
-        }
         
         // Make sure this survey hasn't expired yet.
         if ($survey->endDate->isPast()) {
@@ -106,7 +84,7 @@ class AnswerController extends Controller
         }
         
         // Validate answers.
-        $errors = $this->validateAnswers($questions, $answers, $final);
+        $errors = $this->validateAnswers($questions, $answers, $explanations);
         if (!empty($errors)) {
             throw new CustomValidationException($errors);
         }
@@ -128,8 +106,7 @@ class AnswerController extends Controller
             
             // Try to check if we have an answer to the question
             $surveyAnswer = SurveyAnswer::where([
-                'answeredById'      => $user->id,
-                'answeredByType'    => 'users',
+                'answeredById'      => $recipient->id,
                 'questionId'        => $question->id,
                 'invitedById'       => $recipient->invitedById
             ])->first();
@@ -137,8 +114,7 @@ class AnswerController extends Controller
             // Create our answer if there is none.
             if (!$surveyAnswer) {
                 $surveyAnswer = new SurveyAnswer();
-                $surveyAnswer->answeredById = $user->id;
-                $surveyAnswer->answeredByType = 'users';
+                $surveyAnswer->answeredById = $recipient->recipient->id;
                 $surveyAnswer->questionId = $question->id;
                 $surveyAnswer->invitedById = $recipient->invitedById;
             }
@@ -151,6 +127,11 @@ class AnswerController extends Controller
                 $surveyAnswer->answerText = $answer;
             }
 
+            // If this is a 1-10 scale with explanation, save the explanation as well.
+            if ($question->answerType == 7 && isset($explanations[$question->id])) {
+                $surveyAnswer->answerText = $explanations[$question->id];
+            }
+
             $survey->answers()->save($surveyAnswer);
         }
         
@@ -160,14 +141,7 @@ class AnswerController extends Controller
             $recipient->save();
         }
         
-        $recipient = SurveyRecipient::where([
-            'surveyId'      => $recipient->survey->id,
-            'recipientId'   => $recipient->recipientId,
-            'invitedById'   => $recipient->invitedById,
-            'recipientType' => $recipient->recipientType
-        ])->first();
-        
-        return response()->jsonHal($recipient);
+        return createdResponse(['Location' => route('api1-survey-answers', $survey)]);
     }
     
     /**
@@ -199,9 +173,10 @@ class AnswerController extends Controller
      *
      * @param   Illuminate\Database\Eloquent\Collection $questions
      * @param   array                                   $answers
+     * @param   array                                   $explanations
      * @return  array
      */
-    protected function validateAnswers(Collection $questions, array $answers)
+    protected function validateAnswers(Collection $questions, array $answers, array $explanations)
     {
         $errors = [];
         
@@ -216,6 +191,8 @@ class AnswerController extends Controller
                 $errors[$key][] = "N/A answer is not accepted.";
             } elseif (!$answerType->isValidValue($answer)) {
                 $errors[$key][] = "'{$answer}' is not a valid answer.";
+            } elseif ($question->answerType == 7 && !isset($explanations[$question->id])) {
+                $errors[$key][] = 'Answer explanation is required.';
             }
         }
         
@@ -246,7 +223,7 @@ class AnswerController extends Controller
         $errors = [];
         foreach ($survey->questions as $question) {
             $questionId = $question->questionId;
-            if (!isset($answerVals[$questionId]) && !$question->optional) {
+            if (!isset($answerVals[$questionId]) && !$question->question->optional) {
                 $errors[] = [
                     'question'  => $questionId,
                     'message'   => "Question with ID {$questionId} is missing an answer."     ];

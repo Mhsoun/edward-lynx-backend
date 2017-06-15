@@ -153,6 +153,15 @@ class UserController extends Controller
                        ->where('deviceId', $deviceId)
                        ->first();
 
+        // Delete the old user on the same device if another user uses it.
+        // (which may have the same token) 
+        $device2 = UserDevice::where('deviceId', $deviceId)
+                    ->where('userId', '!=', $user->id)
+                    ->get();
+        foreach ($device2 as $d2) {
+            $d2->delete();
+        }
+
         if (!$device) {
             $device = $user->devices()
                            ->create([
@@ -210,8 +219,8 @@ class UserController extends Controller
 
         return response()->jsonHal([
             'reminders'         => $reminders,
-            'answerableCount'   => count($reminders),
-            'developmentPlans'  => $user->developmentPlans()->latest('createdAt')->get()
+            'answerableCount'   => $user->answerableCount(),
+            'developmentPlans'  => $user->developmentPlans()->latest('createdAt')->open()->get()
         ]);
     }
     
