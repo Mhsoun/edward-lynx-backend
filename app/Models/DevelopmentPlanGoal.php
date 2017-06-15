@@ -40,8 +40,8 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
             $due = Carbon::now()->addDays(self::DUE_THRESHOLD);
         }
 
-        return $query->whereDate('dueDate', '>=', $now)
-                     ->whereDate('dueDate', '<=', $due);
+        return $query->where('dueDate', '>=', $now)
+                     ->where('dueDate', '<=', $due);
     }
 
     /**
