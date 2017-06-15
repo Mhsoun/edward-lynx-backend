@@ -67,13 +67,19 @@ class DevelopmentPlan extends BaseModel implements Routable
      */
     public function updateChecked()
     {
-        $notDone = $this->goals()
-                        ->where('checked', false)
-                        ->count();
-        $this->checked = !$notDone > 0;
-        $this->save();
+        $this->load('goals');
 
-        return !$notDone > 0;
+        if ($this->goals()->count() == 0) {
+            $this->checked = false;
+        } else {
+            $notDone = $this->goals()
+                            ->where('checked', false)
+                            ->count();
+            $this->checked = $notDone == 0;
+        }
+        
+        $this->save();
+        return $this->checked;
     }
     
     /**
