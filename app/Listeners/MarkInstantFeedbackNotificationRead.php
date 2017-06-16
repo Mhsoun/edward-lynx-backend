@@ -26,12 +26,11 @@ class MarkInstantFeedbackNotificationRead
      */
     public function handle(InstantFeedbackKeyExchanged $event)
     {
-        $notification = $event->user->unreadNotifications()->first(function ($notification) use ($event) {
-            return $notification->key == $event->key;
-        });
-
-        if ($notification) {
-            $notification->markAsRead();
+        $notifications = $event->user->unreadNotifications;
+        foreach ($notifications as $notification) {
+            if ($notification->data['key'] == $event->key) {
+                $notification->markAsRead();
+            }
         }
     }
 }

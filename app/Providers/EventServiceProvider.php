@@ -10,7 +10,14 @@ class EventServiceProvider extends ServiceProvider {
 	 *
 	 * @var array
 	 */
-	protected $listen = [];
+	protected $listen = [
+		\App\Events\InstantFeedbackKeyExchanged::class => [
+			\App\Listeners\MarkInstantFeedbackNotificationRead::class
+		],
+		\App\Events\SurveyKeyExchanged::class => [
+			\App\Listeners\MarkSurveyNotificationRead::class
+		]
+	];
 
 	/**
 	 * Register any other events for your application.
