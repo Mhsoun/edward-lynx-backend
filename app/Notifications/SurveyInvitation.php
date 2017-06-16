@@ -86,7 +86,7 @@ class SurveyInvitation extends Notification implements ShouldQueue
         }
         
         return [
-            'key' => $this->key
+            'surveyKey' => $this->key
         ];
     }
 }

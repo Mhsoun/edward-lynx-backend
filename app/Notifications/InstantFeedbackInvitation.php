@@ -119,7 +119,7 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
         }
 
         return [
-            'key' => $this->key
+            'instantFeedbackKey' => $this->key
         ];
     }
 }
