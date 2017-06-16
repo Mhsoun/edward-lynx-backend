@@ -59,9 +59,9 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
     public function via($notifiable)
     {
         if (method_exists($notifiable, 'deviceTokens')) {
-            return ['mail', FirebaseChannel::class];
+            return ['database', 'mail', FirebaseChannel::class];
         } else {
-            return ['mail'];
+            return ['database', 'mail'];
         }
     }
 
@@ -101,5 +101,18 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
                 'type'  => 'instant-request',
                 'id'    => $this->instantFeedbackId
             ])->to($notifiable->deviceTokens());
+    }
+
+    /**
+     * Returns the database representation of the notification.
+     * 
+     * @param   mixed   $notifiable
+     * @return  array
+     */
+    public function toDatabase($notifiable)
+    {
+        return [
+            'key' => $this->key
+        ];
     }
 }

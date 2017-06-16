@@ -56,7 +56,7 @@ class DevelopmentPlanGoalReminder extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail', FirebaseChannel::class];
+        return ['database', 'mail', FirebaseChannel::class];
     }
 
     /**
@@ -100,5 +100,18 @@ class DevelopmentPlanGoalReminder extends Notification
                 'type'  => 'dev-plan',
                 'id'    => $this->devPlanId
             ])->to($notifiable->deviceTokens());
+    }
+
+    /**
+     * Returns the database representation of the notification.
+     * 
+     * @param   mixed   $notifiable
+     * @return  array
+     */
+    public function toDatabase($notifiable)
+    {
+        return [
+            'devPlanId' => $this->devPlanId
+        ];
     }
 }
