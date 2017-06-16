@@ -114,7 +114,7 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'instantFeedbackId' => $this->instantFeedbackId
+            'key' => $this->key
         ];
     }
 }
