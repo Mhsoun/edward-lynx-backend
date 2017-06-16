@@ -8,11 +8,12 @@ use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
+use App\Notifications\Concerns\IncludesBadgeCount;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class InstantFeedbackInvitation extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, IncludesBadgeCount;
 
     /**
      * Instant Feedback ID.
@@ -97,10 +98,11 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
                 'recipient' => $notifiable->name,
                 'sender'    => $this->sender
             ]))
-            ->data([
+            ->data($this->withBadgeCountOf($notifiable, [
                 'type'  => 'instant-request',
                 'id'    => $this->instantFeedbackId
-            ])->to($notifiable->deviceTokens());
+            ]))
+            ->to($notifiable->deviceTokens());
     }
 
     /**
