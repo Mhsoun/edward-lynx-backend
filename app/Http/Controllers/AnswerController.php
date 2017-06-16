@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use App\Events\SurveyKeyExchanged;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -77,6 +78,11 @@ class AnswerController extends Controller
         $parserData = \App\EmailContentParser::createParserData($survey, $surveyRecipient);
         $categories = $survey->categoriesViewData($surveyRecipient);
         $autoAnswer = $request->autoAnswer ?: false;
+
+        // Trigger a key exchange event if the email belongs to a registered user.
+        if ($user = User::where('email', $surveyRecipient->mail)->first()) {
+            event(new SurveyKeyExchanged($user, $surveyRecipient->link));
+        }
 
         return view(
             "answer.view",
