@@ -81,7 +81,7 @@ class SurveyInvitation extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'key' => $this->key
+            'surveyId'  => $this->surveyId
         ];
     }
 }
