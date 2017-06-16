@@ -19,6 +19,7 @@ use App\Models\SurveyCandidate;
 use App\Http\JsonHalCollection;
 use Illuminate\Validation\Rule;
 use App\Models\QuestionCategory;
+use App\Events\SurveyKeyExchanged;
 use App\Http\Controllers\Controller;
 use App\Notifications\SurveyInvitation;
 use App\Exceptions\SurveyExpiredException;
@@ -241,6 +242,8 @@ class SurveyController extends Controller
         $surveyRecipient = SurveyRecipient::where('link', $key)
                         ->whereIn('recipientId', $recipients)
                         ->firstOrFail();
+
+        event(new SurveyKeyExchanged($currentUser, $key));
 
         return response()->jsonHal([
             'survey_id' => $surveyRecipient->surveyId

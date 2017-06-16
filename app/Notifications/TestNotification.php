@@ -57,4 +57,18 @@ class TestNotification extends Notification implements ShouldQueue
                 'type'  => 'test'
             ])->to($notifiable->deviceTokens());
     }
+
+    /**
+     * Returns the database representation of the notification.
+     * 
+     * @param   mixed   $notifiable
+     * @return  array
+     */
+    public function toDatabase($notifiable)
+    {
+        return [
+            'title' => $this->title,
+            'body'  => $this->body
+        ];
+    }
 }

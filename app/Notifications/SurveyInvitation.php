@@ -2,17 +2,19 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use App\Models\Survey;
 use Illuminate\Bus\Queueable;
 use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
+use App\Notifications\Concerns\IncludesBadgeCount;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class SurveyInvitation extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, IncludesBadgeCount;
 
     /**
      * The survey ID.
@@ -49,7 +51,7 @@ class SurveyInvitation extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return [FirebaseChannel::class];
+        return ['database', FirebaseChannel::class];
     }
 
     /**
@@ -63,23 +65,28 @@ class SurveyInvitation extends Notification implements ShouldQueue
         return (new FirebaseNotification)
             ->title(trans('surveys.toEvaluateTitle'))
             ->body(trans('surveys.toEvaluateBody'))
-            ->data([
+            ->data($this->withBadgeCountOf($notifiable, [
                 'type'  => 'survey',
                 'id'    => $this->surveyId,
                 'key'   => $this->key
-            ])->to($notifiable->deviceTokens());
+            ]))
+            ->to($notifiable->deviceTokens());
     }
 
     /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
+     * Returns the database representation of the notification.
+     * 
+     * @param   mixed   $notifiable
+     * @return  array
      */
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
+        if (!$notifiable instanceof User) {
+            return null;
+        }
+        
         return [
-            //
+            'key' => $this->key
         ];
     }
 }
