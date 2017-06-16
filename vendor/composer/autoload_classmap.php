@@ -98,6 +98,7 @@ return array(
     'CreateInstantFeedbackSharesTable' => $baseDir . '/database/migrations/2017_01_16_194304_create_instant_feedback_shares_table.php',
     'CreateInstantFeedbacksTable' => $baseDir . '/database/migrations/2017_01_13_071009_create_instant_feedbacks_table.php',
     'CreateJobsTable' => $baseDir . '/database/migrations/2016_12_23_091403_create_jobs_table.php',
+    'CreateNotificationsTable' => $baseDir . '/database/migrations/2017_06_16_073430_create_notifications_table.php',
     'CreatePasswordResetsTable' => $baseDir . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',
     'CreateQuestionCategoryTemplatesTable' => $baseDir . '/database/migrations/2015_03_04_170402_create_question_category_templates_table.php',
     'CreateQuestionTemplatesTable' => $baseDir . '/database/migrations/2015_03_03_190734_create_question_templates_table.php',
