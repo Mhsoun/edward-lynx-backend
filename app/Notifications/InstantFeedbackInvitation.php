@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use App\Models\InstantFeedback;
 use App\Services\Firebase\FirebaseChannel;
@@ -113,6 +114,10 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
      */
     public function toDatabase($notifiable)
     {
+        if (!$notifiable instanceof User) {
+            return null;
+        }
+
         return [
             'key' => $this->key
         ];

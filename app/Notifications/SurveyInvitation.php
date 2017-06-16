@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use App\Models\Survey;
 use Illuminate\Bus\Queueable;
 use App\Services\Firebase\FirebaseChannel;
@@ -80,6 +81,10 @@ class SurveyInvitation extends Notification implements ShouldQueue
      */
     public function toDatabase($notifiable)
     {
+        if (!$notifiable instanceof User) {
+            return null;
+        }
+        
         return [
             'key' => $this->key
         ];
