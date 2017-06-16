@@ -108,6 +108,13 @@ class DevelopmentPlanController extends Controller
      */
     public function show(Request $request, DevelopmentPlan $devPlan)
     {
+        $currentUser = $request->user();
+        foreach($currentUser->unreadNotifications() as $notification) {
+            if ($notification->data['devPlanId'] == $devPlan->id) {
+                $notification->markAsRead();
+            }
+        }
+
         return response()->jsonHal($devPlan);
     }
     
