@@ -19,6 +19,7 @@ use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
+use App\Events\InstantFeedbackKeyExchanged;
 use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
@@ -297,6 +298,8 @@ class InstantFeedbackController extends Controller
         $ifRecipient = InstantFeedbackRecipient::where('key', $key)
                         ->whereIn('recipientId', $recipients)
                         ->firstOrFail();
+
+        event(new InstantFeedbackKeyExchanged($currentUser, $key));
 
         return response()->jsonHal([
             'instant_feedback_id' => $ifRecipient->instantFeedbackId
