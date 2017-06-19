@@ -56,6 +56,18 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     }
 
     /**
+     * Scopes results to expired development plan goals only.
+     * 
+     * @param  Illuminate\Database\Eloquent\Builder    $query
+     * @return Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeExpired(Builder $query)
+    {
+        $now = Carbon::now();
+        return $query->where('dueDate', '<=', $now);
+    }
+
+    /**
      * Returns the development plan this goal is under.
      *
      * @param   App\Models\DevelopmentPlan

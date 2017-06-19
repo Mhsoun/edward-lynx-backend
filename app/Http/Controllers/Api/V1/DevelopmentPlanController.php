@@ -25,9 +25,27 @@ class DevelopmentPlanController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $devPlans = $user->developmentPlans()
-                         ->orderByRaw('checked ASC, createdAt DESC')
-                         ->get();
+        if ($request->has('type') && $request->type == 'expired') {
+            $devPlans = $user->developmentPlans
+                             ->filter(function($devPlan) {
+                                return $devPlan->goals()->expired()->count() > 0;
+                             })
+                             ->jsonSerialize();
+
+            // Remove non-expired development plan goals.
+            $now = Carbon::now();
+            $devPlans = array_map(function($devPlan) use ($now) {
+                $devPlan['goals'] = $devPlan['goals']->filter(function($goal) use ($now) {
+                    return $goal->dueDate !== null && $goal->dueDate->lte($now);
+                });
+                return $devPlan;
+            }, $devPlans);
+        } else {
+            $devPlans = $user->developmentPlans()
+                             ->orderByRaw('checked ASC, createdAt DESC')
+                             ->get();
+        }
+
         return response()->jsonHal($devPlans);
     }
     
