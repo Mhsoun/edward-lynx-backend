@@ -25,6 +25,9 @@ class DevelopmentPlanManagerController extends Controller
         } else {
             $users = $currentUser->managedUsers->map(function($user) {
                 return [
+                    '_links'    => [
+                        '_self'     => $user->url()
+                    ],
                     'id'        => $user->id,
                     'name'      => $user->name,
                     'devPlans'  => $user->developmentPlans()->where('shared', true)->get()
