@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateDevelopmentPlanShares extends Migration
+class CreateManagedUsers extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,13 @@ class CreateDevelopmentPlanShares extends Migration
      */
     public function up()
     {
-        Schema::create('development_plan_shares', function (Blueprint $table) {
-            $table->unsignedInteger('developmentPlanId');
+        Schema::create('managed_users', function (Blueprint $table) {
+            $table->unsignedInteger('managerId');
             $table->unsignedInteger('userId');
-            $table->primary(['developmentPlanId', 'userId']);
+            $table->primary(['managerId', 'userId']);
 
-            $table->foreign('developmentPlanId')
-                  ->references('id')->on('development_plans')
+            $table->foreign('managerId')
+                  ->references('id')->on('users')
                   ->onDelete('cascade');
             $table->foreign('userId')
                   ->references('id')->on('users')
@@ -34,6 +34,6 @@ class CreateDevelopmentPlanShares extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('development_plan_shares');
+        Schema::dropIfExists('managed_users');
     }
 }

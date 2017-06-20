@@ -137,6 +137,26 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     }
 
     /**
+     * Returns the users managed by this user.
+     * 
+     * @return  Illuminate\Database\Eloquent\BelongsToMany
+     */
+    public function managedUsers()
+    {
+        return $this->belongsToMany(User::class, 'managed_users', 'managerId', 'userId');
+    }
+
+    /**
+     * Returns the managers of this user.
+     * 
+     * @return  Illuminate\Database\Eloquent\BelongsToMany
+     */
+    public function managers()
+    {
+        return $this->belongsToMany(User::class, 'managed_users', 'userId', 'managerId');
+    }
+
+    /**
      * Scopes the query to return only users not companies.
      * 
      * @param   Illuminate\Database\Eloquent\Builder    $query
