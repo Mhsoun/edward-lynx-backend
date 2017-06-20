@@ -135,5 +135,27 @@ class DevelopmentPlanController extends Controller
 
         return response()->jsonHal($devPlan);
     }
+
+    /**
+     * Update development plan details.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\DevelopmentPlan  $devPlan
+     * @return  App\Http\JsonHalResponse
+     */
+    public function update(Request $request, DevelopmentPlan $devPlan)
+    {
+        $this->validate($request, [
+            'shared'    => 'boolean'
+        ]);
+
+        if ($request->has('shared')) {
+            $devPlan->shared = $request->shared;
+        }
+
+        $devPlan->save();
+
+        return response()->jsonHal($devPlan);
+    }
     
 }
