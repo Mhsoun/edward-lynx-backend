@@ -108,6 +108,8 @@ Route::group(['prefix' => '/dev-plans-manager'], function() {
     Route::get('/users', 'DevelopmentPlanManagerController@users')
         ->middleware('can:link,App\Models\DevelopmentPlan')
         ->name('api1-dev-plan-manager-users');
+    Route::put('/users', 'DevelopmentPlanManagerController@set')
+        ->middleware('can:link,App\Models\DevelopmentPlan');
 });
 
 // /categories Endpoints

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use DB;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -36,6 +38,50 @@ class DevelopmentPlanManagerController extends Controller
         }
 
         return response()->jsonHal($users);
+    }
+
+    /**
+     * Links users to the current user.
+     * 
+     * @param   Illuminate\Http\Request   $request
+     * @return  App\Http\JsonHalResponse
+     */
+    public function set(Request $request)
+    {
+        $currentUser = $request->user();
+        $this->validate($request, [
+            'users'         => 'required|array',
+            'users.*.id'    => 'required|exists:users|colleague|sharing_dev_plans|not_in:'. $currentUser->id
+        ]);
+
+        $values = array_map(function($v) {
+            return $v['id'];
+        }, $request->users);
+        $existing = $currentUser->managedUsers->map(function($user) {
+            return $user->pivot->userId;
+        })->toArray();
+
+        $toDelete = array_diff($existing, $values);
+        $toAdd = array_diff($values, $existing);
+
+        DB::table('managed_users')
+            ->where('managerId', $currentUser->id)
+            ->whereIn('userId', $toDelete)
+            ->delete();
+
+        foreach ($toAdd as $userId) {
+            DB::table('managed_users')
+                ->insert([
+                    'managerId' => $currentUser->id,
+                    'userId'    => $userId
+                ]);
+        }
+
+        return response()->jsonHal([
+            'users' => array_map(function($id) {
+                return ['id' => $id];
+            }, $values)
+        ]);
     }
 
 }
