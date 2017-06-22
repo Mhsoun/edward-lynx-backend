@@ -28,7 +28,7 @@ class MarkSurveyNotificationRead
     {
         $notifications = $event->user->unreadNotifications;
         foreach ($notifications as $notification) {
-            if ($notification->data['SurveyKey'] == $event->key) {
+            if ($notification->data['surveyKey'] == $event->key) {
                 $notification->markAsRead();
             }
         }
