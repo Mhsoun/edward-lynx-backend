@@ -28,7 +28,7 @@ class MarkInstantFeedbackNotificationRead
     {
         $notifications = $event->user->unreadNotifications;
         foreach ($notifications as $notification) {
-            if ($notification->data['instantFeedbackKey'] == $event->key) {
+            if ($notification->data['key'] == $event->key) {
                 $notification->markAsRead();
             }
         }
