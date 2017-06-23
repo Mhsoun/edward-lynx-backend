@@ -21,9 +21,17 @@ class DevelopmentPlanManagerController extends Controller
         $currentUser = $request->user();
 
         if ($request->type == 'sharing') {
-            $users = $currentUser->colleagues()->filter(function($user) {
-                return $user->developmentPlans()->where('shared', true)->count() > 0;
-            });
+            $users = $currentUser
+                        ->colleagues()
+                        ->where('id', '!=', $currentUser->id)
+                        ->filter(function($user) {
+                            return $user->developmentPlans()->where('shared', true)->count() > 0;
+                        });
+            $users = $users->map(function($user) use ($currentUser) {
+                return array_merge([
+                    'managed' => $user->managedBy($currentUser)
+                ], $user->jsonSerialize());
+            })->toArray();
         } else {
             $users = $currentUser->managedUsers->map(function($user) {
                 return [

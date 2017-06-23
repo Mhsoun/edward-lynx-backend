@@ -1,5 +1,6 @@
 <?php namespace App\Models;
 
+use DB;
 use Carbon\Carbon;
 use App\Models\UserDevice;
 use App\Contracts\Routable;
@@ -154,6 +155,17 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     public function managers()
     {
         return $this->belongsToMany(User::class, 'managed_users', 'userId', 'managerId');
+    }
+
+    /**
+     * Returns TRUE if this user is managed by the provided user.
+     * 
+     * @param   App\Models\User     $user
+     * @return  boolean
+     */
+    public function managedBy(User $user)
+    {
+        return $this->managers()->where('managerId', $user->id)->count() > 0;
     }
 
     /**
