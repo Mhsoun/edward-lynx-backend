@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Sanitizer;
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
 use Illuminate\Validation\Rule;
@@ -40,6 +41,13 @@ class DevelopmentPlanController extends Controller
                 });
                 return $devPlan;
             }, $devPlans);
+        } elseif ($request->has('user')) {
+            $user = User::findOrFail($request->user);
+            $this->authorize('view', $user);
+
+            $devPlans = $user->developmentPlans()
+                        ->where('shared', true)
+                        ->get();
         } else {
             $devPlans = $user->developmentPlans()
                              ->orderByRaw('checked ASC, createdAt DESC')
