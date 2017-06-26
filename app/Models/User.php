@@ -937,8 +937,9 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         $invites =  SurveyRecipient::answerableBy($this)
                         ->unanswered()
                         ->get();
+        $allowedSurveyTypes = [0, 3]; // 360 and Lynx
         foreach ($invites as $invite) {
-            if ($invite->survey->isValid()) {
+            if ($invite->survey->isValid() && in_array($invite->survey->type, $allowedSurveyTypes)) {
                 $collection->push($invite->survey);
             }
         }
