@@ -835,7 +835,7 @@ class Survey extends Model implements Routable, JsonHalLinking
             $method = "{$text}Text";
             $emailText = $this->{$method};
             
-            if ($emailText->exists) {
+            if ($emailText && $emailText->exists) {
                 $data['emails'][$text] = [
                     'subject'   => $emailText->subject,
                     'text'      => $emailText->text
