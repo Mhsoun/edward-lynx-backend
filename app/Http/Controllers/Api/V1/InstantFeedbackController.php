@@ -100,12 +100,8 @@ class InstantFeedbackController extends Controller
     {
         $currentUser = $request->user();
 
-        if ($instantFeedback->user->id === $currentUser->id) {
-            $key = null;
-        } else {
-            $recipient = $this->findRecipient($instantFeedback, $currentUser);
-            $key = $instantFeedback->answerKeyOf($recipient);
-        }
+        $recipient = $this->findRecipient($instantFeedback, $currentUser);
+        $key = $instantFeedback->answerKeyOf($recipient);
         
         return response()->jsonHal($instantFeedback)
                          ->with([
