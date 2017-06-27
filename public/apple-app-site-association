@@ -1,0 +1,11 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "KGZFZP3DEA.com.mobileapp.edwardlynx",
+                "paths": ["/survey/answer/*", "/instant-feedbacks/answer/*"]
+            }
+        ]
+    }
+}
