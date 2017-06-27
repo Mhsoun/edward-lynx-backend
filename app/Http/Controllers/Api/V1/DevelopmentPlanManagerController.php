@@ -58,7 +58,7 @@ class DevelopmentPlanManagerController extends Controller
     {
         $currentUser = $request->user();
         $this->validate($request, [
-            'users'         => 'required|array',
+            'users'         => 'array',
             'users.*.id'    => 'required|exists:users|colleague|sharing_dev_plans|not_in:'. $currentUser->id
         ]);
 
