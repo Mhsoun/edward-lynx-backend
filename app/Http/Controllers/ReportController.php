@@ -159,6 +159,8 @@ class ReportController extends Controller
     **/
     private function generateReportPDF($reportData)
     {
+        ini_set('memory_limit', '256M');
+        
         $survey = $reportData->survey;
 
         $html = $reportData->html;
