@@ -42,6 +42,8 @@ class DevelopmentPlanManagerController extends Controller
                     'name'      => $user->name,
                     'devPlans'  => $user->developmentPlans()->where('shared', true)->get()
                 ];
+            })->filter(function($item) {
+                return count($item['devPlans']) > 0;
             })->toArray();
         }
 
