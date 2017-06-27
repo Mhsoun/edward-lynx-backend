@@ -790,11 +790,15 @@ class Survey extends Model implements Routable, JsonHalLinking
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
 
-        $recipient = Recipient::findForOwner($this->ownerId, $currentUser->email);
-        $key = $this->answerKeyOf($recipient);
-        $data['key'] = $key;
-        $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
-        $data['description'] = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
+        if ($recipient = Recipient::findForOwner($this->ownerId, $currentUser->email)) {
+            $data['key'] = $this->answerKeyOf($recipient);
+            $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
+            $data['description'] = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
+        } else {
+            $data['key'] = null;
+            $data['status'] = 3;
+            $data['description'] = $this->description;
+        }
 
         $recipients = $this->recipients();
         $data['stats'] = [
