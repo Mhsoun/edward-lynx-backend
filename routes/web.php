@@ -13,6 +13,15 @@
 
 Auth::routes();
 
+Route::group(['prefix' => 'auth'], function () {
+    Route::get('/login', function() {
+        return redirect('/login');
+    });
+    Route::get('/logout', function() {
+        return redirect('/logout');
+    });
+});
+
 Route::bind('form', function ($id) {
     return App\form::whereSlug($id)->first();
 });
