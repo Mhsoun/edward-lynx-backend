@@ -2,17 +2,19 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use App\Models\InstantFeedback;
 use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
+use App\Notifications\Concerns\IncludesBadgeCount;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class InstantFeedbackInvitation extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, IncludesBadgeCount;
 
     /**
      * Instant Feedback ID.
@@ -59,9 +61,9 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
     public function via($notifiable)
     {
         if (method_exists($notifiable, 'deviceTokens')) {
-            return ['mail', FirebaseChannel::class];
+            return ['database', 'mail', FirebaseChannel::class];
         } else {
-            return ['mail'];
+            return ['database', 'mail'];
         }
     }
 
@@ -97,9 +99,27 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
                 'recipient' => $notifiable->name,
                 'sender'    => $this->sender
             ]))
-            ->data([
+            ->data($this->withBadgeCountOf($notifiable, [
                 'type'  => 'instant-request',
                 'id'    => $this->instantFeedbackId
-            ])->to($notifiable->deviceTokens());
+            ]))
+            ->to($notifiable->deviceTokens());
+    }
+
+    /**
+     * Returns the database representation of the notification.
+     * 
+     * @param   mixed   $notifiable
+     * @return  array
+     */
+    public function toDatabase($notifiable)
+    {
+        if (!$notifiable instanceof User) {
+            return null;
+        }
+
+        return [
+            'instantFeedbackKey' => $this->key
+        ];
     }
 }

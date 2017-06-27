@@ -9,11 +9,12 @@ use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Services\Firebase\FirebaseNotification;
+use App\Notifications\Concerns\IncludesBadgeCount;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class DevelopmentPlanGoalReminder extends Notification
 {
-    use Queueable;
+    use Queueable, IncludesBadgeCount;
 
     /**
      * Goal title.
@@ -56,7 +57,7 @@ class DevelopmentPlanGoalReminder extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail', FirebaseChannel::class];
+        return ['database', 'mail', FirebaseChannel::class];
     }
 
     /**
@@ -96,9 +97,23 @@ class DevelopmentPlanGoalReminder extends Notification
                 'goal'      => $this->goal,
                 'due'       => $this->dueDate->diffForHumans()
             ]))
-            ->data([
+            ->data($this->withBadgeCountOf($notifiable, [
                 'type'  => 'dev-plan',
                 'id'    => $this->devPlanId
-            ])->to($notifiable->deviceTokens());
+            ]))
+            ->to($notifiable->deviceTokens());
+    }
+
+    /**
+     * Returns the database representation of the notification.
+     * 
+     * @param   mixed   $notifiable
+     * @return  array
+     */
+    public function toDatabase($notifiable)
+    {
+        return [
+            'devPlanId' => $this->devPlanId
+        ];
     }
 }

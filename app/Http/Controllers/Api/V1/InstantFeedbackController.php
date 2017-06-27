@@ -19,6 +19,7 @@ use App\Models\InstantFeedbackShare;
 use App\Models\InstantFeedbackAnswer;
 use App\Models\InstantFeedbackQuestion;
 use App\Models\InstantFeedbackRecipient;
+use App\Events\InstantFeedbackKeyExchanged;
 use App\Jobs\ProcessInstantFeedbackInvites;
 use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
@@ -85,10 +86,7 @@ class InstantFeedbackController extends Controller
         $this->notifyRecipients($instantFeedback, $request->recipients);
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
-        return response(' ', 201, [
-            'Location'      => $url,
-            'Content-Type'  => 'application/json'
-        ]);
+        return createdResponse(['Location' => $url]);
     }
     
     /**
@@ -102,12 +100,8 @@ class InstantFeedbackController extends Controller
     {
         $currentUser = $request->user();
 
-        if ($instantFeedback->user->id === $currentUser->id) {
-            $key = null;
-        } else {
-            $recipient = $this->findRecipient($instantFeedback, $currentUser);
-            $key = $instantFeedback->answerKeyOf($recipient);
-        }
+        $recipient = $this->findRecipient($instantFeedback, $currentUser);
+        $key = $instantFeedback->answerKeyOf($recipient);
         
         return response()->jsonHal($instantFeedback)
                          ->with([
@@ -297,6 +291,8 @@ class InstantFeedbackController extends Controller
         $ifRecipient = InstantFeedbackRecipient::where('key', $key)
                         ->whereIn('recipientId', $recipients)
                         ->firstOrFail();
+
+        event(new InstantFeedbackKeyExchanged($currentUser, $key));
 
         return response()->jsonHal([
             'instant_feedback_id' => $ifRecipient->instantFeedbackId

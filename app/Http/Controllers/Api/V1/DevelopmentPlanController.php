@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Sanitizer;
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
 use Illuminate\Validation\Rule;
@@ -25,9 +26,34 @@ class DevelopmentPlanController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $devPlans = $user->developmentPlans()
-                         ->orderByRaw('checked ASC, createdAt DESC')
-                         ->get();
+        if ($request->has('type') && $request->type == 'expired') {
+            $devPlans = $user->developmentPlans
+                             ->filter(function($devPlan) {
+                                return $devPlan->goals()->expired()->count() > 0;
+                             })
+                             ->jsonSerialize();
+
+            // Remove non-expired development plan goals.
+            $now = Carbon::now();
+            $devPlans = array_map(function($devPlan) use ($now) {
+                $devPlan['goals'] = $devPlan['goals']->filter(function($goal) use ($now) {
+                    return $goal->dueDate !== null && $goal->dueDate->lte($now);
+                });
+                return $devPlan;
+            }, $devPlans);
+        } elseif ($request->has('user')) {
+            $user = User::findOrFail($request->user);
+            $this->authorize('view', $user);
+
+            $devPlans = $user->developmentPlans()
+                        ->where('shared', true)
+                        ->get();
+        } else {
+            $devPlans = $user->developmentPlans()
+                             ->orderByRaw('checked ASC, createdAt DESC')
+                             ->get();
+        }
+
         return response()->jsonHal($devPlans);
     }
     
@@ -108,6 +134,35 @@ class DevelopmentPlanController extends Controller
      */
     public function show(Request $request, DevelopmentPlan $devPlan)
     {
+        $currentUser = $request->user();
+        foreach($currentUser->unreadNotifications() as $notification) {
+            if ($notification->data['devPlanId'] == $devPlan->id) {
+                $notification->markAsRead();
+            }
+        }
+
+        return response()->jsonHal($devPlan);
+    }
+
+    /**
+     * Update development plan details.
+     *
+     * @param   Illuminate\Http\Request     $request
+     * @param   App\Models\DevelopmentPlan  $devPlan
+     * @return  App\Http\JsonHalResponse
+     */
+    public function update(Request $request, DevelopmentPlan $devPlan)
+    {
+        $this->validate($request, [
+            'shared'    => 'boolean'
+        ]);
+
+        if ($request->has('shared')) {
+            $devPlan->shared = $request->shared;
+        }
+
+        $devPlan->save();
+
         return response()->jsonHal($devPlan);
     }
     

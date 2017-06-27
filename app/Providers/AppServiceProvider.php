@@ -25,6 +25,24 @@ class AppServiceProvider extends ServiceProvider
             return preg_match($pattern, $val);
         });
 
+        // Checks if the provided user is a colleague of the current user.
+        Validator::extend('colleague', function($attr, $val) {
+            if ($user = User::find($val)) {
+                return $user->colleagueOf(request()->user());
+            } else {
+                return false;
+            }
+        });
+
+        // Checks if the provided user has shared development plans.
+        Validator::extend('sharing_dev_plans', function($attr, $val) {
+            if ($user = User::find($val)) {
+                return $user->developmentPlans()->where('shared', true)->count() > 0;
+            } else {
+                return false;
+            }
+        });
+
         // Force SSL if APP_FORCE_SSL is present
         if (env('APP_FORCE_HTTPS') === true) {
         	$url->forceSchema('https');

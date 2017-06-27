@@ -40,8 +40,8 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
             $due = Carbon::now()->addDays(self::DUE_THRESHOLD);
         }
 
-        return $query->whereDate('dueDate', '>=', $now)
-                     ->whereDate('dueDate', '<=', $due);
+        return $query->where('dueDate', '>=', $now)
+                     ->where('dueDate', '<=', $due);
     }
 
     /**
@@ -53,6 +53,18 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     public function scopeOpen(Builder $query)
     {
         return $query->where('checked', false);
+    }
+
+    /**
+     * Scopes results to expired development plan goals only.
+     * 
+     * @param  Illuminate\Database\Eloquent\Builder    $query
+     * @return Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeExpired(Builder $query)
+    {
+        $now = Carbon::now();
+        return $query->where('dueDate', '<=', $now);
     }
 
     /**
@@ -120,12 +132,18 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
      */
     public function updateChecked()
     {
-        $notDone = $this->actions()
-                        ->where('checked', false)
-                        ->count();
-        $this->checked = !$notDone > 0;
+        $this->load('actions');
+        
+        if ($this->actions()->count() == 0) {
+            $this->checked = false;
+        } else {
+            $notDone = $this->actions()
+                            ->where('checked', false)
+                            ->count();
+            $this->checked = $notDone == 0;
+        }
+        
         $this->save();
-
         return $this->checked;
     }
 

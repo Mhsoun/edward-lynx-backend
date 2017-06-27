@@ -86,6 +86,8 @@ Route::group(['prefix' => '/dev-plans'], function() {
     Route::get('/{devPlan}', 'DevelopmentPlanController@show')
         ->middleware('can:view,devPlan')
         ->name('api1-dev-plan');
+    Route::patch('/{devPlan}', 'DevelopmentPlanController@update')
+        ->middleware('can:update,devPlan');
     
     Route::post('/{devPlan}/goals', 'DevelopmentPlanGoalController@create')
         ->middleware('can:create,devPlan');
@@ -99,6 +101,15 @@ Route::group(['prefix' => '/dev-plans'], function() {
     Route::patch('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanGoalActionController@update');
     Route::delete('/{devPlan}/goals/{goal}/actions/{action}', 'DevelopmentPlanGoalActionController@delete')
         ->middleware('can:update,devPlan');
+});
+
+// /dev-plans-manager Endpoints
+Route::group(['prefix' => '/dev-plans-manager'], function() {
+    Route::get('/users', 'DevelopmentPlanManagerController@users')
+        ->middleware('can:link,App\Models\DevelopmentPlan')
+        ->name('api1-dev-plan-manager-users');
+    Route::put('/users', 'DevelopmentPlanManagerController@set')
+        ->middleware('can:link,App\Models\DevelopmentPlan');
 });
 
 // /categories Endpoints

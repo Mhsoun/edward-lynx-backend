@@ -759,11 +759,14 @@ class Survey extends Model implements Routable, JsonHalLinking
     public function answerKeyOf(Recipient $recipient, $exceptHasAnswered = true)
     {
         $recipient = $this->recipients()
-                          ->where([
-                              'recipientId'   => $recipient->id,
-                              'hasAnswered'   => !$exceptHasAnswered
-                          ])
-                          ->first();
+                          ->where('recipientId', $recipient->id);
+        
+        if ($exceptHasAnswered) {
+            $recipient->where('hasAnswered', false);
+        }
+        
+        $recipient = $recipient->first();
+
         if ($recipient) {
           return $recipient->link;
         } else {
@@ -832,7 +835,7 @@ class Survey extends Model implements Routable, JsonHalLinking
             $method = "{$text}Text";
             $emailText = $this->{$method};
             
-            if ($emailText->exists) {
+            if ($emailText && $emailText->exists) {
                 $data['emails'][$text] = [
                     'subject'   => $emailText->subject,
                     'text'      => $emailText->text

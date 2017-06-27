@@ -44,6 +44,18 @@ class DevelopmentPlanPolicy extends Policy
     }
 
     /**
+     * Determine whether the user can link/manage development plans to
+     * his/her user account.
+     * 
+     * @param   App\Models\User  $user
+     * @return  boolean
+     */
+    public function link(User $user)
+    {
+        return ($user->isA(User::SUPERVISOR) || $user->isA(User::ADMIN));
+    }
+
+    /**
      * Determine whether the user can update the developmentPlan.
      *
      * @param   App\User                $user

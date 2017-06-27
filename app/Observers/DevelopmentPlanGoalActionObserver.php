@@ -7,10 +7,15 @@ use App\Models\DevelopmentPlanGoalAction;
 class DevelopmentPlanGoalActionObserver
 {
 
-    public function saved(DevelopmentPlanGoalAction $action)
+    public function created(DevelopmentPlanGoalAction $action)
+    {
+        $action->goal->updateActionPositions();
+    }
+
+    public function updated(DevelopmentPlanGoalAction $action)
     {
         $changed = $action->getDirty();
-
+        
         if (isset($changed['checked'])) {
             $action->goal->updateChecked();
         }

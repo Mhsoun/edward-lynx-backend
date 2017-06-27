@@ -2,6 +2,7 @@
 
 use App\Sanitizer;
 use Carbon\Carbon;
+use Carbon\CarbonInterval;
 
 /**
  * Sanitizes a string.
@@ -38,6 +39,7 @@ function dateFromIso8601String($str) {
     }
 
     $dt = DateTime::createFromFormat(DateTime::RFC3339, $str);
+    $dt->setTimezone(new DateTimeZone('UTC'));
     $carbon = Carbon::instance($dt);
     $carbon->tz(config('app.timezone'));
 
