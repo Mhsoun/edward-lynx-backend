@@ -67,10 +67,11 @@ class SurveyController extends Controller
             }
         };
 
+        $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
             $surveys = Survey::answerableBy($user)
                             ->valid()
-                            ->where('type', SurveyTypes::Individual)
+                            ->whereIn('type', $supportedTypes)
                             ->latest('endDate')
                             ->orderByRaw('survey_recipients.hasAnswered ASC')
                             ->paginate($num)
@@ -79,7 +80,7 @@ class SurveyController extends Controller
         } else {
             $surveys = Survey::where('ownerId', $user->id)
                            ->valid()
-                           ->where('type', SurveyTypes::Individual)
+                           ->whereIn('type', $supportedTypes)
                            ->latest('endDate')
                            ->paginate($num);
         }

@@ -2,6 +2,7 @@
 
 use DB;
 use Carbon\Carbon;
+use App\SurveyTypes;
 use App\Models\UserDevice;
 use App\Contracts\Routable;
 use UnexpectedValueException;
@@ -938,7 +939,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         $invites =  SurveyRecipient::answerableBy($this)
                         ->unanswered()
                         ->get();
-        $allowedSurveyTypes = [0, 3]; // 360 and Lynx
+        $allowedSurveyTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         foreach ($invites as $invite) {
             if ($invite->survey->isValid() && in_array($invite->survey->type, $allowedSurveyTypes)) {
                 $collection->push($invite->survey);
