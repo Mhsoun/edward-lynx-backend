@@ -1,6 +1,8 @@
 <?php namespace App\Models;
 
+use DB;
 use Carbon\Carbon;
+use App\SurveyTypes;
 use App\Models\UserDevice;
 use App\Contracts\Routable;
 use UnexpectedValueException;
@@ -154,6 +156,17 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     public function managers()
     {
         return $this->belongsToMany(User::class, 'managed_users', 'userId', 'managerId');
+    }
+
+    /**
+     * Returns TRUE if this user is managed by the provided user.
+     * 
+     * @param   App\Models\User     $user
+     * @return  boolean
+     */
+    public function managedBy(User $user)
+    {
+        return $this->managers()->where('managerId', $user->id)->count() > 0;
     }
 
     /**
@@ -907,6 +920,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         foreach ($this->developmentPlans()->open()->get() as $devPlan) {
             $dueGoals = $devPlan->goals()
                                 ->due(8)
+                                ->open()
                                 ->get();
             foreach ($dueGoals as $goal) {
                 $collection->push($goal);
@@ -925,8 +939,9 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         $invites =  SurveyRecipient::answerableBy($this)
                         ->unanswered()
                         ->get();
+        $allowedSurveyTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         foreach ($invites as $invite) {
-            if ($invite->survey->isValid()) {
+            if ($invite->survey->isValid() && in_array($invite->survey->type, $allowedSurveyTypes)) {
                 $collection->push($invite->survey);
             }
         }

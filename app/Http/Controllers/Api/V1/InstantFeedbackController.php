@@ -86,10 +86,7 @@ class InstantFeedbackController extends Controller
         $this->notifyRecipients($instantFeedback, $request->recipients);
 
         $url = route('api1-instant-feedback', ['instantFeedback' => $instantFeedback]);
-        return response(' ', 201, [
-            'Location'      => $url,
-            'Content-Type'  => 'application/json'
-        ]);
+        return createdResponse(['Location' => $url]);
     }
     
     /**
@@ -103,12 +100,8 @@ class InstantFeedbackController extends Controller
     {
         $currentUser = $request->user();
 
-        if ($instantFeedback->user->id === $currentUser->id) {
-            $key = null;
-        } else {
-            $recipient = $this->findRecipient($instantFeedback, $currentUser);
-            $key = $instantFeedback->answerKeyOf($recipient);
-        }
+        $recipient = $this->findRecipient($instantFeedback, $currentUser);
+        $key = $instantFeedback->answerKeyOf($recipient);
         
         return response()->jsonHal($instantFeedback)
                          ->with([

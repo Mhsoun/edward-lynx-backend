@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Events\SurveyKeyExchanged;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
