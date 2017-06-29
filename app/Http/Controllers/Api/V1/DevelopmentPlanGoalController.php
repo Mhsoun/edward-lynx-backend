@@ -57,6 +57,9 @@ class DevelopmentPlanGoalController extends Controller
             $goal->save();
         }
 
+        $goal->ownerId = $currentUser->id;
+        $goal->save();
+
         foreach ($request->actions as $action) {
             $goal->actions()->create($action);
         }
