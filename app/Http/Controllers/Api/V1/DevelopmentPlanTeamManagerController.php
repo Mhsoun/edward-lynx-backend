@@ -90,11 +90,17 @@ class DevelopmentPlanTeamManagerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\DevelopmentPlan  $developmentPlan
+     * @param  \App\DevelopmentPlan  $devPlan
      * @return \Illuminate\Http\Response
      */
-    public function destroy(DevelopmentPlan $developmentPlan)
+    public function destroy(DevelopmentPlan $devPlan)
     {
-        //
+        if (!$devPlan->team) {
+            abort(404);
+        }
+
+        $devPlan->delete();
+
+        return response('', 204, ['Content-type' => 'application/json']);
     }
 }
