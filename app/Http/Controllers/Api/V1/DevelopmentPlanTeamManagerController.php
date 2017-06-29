@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\DevelopmentPlan;
 use Illuminate\Http\Request;
+use App\Models\DevelopmentPlan;
 use App\Http\Controllers\Controller;
 
 class DevelopmentPlanTeamManagerController extends Controller
@@ -13,9 +13,15 @@ class DevelopmentPlanTeamManagerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $currentUser = $request->user();
+        $devPlans = DevelopmentPlan::team()
+                        ->where('ownerId', $currentUser->id)
+                        ->orderBy('createdAt', 'desc')
+                        ->get();
+
+        return response()->jsonHal($devPlans);
     }
 
     /**

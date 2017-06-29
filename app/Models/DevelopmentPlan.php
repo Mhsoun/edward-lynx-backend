@@ -37,6 +37,17 @@ class DevelopmentPlan extends BaseModel implements Routable
     {
         return $query->where('checked', false);
     }
+
+    /**
+     * Scopes results to team development plans only.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTeam(Builder $query)
+    {
+        return $query->where('team', true);
+    }
     
     /**
      * Returns the user who owns this development plan.
