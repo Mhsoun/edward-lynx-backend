@@ -14,7 +14,9 @@ class RenameInstantFeedbackColumnsToMatchStandards extends Migration
     public function up()
     {
         Schema::table('instant_feedbacks', function (Blueprint $table) {
-            // $table->dropForeign(['user_id']);
+            if ($this->hasForeignKey('instant_feedbacks', 'user_id')) {
+              $table->dropForeign(['user_id']);
+            }
 
             $table->renameColumn('user_id', 'userId');
             $table->renameColumn('closed_at', 'closedAt');
@@ -66,7 +68,9 @@ class RenameInstantFeedbackColumnsToMatchStandards extends Migration
         
         Schema::table('instant_feedback_recipients', function (Blueprint $table) {
             $table->dropForeign(['instant_feedback_id']);
-            // $table->dropForeign(['user_id']);
+            if ($this->hasForeignKey('instant_feedbacks', 'user_id')) {
+              $table->dropForeign(['user_id']);
+            }
 
             $table->renameColumn('instant_feedback_id', 'instantFeedbackId');
             $table->renameColumn('user_id', 'userId');
@@ -137,5 +141,14 @@ class RenameInstantFeedbackColumnsToMatchStandards extends Migration
             $table->renameColumn('createdAt', 'created_at');
             $table->renameColumn('updatedAt', 'updated_at');
         });
+    }
+
+    protected function hasForeignKey($table, $key)
+    {
+        $foreignKeys = Schema::getConnection()->getDoctrineSchemaManager()->listTableForeignKeys('instant_feedback_answers');
+        $foreignKeys = array_map(function ($foreignKey) {
+            return $foreignKey->getName();
+        }, $foreignKeys);
+        return in_array($key, $foreignKeys);
     }
 }
