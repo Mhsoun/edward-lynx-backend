@@ -49,12 +49,15 @@ class DevelopmentPlanTeamManagerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\DevelopmentPlan  $developmentPlan
+     * @param  \App\DevelopmentPlan  $devPlan
      * @return \Illuminate\Http\Response
      */
-    public function show(DevelopmentPlan $developmentPlan)
+    public function show(DevelopmentPlan $devPlan)
     {
-        //
+        return response()->jsonHal($devPlan)
+                         ->withLinks([
+                            'self'  => route('api1-dev-plan-manager-teams.show', $devPlan)
+                         ]);
     }
 
     /**
