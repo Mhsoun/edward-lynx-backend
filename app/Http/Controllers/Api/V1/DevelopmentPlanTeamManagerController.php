@@ -33,7 +33,7 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'name'  => 'required|string'
+            'name'  => 'required|string|max:255'
         ]);
 
         $currentUser = $request->user();
