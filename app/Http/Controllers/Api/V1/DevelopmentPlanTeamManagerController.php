@@ -64,12 +64,19 @@ class DevelopmentPlanTeamManagerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\DevelopmentPlan  $developmentPlan
+     * @param  \App\DevelopmentPlan  $devPlan
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, DevelopmentPlan $developmentPlan)
+    public function update(Request $request, DevelopmentPlan $devPlan)
     {
-        //
+        $this->validate($request, [
+            'name'  => 'required|string|max:255'
+        ]);
+
+        $devPlan->fill($request->only('name'));
+        $devPlan->save();
+
+        return response()->jsonHal($devPlan);
     }
 
     /**
