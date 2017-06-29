@@ -54,6 +54,10 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function show(DevelopmentPlan $devPlan)
     {
+        if (!$devPlan->team) {
+            abort(404);
+        }
+
         return response()->jsonHal($devPlan)
                          ->withLinks([
                             'self'  => route('api1-dev-plan-manager-teams.show', $devPlan)
@@ -69,6 +73,10 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function update(Request $request, DevelopmentPlan $devPlan)
     {
+        if (!$devPlan->team) {
+            abort(404);
+        }
+        
         $this->validate($request, [
             'name'  => 'required|string|max:255'
         ]);
