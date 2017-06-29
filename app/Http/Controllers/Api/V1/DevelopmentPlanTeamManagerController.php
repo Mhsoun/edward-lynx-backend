@@ -32,7 +32,18 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'name'  => 'required|string'
+        ]);
+
+        $currentUser = $request->user();
+
+        $devPlan = new DevelopmentPlan($request->only('name'));
+        $devPlan->ownerId = $currentUser->id;
+        $devPlan->team = true;
+        $devPlan->save();
+
+        return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }
 
     /**
