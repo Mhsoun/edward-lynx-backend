@@ -45,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Force SSL if APP_FORCE_SSL is present
         if (env('APP_FORCE_HTTPS') === true) {
+            request()->server->set('HTTPS', 'on');
         	$url->forceSchema('https');
         }
 	}

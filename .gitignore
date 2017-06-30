@@ -2,8 +2,11 @@
 /node_modules
 /storage/oauth-private.key
 /storage/oauth-public.key
+/public/reports
 composer.phar
 composer.lock
+vendor/
+
 .env
 .env.*.php
 .env.php
