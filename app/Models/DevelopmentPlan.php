@@ -57,9 +57,9 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      * @param   Illuminate\Database\Eloquent\Builder    $query
      * @return  Illuminate\Database\Eloquent\Builder
      */
-    public function scopeTeam(Builder $query)
+    public function scopeForTeams(Builder $query)
     {
-        return $query->where('team', true);
+        return $query->join('development_plan_team_attributes', 'development_plans.id', '=', 'development_plan_team_attributes.developmentPlanId');
     }
     
     /**
@@ -81,16 +81,6 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     {
         return $this->hasMany(DevelopmentPlanGoal::class, 'developmentPlanId')
                     ->orderBy('position', 'asc');
-    }
-
-    /**
-     * Returns the team attribute model for this development plan.
-     * 
-     * @return  Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function team()
-    {
-        return $this->hasOne(DevelopmentPlanAttribute::class, 'developmentPlanId');
     }
 
     /**

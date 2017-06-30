@@ -16,7 +16,7 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function index(Request $request)
     {
         $currentUser = $request->user();
-        $devPlans = DevelopmentPlan::team()
+        $devPlans = DevelopmentPlan::forTeams()
                         ->where('ownerId', $currentUser->id)
                         ->orderBy('createdAt', 'desc')
                         ->get();
