@@ -4,9 +4,10 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Builder;
 
-class DevelopmentPlan extends BaseModel implements Routable
+class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
 {
     
     const CREATED_AT = 'createdAt';
@@ -25,6 +26,18 @@ class DevelopmentPlan extends BaseModel implements Routable
     public function url()
     {
         return route('api1-dev-plan', $this);
+    }
+
+    /**
+     * Returns additional JSON-HAL links.
+     * 
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        return [
+            'goals' => route('api1-dev-plan-goals.index', $this)
+        ];
     }
 
     /**
@@ -117,18 +130,6 @@ class DevelopmentPlan extends BaseModel implements Routable
         $json = parent::jsonSerialize();
         $json['goals'] = $this->goals;
         return $json;
-    }
-    
-    /**
-     * Returns additional links for JSON-HAL links field.
-     *
-     * @return  array
-     */
-    public function jsonHalLinks()
-    {
-        return [
-            'owner' => $this->owner->url()
-        ];
     }
     
 }
