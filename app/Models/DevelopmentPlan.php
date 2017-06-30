@@ -4,15 +4,16 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Builder;
 
-class DevelopmentPlan extends BaseModel implements Routable
+class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
 {
     
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
-    public $fillable = ['name'];
+    public $fillable = ['name', 'shared'];
     
     protected $visible = ['id', 'name', 'checked', 'shared', 'createdAt', 'updatedAt'];
 
@@ -28,6 +29,18 @@ class DevelopmentPlan extends BaseModel implements Routable
     }
 
     /**
+     * Returns additional JSON-HAL links.
+     * 
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        return [
+            'goals' => route('api1-dev-plan-goals.index', $this)
+        ];
+    }
+
+    /**
      * Scopes results to open/unchecked development plans goals only.
      *
      * @param   Illuminate\Database\Eloquent\Builder    $query
@@ -36,6 +49,17 @@ class DevelopmentPlan extends BaseModel implements Routable
     public function scopeOpen(Builder $query)
     {
         return $query->where('checked', false);
+    }
+
+    /**
+     * Scopes results to team development plans only.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTeam(Builder $query)
+    {
+        return $query->where('team', true);
     }
     
     /**
@@ -106,18 +130,6 @@ class DevelopmentPlan extends BaseModel implements Routable
         $json = parent::jsonSerialize();
         $json['goals'] = $this->goals;
         return $json;
-    }
-    
-    /**
-     * Returns additional links for JSON-HAL links field.
-     *
-     * @return  array
-     */
-    public function jsonHalLinks()
-    {
-        return [
-            'owner' => $this->owner->url()
-        ];
     }
     
 }

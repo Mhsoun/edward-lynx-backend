@@ -17,4 +17,15 @@ class UserPolicy extends Policy
     {
         return $currentUser->colleagueOf($user);
     }
+
+    /**
+     * Determine whether the user can manage other users.
+     * 
+     * @param  App\Models\User   $user
+     * @return boolean
+     */
+    public function manage(User $user)
+    {
+        return $user->isA(User::SUPERVISOR);
+    }
 }

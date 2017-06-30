@@ -99,6 +99,16 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     }
 
     /**
+     * Returns the owner of this development plan goal.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'ownerId');
+    }
+
+    /**
      * Goals are sorted by their position by default.
      *
      * @param   Illuminate\Database\Eloquent\Builder    $builder
