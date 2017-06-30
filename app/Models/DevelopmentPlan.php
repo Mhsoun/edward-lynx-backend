@@ -84,6 +84,16 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     }
 
     /**
+     * Returns the team attribute model for this development plan.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function team()
+    {
+        return $this->hasOne(DevelopmentPlanAttribute::class, 'developmentPlanId');
+    }
+
+    /**
      * Updates this dev plan's checked status depending on the checked
      * status of it's child goals.
      *
