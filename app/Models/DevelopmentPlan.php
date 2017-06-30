@@ -13,7 +13,7 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
-    public $fillable = ['name'];
+    public $fillable = ['name', 'shared'];
     
     protected $visible = ['id', 'name', 'checked', 'shared', 'createdAt', 'updatedAt'];
 
