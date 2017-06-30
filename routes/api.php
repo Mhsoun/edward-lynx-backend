@@ -90,7 +90,7 @@ Route::group(['prefix' => '/dev-plans'], function() {
         ->middleware('can:update,devPlan');
     
     Route::post('/{devPlan}/goals', 'DevelopmentPlanGoalController@create')
-        ->middleware('can:create,devPlan');
+        ->middleware('can:update,devPlan');
     Route::patch('/{devPlan}/goals/{goal}', 'DevelopmentPlanGoalController@update')
         ->middleware('can:update,devPlan');
     Route::delete('/{devPlan}/goals/{goal}', 'DevelopmentPlanGoalController@destroy')
