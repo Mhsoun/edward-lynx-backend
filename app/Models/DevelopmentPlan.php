@@ -84,6 +84,16 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     }
 
     /**
+     * Returns the team attribute record for this model.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne 
+     */
+    public function teamAttribute()
+    {
+        return $this->hasOne(DevelopmentPlanTeamAttribute::class, 'developmentPlanId');
+    }
+
+    /**
      * Updates this dev plan's checked status depending on the checked
      * status of it's child goals.
      *
@@ -118,6 +128,23 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
             $goal->position = $index;
             $goal->save();
         }
+    }
+
+    /**
+     * Converts this development plan to a team dev plan.
+     * 
+     * @param   integer  $position
+     * @param   boolean  $visible
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function convertToTeam($position = 0, $visible = false)
+    {
+        $this->teamAttribute()->create([
+            'position'  => $position,
+            'visible'   => $visible
+        ])->save();
+
+        return $this->teamAttribute();
     }
     
     /**

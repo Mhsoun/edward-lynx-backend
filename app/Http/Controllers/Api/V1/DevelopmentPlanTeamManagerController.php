@@ -43,6 +43,8 @@ class DevelopmentPlanTeamManagerController extends Controller
         $devPlan->team = true;
         $devPlan->save();
 
+        $devPlan->convertToTeam();
+
         return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }
 
