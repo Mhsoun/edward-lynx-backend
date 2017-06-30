@@ -93,16 +93,18 @@ class DevelopmentPlanController extends Controller
                 'position'      => $g['position'],
             ];
 
+            $goal = new DevelopmentPlanGoal($attributes);
+            $goal->developmentPlanId = $devPlan->id;
+            $goal->ownerId = $user->id;
+
             // Process category ID for goal.
             if (!empty($g['categoryId'])) {
                 $category = QuestionCategory::find($g['categoryId']);
                 if ($user->can('view', $category)) {
-                    $attributes['categoryId'] = $g['categoryId'];
+                    $goal->categoryId = $g['categoryId'];
                 }
             }
 
-            $goal = $devPlan->goals()->create($attributes);
-            $goal->categoryId = !empty($attributes['categoryId']) ? $attributes['categoryId'] : null;
             $goal->save();
             
             // Create actions under each goal.
