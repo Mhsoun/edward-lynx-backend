@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\DevelopmentPlan;
 use App\Models\DevelopmentPlanGoal;
 use Illuminate\Support\ServiceProvider;
 use App\Models\DevelopmentPlanGoalAction;
+use App\Observers\DevelopmentPlanObserver;
 use App\Observers\DevelopmentPlanGoalObserver;
 use App\Observers\DevelopmentPlanGoalActionObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -38,7 +40,8 @@ class DatabaseServiceProvider extends ServiceProvider
      */
     protected function registerModelHooks()
     {
-        DevelopmentPlanGoalAction::observe(DevelopmentPlanGoalActionObserver::class);
+        DevelopmentPlan::observe(DevelopmentPlanGoalObserver::class);
         DevelopmentPlanGoal::observe(DevelopmentPlanGoalObserver::class);
+        DevelopmentPlanGoalAction::observe(DevelopmentPlanGoalActionObserver::class);
     }
 }

@@ -18,6 +18,25 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     protected $visible = ['id', 'name', 'checked', 'shared', 'createdAt', 'updatedAt'];
 
     /**
+     * Sort team development plans by position.
+     * 
+     * @param   App\Models\User  $owner
+     * @return  void
+     */
+    public static function sortTeamsByPosition(User $owner)
+    {
+        $devPlans = $owner->developmentPlans()
+                          ->forTeams()
+                          ->orderBy('position', 'ASC')
+                          ->get();
+
+         foreach ($devPlans as $index => $devPlan) {
+            $attr = $devPlan->teamAttribute;
+            $attr->setPosition($index);
+         }
+    }
+
+    /**
      * Returns the API url to this development plan.
      *
      * @param   string  $prefix
@@ -91,6 +110,16 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     public function teamAttribute()
     {
         return $this->hasOne(DevelopmentPlanTeamAttribute::class, 'developmentPlanId');
+    }
+
+    /**
+     * Returns TRUE if this is a team development plan.
+     * 
+     * @return boolean [description]
+     */
+    public function isTeam()
+    {
+        return $this->teamAttribute()->count() > 0;
     }
 
     /**

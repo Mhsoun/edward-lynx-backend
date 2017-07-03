@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class DevelopmentPlanTeamAttribute extends Model
@@ -19,6 +20,19 @@ class DevelopmentPlanTeamAttribute extends Model
     public function developmentPlan()
     {
         return $this->belongsTo(DevelopmentPlan::class, 'developmentPlanId');
+    }
+
+    /**
+     * Set the position of a team development plan.
+     * 
+     * @param   integer     $position
+     * @return  void
+     */
+    public function setPosition($position)
+    {
+        DB::table('development_plan_team_attributes')
+            ->where('developmentPlanId', $this->developmentPlanId)
+            ->update(['position' => $position]);
     }
 
 }
