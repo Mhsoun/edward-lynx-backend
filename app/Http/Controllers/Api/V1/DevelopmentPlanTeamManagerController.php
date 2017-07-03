@@ -117,6 +117,7 @@ class DevelopmentPlanTeamManagerController extends Controller
         }
 
         $devPlan->delete();
+        DevelopmentPlan::sortTeamsByPosition($devPlan->owner);
 
         return response('', 204, ['Content-type' => 'application/json']);
     }
