@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use DB;
 use App\Models\BaseModel;
 use App\Contracts\Routable;
 use App\Contracts\JsonHalLinking;
@@ -30,10 +31,43 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
                           ->orderBy('position', 'ASC')
                           ->get();
 
-         foreach ($devPlans as $index => $devPlan) {
-            $attr = $devPlan->teamAttribute;
-            $attr->setPosition($index);
-         }
+        foreach ($devPlans as $index => $devPlan) {
+            $devPlan->updateTeamAttribute(['position' => $index]);
+        }
+    }
+
+    /**
+     * Creates a team development plan.
+     * 
+     * @param   App\Models\DevelopmentPlan   $devPlan
+     * @return  App\Models\DevelopmentPlan
+     */
+    public static function insertAsTeamDevelopmentPlan(DevelopmentPlan $devPlan)
+    {
+        if ($devPlan->isTeam()) {
+            return $devPlan;
+        }
+
+        $devPlans = DB::table('development_plan_team_attributes')
+                        ->select('development_plans.id', 'development_plan_team_attributes.position')
+                        ->join('development_plans', 'development_plan_team_attributes.developmentPlanId', '=', 'development_plans.id')
+                        ->where('development_plans.ownerId', $devPlan->ownerId)
+                        ->get();
+
+        foreach ($devPlans as $dp) {
+            DB::table('development_plan_team_attributes')
+                ->where('developmentPlanId', $dp->id)
+                ->update(['position' => $dp->position + 1]);
+        }
+
+        DB::table('development_plan_team_attributes')
+            ->insert([
+                'developmentPlanId' => $devPlan->id,
+                'position'          => 0,
+                'visible'           => false
+            ]);
+
+        return $devPlan;
     }
 
     /**
@@ -78,7 +112,8 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      */
     public function scopeForTeams(Builder $query)
     {
-        return $query->join('development_plan_team_attributes', 'development_plans.id', '=', 'development_plan_team_attributes.developmentPlanId');
+        $query->join('development_plan_team_attributes', 'development_plans.id', '=', 'development_plan_team_attributes.developmentPlanId');
+        return $query->orderBy('development_plan_team_attributes.position', 'ASC');
     }
     
     /**
@@ -105,21 +140,36 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     /**
      * Returns the team attribute record for this model.
      * 
-     * @return  Illuminate\Database\Eloquent\Relations\HasOne 
+     * @return  object|null
      */
     public function teamAttribute()
     {
-        return $this->hasOne(DevelopmentPlanTeamAttribute::class, 'developmentPlanId');
+        return DB::table('development_plan_team_attributes')
+                    ->where('developmentPlanId', $this->id)
+                    ->first();
     }
 
     /**
      * Returns TRUE if this is a team development plan.
      * 
-     * @return boolean [description]
+     * @return  boolean
      */
     public function isTeam()
     {
-        return $this->teamAttribute()->count() > 0;
+        return $this->teamAttribute() !== null;
+    }
+
+    /**
+     * Updates team attributes.
+     * 
+     * @param   array  $attributes
+     * @return  void
+     */
+    public function updateTeamAttribute(array $attributes)
+    {
+        DB::table('development_plan_team_attributes')
+            ->where('developmentPlanId', $this->id)
+            ->update($attributes);
     }
 
     /**
@@ -157,23 +207,6 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
             $goal->position = $index;
             $goal->save();
         }
-    }
-
-    /**
-     * Converts this development plan to a team dev plan.
-     * 
-     * @param   integer  $position
-     * @param   boolean  $visible
-     * @return  Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function convertToTeam($position = 0, $visible = false)
-    {
-        $this->teamAttribute()->create([
-            'position'  => $position,
-            'visible'   => $visible
-        ])->save();
-
-        return $this->teamAttribute();
     }
     
     /**

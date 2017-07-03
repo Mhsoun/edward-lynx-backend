@@ -40,7 +40,6 @@ class DatabaseServiceProvider extends ServiceProvider
      */
     protected function registerModelHooks()
     {
-        DevelopmentPlan::observe(DevelopmentPlanGoalObserver::class);
         DevelopmentPlanGoal::observe(DevelopmentPlanGoalObserver::class);
         DevelopmentPlanGoalAction::observe(DevelopmentPlanGoalActionObserver::class);
     }

@@ -5,21 +5,25 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
 use App\Http\Controllers\Controller;
+use App\Models\DevelopmentPlanTeamAttribute;
 
 class DevelopmentPlanTeamManagerController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return  Illuminate\Http\Response
      */
     public function index(Request $request)
     {
         $currentUser = $request->user();
         $devPlans = DevelopmentPlan::forTeams()
                         ->where('ownerId', $currentUser->id)
-                        ->orderBy('createdAt', 'desc')
-                        ->get();
+                        ->get()
+                        ->map(function($item) {
+                            return $this->serializeDevPlan($item);
+                        })
+                        ->toArray();
 
         return response()->jsonHal($devPlans);
     }
@@ -33,17 +37,16 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'name'  => 'required|string|max:255'
+            'name'      => 'required|string|max:255'
         ]);
 
         $currentUser = $request->user();
 
         $devPlan = new DevelopmentPlan($request->only('name'));
         $devPlan->ownerId = $currentUser->id;
-        $devPlan->team = true;
         $devPlan->save();
 
-        $devPlan->convertToTeam();
+        DevelopmentPlan::insertAsTeamDevelopmentPlan($devPlan);
 
         return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }
@@ -56,14 +59,15 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function show(DevelopmentPlan $devPlan)
     {
-        if (!$devPlan->team) {
+        if (!$devPlan->isTeam()) {
             abort(404);
         }
 
-        return response()->jsonHal($devPlan)
-                         ->withLinks([
-                            'self'  => route('api1-dev-plan-manager-teams.show', $devPlan)
-                         ]);
+        $devPlan = DevelopmentPlan::forTeams()
+                    ->where('id', $devPlan->id)
+                    ->first();
+
+        return response()->jsonHal($this->serializeDevPlan($devPlan));
     }
 
     /**
@@ -75,16 +79,27 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function update(Request $request, DevelopmentPlan $devPlan)
     {
-        if (!$devPlan->team) {
+        if (!$devPlan->isTeam()) {
             abort(404);
         }
         
         $this->validate($request, [
-            'name'  => 'required|string|max:255'
+            'name'      => 'string|max:255',
+            'position'  => 'integer|min:0',
+            'visible'   => 'boolean'
         ]);
 
-        $devPlan->fill($request->only('name'));
+        $devPlan->name = $request->name;
         $devPlan->save();
+
+        $devPlan->updateTeamAttribute($request->only('position', 'visible'));
+        if ($request->has('position')) {
+            DevelopmentPlan::sortTeamsByPosition($devPlan->owner);
+        }
+
+        $devPlan = DevelopmentPlan::forTeams()
+                    ->where('id', $devPlan->id)
+                    ->first();
 
         return response()->jsonHal($devPlan);
     }
@@ -97,12 +112,34 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function destroy(DevelopmentPlan $devPlan)
     {
-        if (!$devPlan->team) {
+        if (!$devPlan->isTeam()) {
             abort(404);
         }
 
         $devPlan->delete();
 
         return response('', 204, ['Content-type' => 'application/json']);
+    }
+
+    /**
+     * Serialies a development plan into its JSON equivalent.
+     * 
+     * @param   App\Models\DevelopmentPlan  $devPlan
+     * @return  array
+     */
+    protected function serializeDevPlan(DevelopmentPlan $devPlan)
+    {
+        return [
+            '_links'    => [
+                'self'  => ['href' => route('api1-dev-plan-manager-teams.show', $devPlan)],
+                'goals' => ['href' => route('api1-dev-plan-goals.index', $devPlan)]
+            ],
+            'id'        => $devPlan->id,
+            'name'      => $devPlan->name,
+            'ownerId'   => $devPlan->ownerId,
+            'position'  => $devPlan->position,
+            'checked'   => $devPlan->checked,
+            'visible'   => $devPlan->visible
+        ];
     }
 }
