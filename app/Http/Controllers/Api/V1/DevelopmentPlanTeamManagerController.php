@@ -16,7 +16,7 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function index(Request $request)
     {
         $currentUser = $request->user();
-        $devPlans = DevelopmentPlan::team()
+        $devPlans = DevelopmentPlan::forTeams()
                         ->where('ownerId', $currentUser->id)
                         ->orderBy('createdAt', 'desc')
                         ->get();
@@ -42,6 +42,8 @@ class DevelopmentPlanTeamManagerController extends Controller
         $devPlan->ownerId = $currentUser->id;
         $devPlan->team = true;
         $devPlan->save();
+
+        $devPlan->convertToTeam();
 
         return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }

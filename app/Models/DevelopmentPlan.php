@@ -18,6 +18,25 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     protected $visible = ['id', 'name', 'checked', 'shared', 'createdAt', 'updatedAt'];
 
     /**
+     * Sort team development plans by position.
+     * 
+     * @param   App\Models\User  $owner
+     * @return  void
+     */
+    public static function sortTeamsByPosition(User $owner)
+    {
+        $devPlans = $owner->developmentPlans()
+                          ->forTeams()
+                          ->orderBy('position', 'ASC')
+                          ->get();
+
+         foreach ($devPlans as $index => $devPlan) {
+            $attr = $devPlan->teamAttribute;
+            $attr->setPosition($index);
+         }
+    }
+
+    /**
      * Returns the API url to this development plan.
      *
      * @param   string  $prefix
@@ -57,9 +76,9 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      * @param   Illuminate\Database\Eloquent\Builder    $query
      * @return  Illuminate\Database\Eloquent\Builder
      */
-    public function scopeTeam(Builder $query)
+    public function scopeForTeams(Builder $query)
     {
-        return $query->where('team', true);
+        return $query->join('development_plan_team_attributes', 'development_plans.id', '=', 'development_plan_team_attributes.developmentPlanId');
     }
     
     /**
@@ -81,6 +100,26 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     {
         return $this->hasMany(DevelopmentPlanGoal::class, 'developmentPlanId')
                     ->orderBy('position', 'asc');
+    }
+
+    /**
+     * Returns the team attribute record for this model.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne 
+     */
+    public function teamAttribute()
+    {
+        return $this->hasOne(DevelopmentPlanTeamAttribute::class, 'developmentPlanId');
+    }
+
+    /**
+     * Returns TRUE if this is a team development plan.
+     * 
+     * @return boolean [description]
+     */
+    public function isTeam()
+    {
+        return $this->teamAttribute()->count() > 0;
     }
 
     /**
@@ -118,6 +157,23 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
             $goal->position = $index;
             $goal->save();
         }
+    }
+
+    /**
+     * Converts this development plan to a team dev plan.
+     * 
+     * @param   integer  $position
+     * @param   boolean  $visible
+     * @return  Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function convertToTeam($position = 0, $visible = false)
+    {
+        $this->teamAttribute()->create([
+            'position'  => $position,
+            'visible'   => $visible
+        ])->save();
+
+        return $this->teamAttribute();
     }
     
     /**
