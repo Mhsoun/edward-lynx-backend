@@ -81,8 +81,13 @@ class DevelopmentPlanController extends Controller
         $user = $request->user();
         
         // Create initial dev plan
-        $devPlan = new DevelopmentPlan($request->only('name', 'shared'));
+        $devPlan = new DevelopmentPlan($request->only('name'));
         $devPlan->ownerId = $user->id;
+
+        if ($request->has('shared')) {
+            $devPlan->shared = $request->shared;
+        }
+
         $devPlan->save();
 
         // Process development plan goals
