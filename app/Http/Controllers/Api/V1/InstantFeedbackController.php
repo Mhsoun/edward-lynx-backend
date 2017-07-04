@@ -290,6 +290,7 @@ class InstantFeedbackController extends Controller
                         });
         $ifRecipient = InstantFeedbackRecipient::where('key', $key)
                         ->whereIn('recipientId', $recipients)
+                        ->where('answered', false)
                         ->firstOrFail();
 
         event(new InstantFeedbackKeyExchanged($currentUser, $key));
