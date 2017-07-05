@@ -50,7 +50,7 @@ class AnswerController extends Controller
     {   
         $this->validate($request, [
             'key'                   => 'required|exists:survey_recipients,link',
-            'answers'               => 'required|array',
+            'answers'               => 'array',
             'answers.*.question'    => 'required|integer|exists:questions,id',
             'answers.*.value'       => 'required',
             'final'                 => 'boolean'
