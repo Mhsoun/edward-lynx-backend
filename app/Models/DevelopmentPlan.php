@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Builder;
 class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
 {
     
+    const SERIALIZE_NORMAL = 0;
+    const SERIALIZE_TEAM_DETAILS = 2;
+
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
@@ -214,11 +217,55 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      *
      * @return  array
      */
-    public function jsonSerialize()
+    public function jsonSerialize($type = 0)
+    {
+        switch ($type) {
+            case self::SERIALIZE_NORMAL:
+                return $this->jsonSerializeNormal();
+                break;
+            case self::SERIALIZE_TEAM_DETAILS:
+                return $this->jsonSerializeTeamDetailed();
+                break;
+        }
+    }
+
+    /**
+     * Serialize as a normal development plan.
+     * 
+     * @return  array
+     */
+    public function jsonSerializeNormal()
     {
         $json = parent::jsonSerialize();
         $json['goals'] = $this->goals;
         return $json;
+    }
+
+    public function jsonSerializeTeamDetailed()
+    {
+        return [
+            '_links'    => [
+                'self'  => ['href' => route('api1-dev-plan-manager-teams.show', $this)],
+                'goals' => ['href' => route('api1-dev-plan-goals.index', $this)]
+            ],
+            'id'        => $this->id,
+            'name'      => $this->name,
+            'ownerId'   => $this->ownerId,
+            'position'  => $this->position,
+            'checked'   => $this->checked,
+            'visible'   => $this->attributes['visible'],
+            'goals'     => $this->goals->map(function ($goal) {
+                return [
+                    'title'     => $goal->title,
+                    'progress'  => $goal->calculateProgress(),
+                    'owner'     => [
+                        'id'    => $goal->owner->id,
+                        'name'  => $goal->owner->name,
+                    ],
+                    'actions'   => $goal->actions
+                ];
+            })
+        ];
     }
     
 }

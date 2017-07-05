@@ -54,8 +54,8 @@ class DevelopmentPlanTeamManagerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\DevelopmentPlan  $devPlan
-     * @return \Illuminate\Http\Response
+     * @param   App\DevelopmentPlan  $devPlan
+     * @return  Illuminate\Http\Response
      */
     public function show(DevelopmentPlan $devPlan)
     {
@@ -65,9 +65,9 @@ class DevelopmentPlanTeamManagerController extends Controller
 
         $devPlan = DevelopmentPlan::forTeams()
                     ->where('id', $devPlan->id)
-                    ->first();
+                    ->firstOrFail();
 
-        return response()->jsonHal($this->serializeDevPlan($devPlan));
+        return response()->jsonHal($devPlan->jsonSerialize(DevelopmentPlan::SERIALIZE_TEAM_DETAILS));
     }
 
     /**
