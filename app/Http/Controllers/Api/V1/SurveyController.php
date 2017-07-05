@@ -531,7 +531,7 @@ class SurveyController extends Controller
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $recipient->id)
             ->where('surveyId', '=', $survey->id)
-            ->where('invitedById', '=', $owner)
+            // ->where('invitedById', '=', $owner) // Changes
             ->first();
 
         if ($existingRecipient) {
@@ -569,7 +569,7 @@ class SurveyController extends Controller
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $user->id)
             ->where('surveyId', '=', $survey->id)
-            ->where('invitedById', '=', $owner)
+            // ->where('invitedById', '=', $owner)
             ->first();
 
         if ($existingRecipient) {
