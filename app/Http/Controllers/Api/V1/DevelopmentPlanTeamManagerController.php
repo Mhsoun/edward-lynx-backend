@@ -52,6 +52,53 @@ class DevelopmentPlanTeamManagerController extends Controller
     }
 
     /**
+     * Sort multiple team development plans.
+     * 
+     * @param   Illuminate\Http\Request  $request
+     * @return  App\Http\JsonHalResponse
+     */
+    public function sort(Request $request)
+    {
+        $currentUser = $request->user();
+
+        $this->validate($request, [
+            'items'             => 'required|array',
+            'items.*.id'        => 'required|exists:development_plans',
+            'items.*.position'  => 'required|integer|min:0',
+            'items.*.visible'   => 'required|boolean'
+        ]);
+
+        foreach ($request->items as $item) {
+            $devPlan = DevelopmentPlan::find($item['id']);
+            $devPlan->updateTeamAttribute([
+                'position'  => $item['position'],
+                'visible'   => $item['visible']
+            ]);
+        }
+
+        $devPlans = DevelopmentPlan::forTeams()
+                        ->where('ownerId', $currentUser->id)
+                        ->get();
+        foreach ($devPlans as $index => $devPlan) {
+            $devPlan->updateTeamAttribute([
+                'position'  => $index
+            ]);
+        }
+
+        $response = ['items' => []];
+        foreach ($devPlans as $devPlan) {
+            $teamAttr = $devPlan->teamAttribute();
+            $response['items'][] = [
+                'id'        => $devPlan->id,
+                'position'  => $teamAttr->position,
+                'visible'   => $teamAttr->visible
+            ];
+        }
+
+        return response()->jsonHal($response);
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param   App\DevelopmentPlan  $devPlan
