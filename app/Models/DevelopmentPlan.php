@@ -267,6 +267,31 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
      */
     public function jsonSerializeTeamDetailed()
     {
+        $goalsByUser = [];
+        foreach ($this->goals as $goal) {
+            if (!isset($goalsByUser[$goal->owner->id])) {
+                $goalsByUser[$goal->owner->id] = [];
+            }
+
+            $goalsByUser[$goal->owner->id][] = $goal;
+        }
+
+        $goals = [];
+        foreach ($goalsByUser as $userId => $goalsColl) {
+            $user = User::find($userId);
+            $goals[] = [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'goals' => array_map(function($goal) {
+                    return [
+                        'title'     => $goal->title,
+                        'progress'  => $goal->calculateProgress(),
+                        'actions'   => $goal->actions
+                    ];
+                }, $goalsColl)
+            ];
+        }
+
         return [
             '_links'    => [
                 'self'  => ['href' => route('api1-dev-plan-manager-teams.show', $this)],
@@ -278,17 +303,7 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
             'position'  => $this->position,
             'checked'   => $this->checked,
             'visible'   => $this->attributes['visible'],
-            'goals'     => $this->goals->map(function ($goal) {
-                return [
-                    'title'     => $goal->title,
-                    'progress'  => $goal->calculateProgress(),
-                    'owner'     => [
-                        'id'    => $goal->owner->id,
-                        'name'  => $goal->owner->name,
-                    ],
-                    'actions'   => $goal->actions
-                ];
-            })
+            'goals'     => $goals
         ];
     }
     
