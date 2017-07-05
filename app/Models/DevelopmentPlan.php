@@ -260,6 +260,11 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
         return $json;
     }
 
+    /**
+     * Serialize as a team development plan.
+     * 
+     * @return  array
+     */
     public function jsonSerializeTeamDetailed()
     {
         return [
