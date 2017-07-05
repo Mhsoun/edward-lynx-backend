@@ -158,6 +158,19 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     }
 
     /**
+     * Returns the progress percentage of this goal: from 0 to 1.
+     * 
+     * @return  float 
+     */
+    public function calculateProgress()
+    {
+        $checkedActions = $this->actions()->where('checked', true)->count();
+        $totalActions = $this->actions()->count();
+
+        return $checkedActions / $totalActions;
+    }
+
+    /**
      * Fixes null dueDates which is parsed as the current date time when
      * serialized to JSON.
      *
