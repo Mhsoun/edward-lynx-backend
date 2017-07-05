@@ -140,7 +140,8 @@ class DevelopmentPlanTeamManagerController extends Controller
             'ownerId'   => $devPlan->ownerId,
             'position'  => $devPlan->position,
             'checked'   => $devPlan->checked,
-            'visible'   => $devPlan->visible
+            'visible'   => $devPlan->visible,
+            'goals'     => $devPlan->goals
         ];
     }
 }
