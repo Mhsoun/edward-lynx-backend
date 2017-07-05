@@ -213,6 +213,25 @@ class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
     }
     
     /**
+     * Calculate the progress of this development plan.
+     * 
+     * @return  float
+     */
+    public function calculateProgress()
+    {
+        $count = $this->goals()->count();
+        if ($count == 0) {
+            return 0;
+        }
+
+        $total = 0;
+        foreach ($this->goals as $goal) {
+            $total += $goal->calculateProgress();
+        }
+        return $total / $count;
+    }
+
+    /**
      * Include this development plan's goals when serializing to JSON.
      *
      * @return  array

@@ -188,6 +188,7 @@ class DevelopmentPlanTeamManagerController extends Controller
             'position'  => $devPlan->position,
             'checked'   => $devPlan->checked,
             'visible'   => $devPlan->visible,
+            'progress'  => $devPlan->calculateProgress(),
             'goals'     => $devPlan->goals->map(function ($goal) {
                 return [
                     'title'     => $goal->title,
