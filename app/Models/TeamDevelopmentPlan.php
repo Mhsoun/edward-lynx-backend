@@ -29,6 +29,23 @@ class TeamDevelopmentPlan extends Model
     }
 
     /**
+     * Re-sorts a user's team development plans.
+     * 
+     * @param   App\Models\User     $owner
+     * @return  void
+     */
+    public static function sort(User $owner)
+    {
+        $owner->load('teamDevelopmentPlans');
+
+        $devPlans = $owner->teamDevelopmentPlans;
+        foreach ($devPlans as $index => $devPlan) {
+            $devPlan->position = $index;
+            $devPlan->save();
+        }
+    }
+
+    /**
      * The "booting" method of the model.
      * 
      * @return  void

@@ -61,6 +61,8 @@ class DevelopmentPlanTeamManagerController extends Controller
         $devPlan->categoryId = $category->id;
         $devPlan->save();
 
+        TeamDevelopmentPlan::sort($currentUser);
+
         return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }
 
