@@ -18,15 +18,11 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function index(Request $request)
     {
         $currentUser = $request->user();
-        $devPlans = DevelopmentPlan::forTeams()
-                        ->where('ownerId', $currentUser->id)
-                        ->get()
-                        ->map(function($item) {
-                            return $this->serializeDevPlan($item);
-                        })
-                        ->toArray();
+        $devPlans = TeamDevelopmentPlan::where('ownerId', $currentUser->id)->get();
 
-        return response()->jsonHal($devPlans);
+        return response()
+            ->jsonHal($devPlans)
+            ->summarize();
     }
 
     /**
