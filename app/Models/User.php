@@ -119,13 +119,13 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     }
 
     /**
-     * Returns development plans for this user.
-     *
+     * Returns this user's team development plans.
+     * 
      * @return  Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function myDevelopmentPlans()
+    public function teamDevelopmentPlans()
     {
-        return $this->hasMany(DevelopmentPlan::class, 'targetId');
+        return $this->hasMany(TeamDevelopmentPlan::class, 'ownerId');
     }
 
     /**

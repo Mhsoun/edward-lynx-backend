@@ -59,6 +59,16 @@ class QuestionCategory extends Model implements Routable
 		return $this->hasMany('\App\Models\Question', 'categoryId');
 	}
 
+    /**
+     * Returns the user who owns this question category.
+     * 
+     * @return  App\Models\User
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'ownerId');
+    }
+
 	/**
 	* Creates a (database) copy of the current category
 	*/

@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
-use App\Models\DevelopmentPlan;
+use App\Models\QuestionCategory;
+use App\Models\TeamDevelopmentPlan;
 use App\Http\Controllers\Controller;
 use App\Models\DevelopmentPlanTeamAttribute;
 
@@ -31,22 +32,34 @@ class DevelopmentPlanTeamManagerController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param   Illuminate\Http\Request  $request
+     * @return  Illuminate\Http\Response
      */
     public function store(Request $request)
     {
         $this->validate($request, [
-            'name'      => 'required|string|max:255'
+            'categoryId'    => 'required|integer|exists:question_categories,id'
         ]);
 
         $currentUser = $request->user();
+        $category = QuestionCategory::find($request->categoryId);
 
-        $devPlan = new DevelopmentPlan($request->only('name'));
+        // Check if the current user has access to the category.
+        if (!$category->owner->colleagueOf($currentUser) && $category->isSurvey) {
+            abort(400);
+        }
+
+        // Return an existing development plan if it already exists.
+        if ($devPlan = $currentUser->teamDevelopmentPlans()->where('categoryId', $category->id)->first()) {
+            return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
+        }
+
+        TeamDevelopmentPlan::shift($currentUser);
+
+        $devPlan = new TeamDevelopmentPlan;
         $devPlan->ownerId = $currentUser->id;
+        $devPlan->categoryId = $category->id;
         $devPlan->save();
-
-        DevelopmentPlan::insertAsTeamDevelopmentPlan($devPlan);
 
         return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }
