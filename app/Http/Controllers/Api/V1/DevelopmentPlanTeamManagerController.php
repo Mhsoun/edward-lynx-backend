@@ -114,10 +114,6 @@ class DevelopmentPlanTeamManagerController extends Controller
      */
     public function show(TeamDevelopmentPlan $devPlan)
     {
-        if (!$devPlan->isTeam()) {
-            abort(404);
-        }
-
         return response()->jsonHal($devPlan);
     }
 
