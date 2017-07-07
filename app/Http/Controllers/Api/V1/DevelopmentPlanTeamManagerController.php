@@ -84,25 +84,18 @@ class DevelopmentPlanTeamManagerController extends Controller
         ]);
 
         foreach ($request->items as $item) {
-            $devPlan = DevelopmentPlan::find($item['id']);
-            $devPlan->updateTeamAttribute([
+            $devPlan = TeamDevelopmentPlan::find($item['id']);
+            $devPlan->fill([
                 'position'  => $item['position'],
                 'visible'   => $item['visible']
             ]);
+            $devPlan->save();
         }
 
-        $devPlans = DevelopmentPlan::forTeams()
-                        ->where('ownerId', $currentUser->id)
-                        ->get();
-        foreach ($devPlans as $index => $devPlan) {
-            $devPlan->updateTeamAttribute([
-                'position'  => $index
-            ]);
-        }
+        TeamDevelopmentPlan::sort($currentUser);
 
-        $response = ['items' => []];
+        $devPlans = $currentUser->teamDevelopmentPlans();
         foreach ($devPlans as $devPlan) {
-            $teamAttr = $devPlan->teamAttribute();
             $response['items'][] = [
                 'id'        => $devPlan->id,
                 'position'  => $teamAttr->position,
