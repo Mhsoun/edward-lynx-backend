@@ -109,20 +109,16 @@ class DevelopmentPlanTeamManagerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param   App\DevelopmentPlan  $devPlan
+     * @param   App\TeamDevelopmentPlan  $devPlan
      * @return  Illuminate\Http\Response
      */
-    public function show(DevelopmentPlan $devPlan)
+    public function show(TeamDevelopmentPlan $devPlan)
     {
         if (!$devPlan->isTeam()) {
             abort(404);
         }
 
-        $devPlan = DevelopmentPlan::forTeams()
-                    ->where('id', $devPlan->id)
-                    ->firstOrFail();
-
-        return response()->jsonHal($devPlan->jsonSerialize(DevelopmentPlan::SERIALIZE_TEAM_DETAILS));
+        return response()->jsonHal($devPlan);
     }
 
     /**
@@ -162,47 +158,12 @@ class DevelopmentPlanTeamManagerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\DevelopmentPlan  $devPlan
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(DevelopmentPlan $devPlan)
-    {
-        if (!$devPlan->isTeam()) {
-            abort(404);
-        }
-
-        $devPlan->delete();
-        DevelopmentPlan::sortTeamsByPosition($devPlan->owner);
-
-        return response('', 204, ['Content-type' => 'application/json']);
-    }
-
-    /**
-     * Serialies a development plan into its JSON equivalent.
-     * 
      * @param   App\Models\DevelopmentPlan  $devPlan
-     * @return  array
+     * @return  Illuminate\Http\Response
      */
-    protected function serializeDevPlan(DevelopmentPlan $devPlan)
+    public function destroy(TeamDevelopmentPlan $devPlan)
     {
-        return [
-            '_links'    => [
-                'self'  => ['href' => route('api1-dev-plan-manager-teams.show', $devPlan)],
-                'goals' => ['href' => route('api1-dev-plan-goals.index', $devPlan)]
-            ],
-            'id'        => $devPlan->id,
-            'name'      => $devPlan->name,
-            'ownerId'   => $devPlan->ownerId,
-            'position'  => $devPlan->position,
-            'checked'   => $devPlan->checked,
-            'visible'   => $devPlan->visible,
-            'progress'  => $devPlan->calculateProgress(),
-            'goals'     => $devPlan->goals->map(function ($goal) {
-                return [
-                    'title'     => $goal->title,
-                    'progress'  => $goal->calculateProgress()
-                ];
-            })
-        ];
+        $devPlan->delete();
+        return response('', 204, ['Content-type' => 'application/json']);
     }
 }
