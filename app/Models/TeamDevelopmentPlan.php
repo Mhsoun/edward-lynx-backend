@@ -74,7 +74,7 @@ class TeamDevelopmentPlan extends Model
      */
     public function category()
     {
-        return $this->hasOne(QuestionCategory::class, 'categoryId');
+        return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
     }
 
 }
