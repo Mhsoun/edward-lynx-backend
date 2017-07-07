@@ -201,6 +201,7 @@
         <a href="{{ action('SurveyController@index') }}">{{ Lang::get('buttons.back') }}</a>
     </div>
 </div>
+
 <script type="text/javascript">
     //Selects all for reminders
     function selectAllReminders(tableName) {

@@ -75,6 +75,7 @@
                             </a>
                         @endif
 
+                        <a href="#share-report-modal" class="btn btn-default btn-xs" title="Share Report" data-toggle="modal" data-target="#share-report-modal"><i class="glyphicon glyphicon-list-alt"></i></a>
                         <a class="btn btn-danger btn-xs" href="javascript:deleteParticipant('{{ $deleteLink }}', 2)">
                             <span class="glyphicon glyphicon-trash"></span>
                         </a>
@@ -85,6 +86,23 @@
     </table>
     <button class="btn btn-primary pull-right" type="submit">{{ Lang::get('buttons.send') }}</button>
 {!! Form::close() !!}
+
+<div class="modal fade modal-loading" tabindex="-1" role="dialog" id="share-report-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Share Report</h4>
+            </div>
+            <div class="modal-body">
+                <i class="glyphicon glyphicon-refresh"></i>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">
     //Selects all for reminders
@@ -101,3 +119,22 @@
         });
     }
 </script>
+<style>
+@keyframes rotate {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to { 
+    -webkit-transform: rotate(360deg);
+  }
+}
+#share-report-modal.modal-loading .modal-body {
+    text-align: center;
+}
+#share-report-modal.modal-loading .modal-body .glyphicon-refresh {
+    animation: rotate 750ms infinite;
+}
+#share-report-modal.modal-loading .modal-footer {
+    display: none;
+}
+</style>

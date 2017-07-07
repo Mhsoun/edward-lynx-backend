@@ -646,4 +646,17 @@ class ReportController extends Controller
                 ],
                 (array)$answerData));
     }
+
+    /**
+     * AJAX endpoint for retrieving a survey's shared reports.
+     * 
+     * @param   Illuminate\Http\Request $request
+     * @param   App\Models\Survey       $survey
+     * @return  App\Http\JsonHalResponse
+     */
+    public function fetchReportShares(Request $request, Survey $survey)
+    {
+        dd($survey);
+    }
+
 }
