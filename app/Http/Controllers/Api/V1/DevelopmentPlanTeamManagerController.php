@@ -122,40 +122,6 @@ class DevelopmentPlanTeamManagerController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\DevelopmentPlan  $devPlan
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, DevelopmentPlan $devPlan)
-    {
-        if (!$devPlan->isTeam()) {
-            abort(404);
-        }
-        
-        $this->validate($request, [
-            'name'      => 'string|max:255',
-            'position'  => 'integer|min:0',
-            'visible'   => 'boolean'
-        ]);
-
-        $devPlan->name = $request->name;
-        $devPlan->save();
-
-        $devPlan->updateTeamAttribute($request->only('position', 'visible'));
-        if ($request->has('position')) {
-            DevelopmentPlan::sortTeamsByPosition($devPlan->owner);
-        }
-
-        $devPlan = DevelopmentPlan::forTeams()
-                    ->where('id', $devPlan->id)
-                    ->first();
-
-        return response()->jsonHal($devPlan);
-    }
-
-    /**
      * Remove the specified resource from storage.
      *
      * @param   App\Models\DevelopmentPlan  $devPlan
