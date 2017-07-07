@@ -120,10 +120,8 @@ Route::group(['prefix' => '/dev-plans-manager'], function() {
     Route::put('/teams', 'DevelopmentPlanTeamManagerController@sort')
         ->middleware('can:manage,App\Models\User');
     Route::get('/teams/{devPlan}', 'DevelopmentPlanTeamManagerController@show')
-        ->middleware('can:view,devPlan,can:manage,App\Models\User')
+        ->middleware('can:manage,App\Models\User')
         ->name('api1-dev-plan-manager-teams.show');
-    Route::patch('/teams/{devPlan}', 'DevelopmentPlanTeamManagerController@update')
-        ->middleware('can:update,devPlan,can:manage,App\Models\User');
     Route::delete('/teams/{devPlan}', 'DevelopmentPlanTeamManagerController@destroy')
         ->middleware('can:delete,devPlan,can:manage,App\Models\User');
 });
