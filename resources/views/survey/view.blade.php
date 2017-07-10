@@ -183,6 +183,7 @@
                     <a class="btn btn-primary" target="_blank" href="{{ action('ReportController@showReport', $survey->id) }}">
                         {{ Lang::get('buttons.generate') }}
                     </a>
+                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#share-report-modal" data-survey-id="{{ $survey->id }}">{{ Lang::get('buttons.shareReport') }}</a>
                 @endif
             @endif
         @endif
