@@ -31,7 +31,7 @@
         moveToShared: function(e) {
             e.preventDefault();
             var li = $(e.target).parent();
-            var model = this.collection.findWhere('id', li.data('user-id'));
+            var model = this.collection.findWhere({id: li.data('user-id') });
 
             source.remove(model);
             dest.add(model);
@@ -59,7 +59,7 @@
         moveToUsers: function(e) {
             e.preventDefault();
             var li = $(e.target).parent();
-            var model = this.collection.findWhere('id', li.data('user-id'));
+            var model = this.collection.findWhere({id: li.data('user-id') });
 
             dest.remove(model);
             source.add(model);
