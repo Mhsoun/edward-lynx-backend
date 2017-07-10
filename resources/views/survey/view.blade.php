@@ -202,6 +202,43 @@
     </div>
 </div>
 
+<div class="modal fade modal-loading" tabindex="-1" role="dialog" id="share-report-modal" data-survey-id="{{ $survey->id }}">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Share Report</h4>
+            </div>
+            <div class="modal-body">
+                <i class="glyphicon glyphicon-refresh"></i>
+                <div class="row share-report-ui">
+                    <div class="col-md-6" id="share-report-source">
+                        <div class="row">
+                            <div class="col-md-4"><h4>Users</h4></div>
+                            <div class="col-md-8"><input type="search" class="form-control input-sm" placeholder="Search Users..." id="share-report-source-search"></div>
+                        </div>
+                        <ul class="nav nav-pills nav-stacked share-report-users"></ul>
+                    </div>
+                    <div class="col-md-6" id="share-report-dest">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h4>Shared</h4>
+                            </div>
+                            <div class="col-md-8" style="text-align: right">
+                                <a href="#" class="btn btn-default btn-danger btn-sm hidden" id="share-report-dest-clear">Clear All</a>
+                            </div>
+                        </div>
+                        <ul class="nav nav-pills nav-stacked share-report-shared"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="share-report-save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     //Selects all for reminders
     function selectAllReminders(tableName) {
@@ -291,4 +328,10 @@
         }
     }
 </script>
+
+<script src="/js/underscore.min.js"></script>
+<script src="/js/backbone.min.js"></script>
+<script src="/js/fuse.min.js"></script>
+<script src="/js/surveys/share-report.js"></script>
+<link rel="stylesheet" href="/css/share-report.css">
 @stop

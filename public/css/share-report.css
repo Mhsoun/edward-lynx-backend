@@ -1,0 +1,41 @@
+@keyframes rotate {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to { 
+    -webkit-transform: rotate(360deg);
+  }
+}
+#share-report-modal.modal-loading .modal-body {
+    text-align: center;
+}
+#share-report-modal.modal-loading .share-report-ui {
+    display: none;
+}
+#share-report-modal .modal-body .glyphicon-refresh {
+    display: none;
+}
+#share-report-modal .modal-body .nav-pills.searching li {
+    display: none;
+}
+#share-report-modal .modal-body .nav-pills.searching li.search-result {
+    display: block;
+}
+#share-report-modal .modal-body .nav-pills a {
+    border: 1px solid #eee;
+}
+#share-report-modal .modal-body .nav-pills .glyphicon-remove {
+    color: #d9534f;
+    display: none;
+    float: right;
+}
+#share-report-modal .modal-body .nav-pills.share-report-shared a:hover .glyphicon-remove {
+    display: inline-block;
+}
+#share-report-modal.modal-loading .modal-body .glyphicon-refresh {
+    animation: rotate 750ms infinite;
+    display: block;
+}
+#share-report-modal.modal-loading .modal-footer {
+    display: none;
+}

@@ -22,6 +22,7 @@
         initialize: function() {
             this.collection.on('add', this.render.bind(this));
             this.collection.on('remove', this.render.bind(this));
+            this.collection.on('reset', this.render.bind(this));
         },
         render: function() {
             var list = this.$el.find('.nav-pills');
@@ -117,15 +118,19 @@
 
     function purgeModels() {
         source.reset(null);
-        dest.rest(null);
+        dest.reset(null);
 
-        $('#share-report-source').html('');
-        $('#share-report-dest').html('');
+        $('#share-report-modal').addClass('modal-loading');
     }
 
-    function loadModels() {
+    function loadModels(opts) {
+        var url = '/survey/'+ opts.survey +'/share-reports';
+        if (typeof opts.recipient !== 'undefined') {
+            url += '?recipient_id='+ opts.recipient;
+        }
+
         $('#share-report-modal').addClass('modal-loading');
-        return $.getJSON('/survey/44/share-reports?recipient_id=1', function (data) {
+        return $.getJSON(url, function (data) {
             $.each(data.users, function(i, user) {
                 source.add({
                     id: user.id,
@@ -148,8 +153,10 @@
             recipient_id: 1,
             shared: dest.ids()
         };
+        var surveyId = $('#share-report-modal').data('survey-id');
+        var url = '/survey/'+ surveyId +'/share-reports';
 
-        return $.post('/survey/44/share-reports', data);
+        return $.post(url, data);
     }
 
     function setupCollections() {
@@ -174,8 +181,15 @@
     $(document).on('ready', function() {
         setupViews();
 
-        $('#share-report-modal').on('shown.bs.modal', function() {
-           loadModels();
+        $('#share-report-modal').on('shown.bs.modal', function(e) {
+            var btn = $(e.relatedTarget);
+            loadModels({
+                survey: btn.data('survey-id'),
+                recipient: btn.data('recipient-id')
+            });
+        });
+        $('#share-report-modal').on('hidden.bs.modal', function(e) {
+            purgeModels();
         });
         $('#share-report-save').on('click', function(e) {
             e.preventDefault();
