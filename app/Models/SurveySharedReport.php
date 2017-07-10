@@ -17,7 +17,7 @@ class SurveySharedReport extends Model
      */
     public function survey()
     {
-        return $this->hasOne(Survey::class, 'surveyId');
+        return $this->hasOne(Survey::class, 'id', 'surveyId');
     }
 
     /**
