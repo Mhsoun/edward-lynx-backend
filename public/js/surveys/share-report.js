@@ -21,8 +21,6 @@
             this.collection.on('remove', this.render.bind(this));
         },
         render: function() {
-            if (this.collection.models.length === 0) return this;
-
             this.$el.html('');
             _.each(this.collection.models, function(user) {
                 this.$el.append(this.template(user.attributes));
@@ -51,8 +49,6 @@
             this.collection.on('remove', this.render.bind(this));
         },
         render: function() {
-            if (this.collection.models.length === 0) return this;
-
             this.$el.html('');
             _.each(this.collection.models, function(user) {
                 this.$el.append(this.template(user.attributes));
