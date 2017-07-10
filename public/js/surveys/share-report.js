@@ -56,6 +56,14 @@
     var source = new UserCollection();
     var dest = new UserCollection();
 
+    function purgeModels() {
+        source.reset(null);
+        dest.rest(null);
+
+        $('#share-report-source').html('');
+        $('#share-report-dest').html('');
+    }
+
     function loadModels() {
         $('#share-report-modal').addClass('modal-loading');
         return $.getJSON('/survey/44/share-reports?recipient_id=1', function (data) {
@@ -80,7 +88,7 @@
             recipient_id: 1,
             shared: dest.ids()
         };
-        $.post('/survey/44/share-reports', data);
+        return $.post('/survey/44/share-reports', data);
     }
 
     function setupCollections() {
@@ -108,7 +116,10 @@
         });
         $('#share-report-save').on('click', function(e) {
             e.preventDefault();
-            saveModels();
+            saveModels().then(function() {
+                purgeModels();
+                $('#share-report-modal').addClass('modal-loading');
+            });
             $('#share-report-modal .close').click();
         });
     });
