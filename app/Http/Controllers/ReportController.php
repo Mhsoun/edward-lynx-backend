@@ -717,10 +717,16 @@ class ReportController extends Controller
         $survey = Survey::findOrFail($surveyId);
 
         $this->validate($request, [
-            'recipient_id'  => 'required|integer|exists:recipients,id',
             'shared'        => 'array',
             'shared.*'      => 'required|integer|exists:users,id'
         ]);
+
+        // Only require recipient ID for Lynx Progress and 360 surveys.
+        if (in_array($survey->type, [0, 2])) {
+            $this->validate($request, [
+                'recipient_id'  => 'required|integer|exists:recipients,id',
+            ]);
+        }
 
         $shared = $request->get('shared', []);
 
