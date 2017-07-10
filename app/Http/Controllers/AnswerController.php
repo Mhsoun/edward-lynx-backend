@@ -284,24 +284,24 @@ class AnswerController extends Controller
         }
 
         //Top/worst list
-        // if ($survey->type == \App\SurveyTypes::Normal) {
-        //     if ($request->topList != null) {
-        //         $this->saveTopWorstList($survey, $surveyRecipient->recipientId, true, $request->topList);
-        //     }
-        //
-        //     if ($request->worstList != null) {
-        //         $this->saveTopWorstList($survey, $surveyRecipient->recipientId, false, $request->worstList);
-        //     }
-        // }
+        if ($survey->type == \App\SurveyTypes::Normal) {
+            if ($request->topList != null) {
+                $this->saveTopWorstList($survey, $surveyRecipient->recipientId, true, $request->topList);
+            }
+        
+            if ($request->worstList != null) {
+                $this->saveTopWorstList($survey, $surveyRecipient->recipientId, false, $request->worstList);
+            }
+        }
 
         //Mark that the recipient has answered
         $surveyRecipient->hasAnswered = true;
         $surveyRecipient->save();
 
         //Try to create the user report
-        // if (\App\SurveyTypes::isNewProgress($survey))  {
-        //     \App\Surveys::createUserReportLink(app(), $survey, $surveyRecipient->invitedByCandidate());
-        // }
+        if (\App\SurveyTypes::isNewProgress($survey))  {
+            \App\Surveys::createUserReportLink(app(), $survey, $surveyRecipient->invitedByCandidate());
+        }
 
         if (\App\SurveyTypes::isNewProgress($survey) && $surveyRecipient->isCandidate()) {
             return redirect(action('InviteController@show', ['link' => $surveyRecipient->candidate()->link]));

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\SurveyTypes;
 use Illuminate\Http\Request;
 use App\Models\DevelopmentPlan;
+use App\Models\SurveySharedReport;
 use App\Http\Controllers\Controller;
 use App\Models\DevelopmentPlanTeamAttribute;
 
@@ -167,6 +169,46 @@ class DevelopmentPlanTeamManagerController extends Controller
         DevelopmentPlan::sortTeamsByPosition($devPlan->owner);
 
         return response('', 204, ['Content-type' => 'application/json']);
+    }
+
+    /**
+     * Manager reports endpoint.
+     * 
+     * @param   Illuminate\Http\Request     $request
+     * @return  App\Http\JsonHalResponse
+     */
+    public function reports(Request $request)
+    {
+        $currentUser = $request->user();
+        $shared = SurveySharedReport::where('userId', $currentUser->id)->get();
+
+        $response = [];
+        foreach ($shared as $sharedItem) {
+            $survey = $sharedItem->survey;
+            $reports = $survey->reports;
+            if (SurveyTypes::isIndividualLike($survey)) {
+
+            } else {
+                $item = [
+                    'id'        => $survey->id,
+                    'name'      => $survey->name,
+                    'type'      => 'team',
+                    'reports'   => [],
+                ];
+                
+                foreach ($reports as $report) {
+                    $item['reports'][] = [
+                        'id'    => $report->id,
+                        'name'  => basename($report->fileName, '.pdf'),
+                        'url'   => action('ReportController@viewReport', $report->id)
+                    ];
+                }
+
+                $response[] = $item;
+            }
+        }
+
+        return response()->jsonHal($response);
     }
 
     /**
