@@ -674,7 +674,7 @@ class ReportController extends Controller
             'recipientId'   => $request->recipient_id
         ])->with('user')->get();
         $sharedIds = $shared->map(function($item) {
-            return $item->id;
+            return $item->userId;
         })->toArray();
 
         $users = User::inTheCompany($company)
