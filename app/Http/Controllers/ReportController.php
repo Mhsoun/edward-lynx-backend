@@ -671,28 +671,28 @@ class ReportController extends Controller
 
         $shared = SurveyCandidateSharedReport::where([
             'surveyId'      => $survey->id,
-            'recipientId'   => $request->recipient
+            'recipientId'   => $request->recipient_id
         ])->with('user')->get();
         $sharedIds = $shared->map(function($item) {
             return $item->id;
         })->toArray();
 
         $users = User::inTheCompany($company)
-                    ->whereNotIn('userId', $sharedIds)
+                    ->whereNotIn('id', $sharedIds)
                     ->whereIn('accessLevel', [0, 1, 2])
                     ->orderBy('name', 'ASC')
                     ->get();
 
-        $shared = $shared->map(function($user) {
+        $shared = $shared->map(function($item) {
             return [
-                'id'    => $user->id,
-                'name'  => $user->name
+                'id'    => $item->user->id,
+                'name'  => $item->user->name,
             ];
         });
         $users = $users->map(function($user) {
             return [
                 'id'    => $user->id,
-                'name'  => $user->name
+                'name'  => $user->name,
             ];
         });
 
@@ -702,6 +702,13 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * AJAX endpoint for saving a survey's shared reports.
+     * 
+     * @param   Illuminate\Http\Request $request
+     * @param   integer                 $surveyId
+     * @return  App\Http\JsonHalResponse
+     */
     public function saveReportShares(Request $request, $surveyId)
     {
         $survey = Survey::findOrFail($surveyId);
