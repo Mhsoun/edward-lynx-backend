@@ -68,11 +68,13 @@
         el: '#share-report-dest',
         template: _.template('<li data-user-id="<%= id %>"><a href="#" class="user-item"><%= name %><i class="glyphicon glyphicon-remove"></i></a></li>'),
         events: {
-            'click .user-item': 'moveToUsers'
+            'click .user-item': 'moveToUsers',
+            'click #share-report-dest-clear': 'clearAll'
         },
         initialize: function() {
             this.collection.on('add', this.render.bind(this));
             this.collection.on('remove', this.render.bind(this));
+            this.collection.on('reset', this.render.bind(this));
         },
         render: function() {
             var list = this.$el.find('.nav-pills');
@@ -91,6 +93,13 @@
 
             dest.remove(model);
             source.add(model);
+        },
+        clearAll: function(e) {
+            e.preventDefault();
+            dest.each(function(model) {
+                source.add(model);
+            });
+            dest.reset(null);
         }
     });
 
