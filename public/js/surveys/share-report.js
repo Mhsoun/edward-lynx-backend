@@ -23,9 +23,11 @@
             this.collection.on('remove', this.render.bind(this));
         },
         render: function() {
-            this.$el.html('');
+            var list = this.$el.find('.nav-pills');
+
+            list.html('');
             _.each(this.collection.models, function(user) {
-                this.$el.append(this.template(user.attributes));
+                list.append(this.template(user.attributes));
             }.bind(this));
 
             return this;
@@ -51,9 +53,11 @@
             this.collection.on('remove', this.render.bind(this));
         },
         render: function() {
-            this.$el.html('');
+            var list = this.$el.find('.nav-pills');
+
+            list.html('');
             _.each(this.collection.models, function(user) {
-                this.$el.append(this.template(user.attributes));
+                list.append(this.template(user.attributes));
             }.bind(this));
 
             return this;
@@ -107,7 +111,7 @@
             recipient_id: 1,
             shared: dest.ids()
         };
-        
+
         return $.post('/survey/44/share-reports', data);
     }
 

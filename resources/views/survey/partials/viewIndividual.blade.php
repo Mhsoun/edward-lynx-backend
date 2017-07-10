@@ -97,14 +97,14 @@
             <div class="modal-body">
                 <i class="glyphicon glyphicon-refresh"></i>
                 <div class="row share-report-ui">
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="share-report-source">
                         <div class="row">
                             <div class="col-md-4"><h4>Users</h4></div>
                             <div class="col-md-8"><input type="search" class="form-control input-sm" placeholder="Search Users..."></div>
                         </div>
-                        <ul class="nav nav-pills nav-stacked share-report-users" id="share-report-source"></ul>
+                        <ul class="nav nav-pills nav-stacked share-report-users"></ul>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="share-report-dest">
                         <div class="row">
                             <div class="col-md-4">
                                 <h4>Shared</h4>
@@ -113,7 +113,7 @@
                                 <a href="#" class="btn btn-default btn-danger btn-sm">Clear All</a>
                             </div>
                         </div>
-                        <ul class="nav nav-pills nav-stacked share-report-shared" id="share-report-dest"></ul>
+                        <ul class="nav nav-pills nav-stacked share-report-shared"></ul>
                     </div>
                 </div>
             </div>
