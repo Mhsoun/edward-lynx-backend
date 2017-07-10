@@ -11,50 +11,70 @@
     });
 
     var SourceItemView = Backbone.View.extend({
-        tagName: 'li',
-        template: _.template('<a href="#"><%= name %></a>'),
+        el: '#share-report-source',
+        template: _.template('<li data-user-id="<%= id %>"><a href="#" class="user-item"><%= name %></a></li>'),
         events: {
-            'click': 'moveToShared'
+            'click .user-item': 'moveToShared'
         },
-        attributes: function() {
-            return {
-                'data-user-id': this.model.id
-            }
+        initialize: function() {
+            this.collection.on('add', this.render.bind(this));
+            this.collection.on('remove', this.render.bind(this));
         },
         render: function() {
-            this.$el.html(this.template(this.model.attributes));
+            if (this.collection.models.length === 0) return this;
+
+            this.$el.html('');
+            _.each(this.collection.models, function(user) {
+                this.$el.append(this.template(user.attributes));
+            }.bind(this));
+
             return this;
         },
         moveToShared: function(e) {
             e.preventDefault();
-            source.remove(this.model);
-            dest.add(this.model);
+            var li = $(e.target).parent();
+            var model = this.collection.findWhere('id', li.data('user-id'));
+
+            source.remove(model);
+            dest.add(model);
         }
     });
+    
     var DestinationItemView = Backbone.View.extend({
-        tagName: 'li',
-        template: _.template('<a href="#"><%= name %><i class="glyphicon glyphicon-remove"></i></a>'),
+        el: '#share-report-dest',
+        template: _.template('<li data-user-id="<%= id %>"><a href="#" class="user-item"><%= name %><i class="glyphicon glyphicon-remove"></i></a></li>'),
         events: {
-            'click': 'moveToUsers'
+            'click .user-item': 'moveToUsers'
         },
-        attributes: function() {
-            return {
-                'data-user-id': this.model.id
-            }
+        initialize: function() {
+            this.collection.on('add', this.render.bind(this));
+            this.collection.on('remove', this.render.bind(this));
         },
         render: function() {
-            this.$el.html(this.template(this.model.attributes));
+            if (this.collection.models.length === 0) return this;
+
+            this.$el.html('');
+            _.each(this.collection.models, function(user) {
+                this.$el.append(this.template(user.attributes));
+            }.bind(this));
+
             return this;
         },
         moveToUsers: function(e) {
             e.preventDefault();
-            dest.remove(this.model);
-            source.add(this.model);
+            var li = $(e.target).parent();
+            var model = this.collection.findWhere('id', li.data('user-id'));
+
+            dest.remove(model);
+            source.add(model);
         }
     });
 
     var source = new UserCollection();
     var dest = new UserCollection();
+
+    var sourceView;
+    var destView;
 
     function purgeModels() {
         source.reset(null);
@@ -72,6 +92,7 @@
                     id: user.id,
                     name: user.name
                 });
+                source.sort();
             });
             $.each(data.shared, function (i, user) {
                 dest.add({
@@ -92,13 +113,6 @@
     }
 
     function setupCollections() {
-        source.on('add', function(user) {
-            var view = new SourceItemView({ model: user });
-            $('#share-report-source').append(view.render().el);
-        });
-        source.on('remove', function(user) {
-            $('#share-report-source li[data-user-id="'+ user.id +'"]').remove();
-        });
         dest.on('add', function(user) {
             var view = new DestinationItemView({ model: user });
             $('#share-report-dest').append(view.render().el);
@@ -106,10 +120,19 @@
         dest.on('remove', function(user) {
             $('#share-report-dest li[data-user-id="'+ user.id +'"]').remove();
         });
-    };
+    }
+
+    function setupViews() {
+        sourceView = new SourceItemView({
+            collection: source
+        });
+        destView = new DestinationItemView({
+            collection: dest
+        });
+    }
 
     $(document).on('ready', function() {
-        setupCollections();
+        setupViews();
 
         $('#share-report-modal').on('shown.bs.modal', function() {
            loadModels();
