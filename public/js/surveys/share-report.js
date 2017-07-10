@@ -150,11 +150,15 @@
 
     function saveModels() {
         var data = {
-            recipient_id: 1,
             shared: dest.ids()
         };
-        var surveyId = $('#share-report-modal').data('survey-id');
+        var modal = $('#share-report-modal');
+        var surveyId = modal.data('survey-id');
         var url = '/survey/'+ surveyId +'/share-reports';
+
+        if (typeof modal.data('recipient-id') !== 'undefined') {
+            data['recipient_id'] = modal.data('recipient-id');
+        }
 
         return $.post(url, data);
     }
@@ -182,11 +186,15 @@
         setupViews();
 
         $('#share-report-modal').on('shown.bs.modal', function(e) {
+            var modal = $(e.target);
             var btn = $(e.relatedTarget);
             loadModels({
                 survey: btn.data('survey-id'),
                 recipient: btn.data('recipient-id')
             });
+
+            modal.data('survey-id', btn.data('survey-id'));
+            modal.data('recipient-id', btn.data('recipient-id'));
         });
         $('#share-report-modal').on('hidden.bs.modal', function(e) {
             purgeModels();
