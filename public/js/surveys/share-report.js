@@ -84,6 +84,12 @@
                 list.append(this.template(user.attributes));
             }.bind(this));
 
+            if (this.collection.length > 0) {
+                this.$el.find('#share-report-dest-clear').removeClass('hidden');
+            } else {
+                this.$el.find('#share-report-dest-clear').addClass('hidden');
+            }
+
             return this;
         },
         moveToUsers: function(e) {

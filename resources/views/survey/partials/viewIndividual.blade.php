@@ -110,7 +110,7 @@
                                 <h4>Shared</h4>
                             </div>
                             <div class="col-md-8" style="text-align: right">
-                                <a href="#" class="btn btn-default btn-danger btn-sm" id="share-report-dest-clear">Clear All</a>
+                                <a href="#" class="btn btn-default btn-danger btn-sm hidden" id="share-report-dest-clear">Clear All</a>
                             </div>
                         </div>
                         <ul class="nav nav-pills nav-stacked share-report-shared"></ul>
