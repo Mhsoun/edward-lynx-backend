@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use App\SurveyTypes;
 use App\Models\Survey;
 use App\SurveyReportHelpers;
-use App\Models\SurveyCandidateSharedReport;
+use App\Models\SurveySharedReport;
 
 /**
 * Represents a controller for creating and viewing reports
@@ -669,7 +669,7 @@ class ReportController extends Controller
             $company = $survey->owner->company;
         }
 
-        $shared = SurveyCandidateSharedReport::where([
+        $shared = SurveySharedReport::where([
             'surveyId'      => $survey->id,
             'recipientId'   => $request->recipient_id
         ])->with('user')->get();
@@ -721,7 +721,7 @@ class ReportController extends Controller
 
         $shared = $request->get('shared', []);
 
-        $existing = SurveyCandidateSharedReport::where([
+        $existing = SurveySharedReport::where([
                 'surveyId'      => $survey->id,
                 'recipientId'   => $request->recipient_id
             ])
@@ -735,7 +735,7 @@ class ReportController extends Controller
         $toRemove = array_diff($existing, $shared);
         
         foreach ($toAdd as $userId) {
-            $scsr = new SurveyCandidateSharedReport;
+            $scsr = new SurveySharedReport;
             $scsr->surveyId = $survey->id;
             $scsr->recipientId = $request->recipient_id;
             $scsr->userId = $userId;
@@ -743,7 +743,7 @@ class ReportController extends Controller
         }
 
         foreach ($toRemove as $userId) {
-            SurveyCandidateSharedReport::where([
+            SurveySharedReport::where([
                 'surveyId'      => $survey->id,
                 'recipientId'   => $request->recipient_id,
                 'userId'        => $userId
