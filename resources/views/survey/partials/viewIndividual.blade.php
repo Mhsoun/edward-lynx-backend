@@ -100,7 +100,7 @@
                     <div class="col-md-6" id="share-report-source">
                         <div class="row">
                             <div class="col-md-4"><h4>Users</h4></div>
-                            <div class="col-md-8"><input type="search" class="form-control input-sm" placeholder="Search Users..."></div>
+                            <div class="col-md-8"><input type="search" class="form-control input-sm" placeholder="Search Users..." id="share-report-source-search"></div>
                         </div>
                         <ul class="nav nav-pills nav-stacked share-report-users"></ul>
                     </div>
@@ -141,6 +141,7 @@
 </script>
 <script src="/js/underscore.min.js"></script>
 <script src="/js/backbone.min.js"></script>
+<script src="/js/fuse.min.js"></script>
 <script src="/js/surveys/share-report.js"></script>
 <style>
 @keyframes rotate {
@@ -159,6 +160,12 @@
 }
 #share-report-modal .modal-body .glyphicon-refresh {
     display: none;
+}
+#share-report-modal .modal-body .nav-pills.searching li {
+    display: none;
+}
+#share-report-modal .modal-body .nav-pills.searching li.search-result {
+    display: block;
 }
 #share-report-modal .modal-body .nav-pills a {
     border: 1px solid #eee;

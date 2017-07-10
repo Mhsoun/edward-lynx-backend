@@ -16,7 +16,8 @@
         el: '#share-report-source',
         template: _.template('<li data-user-id="<%= id %>"><a href="#" class="user-item"><%= name %></a></li>'),
         events: {
-            'click .user-item': 'moveToShared'
+            'click .user-item': 'moveToShared',
+            'keyup #share-report-source-search': 'search'
         },
         initialize: function() {
             this.collection.on('add', this.render.bind(this));
@@ -39,6 +40,27 @@
 
             source.remove(model);
             dest.add(model);
+        },
+        search: function(e) {
+            var query = $.trim($(e.target).val());
+            var list = this.$el.find('.nav-pills');
+            list.children().removeClass('search-result');
+
+            if (query === '') {
+                list.removeClass('searching');
+            } else {
+                var fuse = new Fuse(this.collection.toJSON(), {
+                    keys: ['name'],
+                    id: 'id',
+                    threshold: 0.1
+                });
+                var results = fuse.search(query);
+
+                list.addClass('searching');
+                _.each(results, function(id) {
+                    list.find('[data-user-id="'+ id +'"]').addClass('search-result');
+                });
+            }
         }
     });
     
