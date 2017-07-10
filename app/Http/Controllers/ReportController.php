@@ -715,9 +715,11 @@ class ReportController extends Controller
 
         $this->validate($request, [
             'recipient_id'  => 'required|integer|exists:recipients,id',
-            'shared'        => 'required|array',
+            'shared'        => 'array',
             'shared.*'      => 'required|integer|exists:users,id'
         ]);
+
+        $shared = $request->get('shared', []);
 
         $existing = SurveyCandidateSharedReport::where([
                 'surveyId'      => $survey->id,
@@ -729,8 +731,8 @@ class ReportController extends Controller
             })
             ->toArray();
 
-        $toAdd = array_diff($request->shared, $existing);
-        $toRemove = array_diff($existing, $request->shared);
+        $toAdd = array_diff($shared, $existing);
+        $toRemove = array_diff($existing, $shared);
         
         foreach ($toAdd as $userId) {
             $scsr = new SurveyCandidateSharedReport;

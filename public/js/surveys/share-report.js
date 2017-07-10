@@ -4,6 +4,8 @@
         model: User,
         comparator: 'name',
         ids: function() {
+            if (this.models.length === 0) return [];
+
             return this.models.map(function(model) {
                 return model.id;
             });
@@ -105,6 +107,7 @@
             recipient_id: 1,
             shared: dest.ids()
         };
+        
         return $.post('/survey/44/share-reports', data);
     }
 
