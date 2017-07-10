@@ -657,11 +657,14 @@ class ReportController extends Controller
      */
     public function fetchReportShares(Request $request, $surveyId)
     {
-        $this->validate($request, [
-            'recipient_id'   => 'required|integer|exists:recipients,id',
-        ]);
-
         $survey = Survey::findOrFail($surveyId);
+
+        // Only require recipient ID for Lynx Progress and 360 surveys.
+        if (in_array($survey->type, [0, 2])) {
+            $this->validate($request, [
+                'recipient_id'   => 'required|integer|exists:recipients,id',
+            ]);
+        }
 
         if ($survey->owner->isAn(User::ADMIN) || $survey->owner->isAn(User::SUPERADMIN)) {
             $company = $survey->owner;
