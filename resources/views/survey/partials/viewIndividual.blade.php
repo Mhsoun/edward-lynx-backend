@@ -96,9 +96,29 @@
             </div>
             <div class="modal-body">
                 <i class="glyphicon glyphicon-refresh"></i>
+                <div class="row share-report-ui">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-4"><h4>Users</h4></div>
+                            <div class="col-md-8"><input type="search" class="form-control input-sm" placeholder="Search Users..."></div>
+                        </div>
+                        <ul class="nav nav-pills nav-stacked share-report-users" id="share-report-source"></ul>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h4>Shared</h4>
+                            </div>
+                            <div class="col-md-8" style="text-align: right">
+                                <a href="#" class="btn btn-default btn-danger btn-sm">Clear All</a>
+                            </div>
+                        </div>
+                        <ul class="nav nav-pills nav-stacked share-report-shared" id="share-report-dest"></ul>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-primary" id="share-report-save">Save changes</button>
             </div>
         </div>
     </div>
@@ -119,6 +139,9 @@
         });
     }
 </script>
+<script src="/js/underscore.min.js"></script>
+<script src="/js/backbone.min.js"></script>
+<script src="/js/surveys/share-report.js"></script>
 <style>
 @keyframes rotate {
   from {
@@ -131,8 +154,26 @@
 #share-report-modal.modal-loading .modal-body {
     text-align: center;
 }
+#share-report-modal.modal-loading .share-report-ui {
+    display: none;
+}
+#share-report-modal .modal-body .glyphicon-refresh {
+    display: none;
+}
+#share-report-modal .modal-body .nav-pills a {
+    border: 1px solid #eee;
+}
+#share-report-modal .modal-body .nav-pills .glyphicon-remove {
+    color: #d9534f;
+    display: none;
+    float: right;
+}
+#share-report-modal .modal-body .nav-pills.share-report-shared a:hover .glyphicon-remove {
+    display: inline-block;
+}
 #share-report-modal.modal-loading .modal-body .glyphicon-refresh {
     animation: rotate 750ms infinite;
+    display: block;
 }
 #share-report-modal.modal-loading .modal-footer {
     display: none;

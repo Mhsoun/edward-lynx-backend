@@ -1,12 +1,15 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class SurveyCandidateSharedReport extends Model
 {
-    
+
+    public $timestamps = false;
+
     /**
      * Returns the survey this shared report is under.
      * 

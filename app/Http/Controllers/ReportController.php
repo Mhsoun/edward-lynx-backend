@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\SurveyTypes;
 use App\Models\Survey;
 use App\SurveyReportHelpers;
+use App\Models\SurveyCandidateSharedReport;
 
 /**
 * Represents a controller for creating and viewing reports
@@ -651,12 +652,96 @@ class ReportController extends Controller
      * AJAX endpoint for retrieving a survey's shared reports.
      * 
      * @param   Illuminate\Http\Request $request
-     * @param   App\Models\Survey       $survey
+     * @param   integer                 $surveyId
      * @return  App\Http\JsonHalResponse
      */
-    public function fetchReportShares(Request $request, Survey $survey)
+    public function fetchReportShares(Request $request, $surveyId)
     {
-        dd($survey);
+        $this->validate($request, [
+            'recipient_id'   => 'required|integer|exists:recipients,id',
+        ]);
+
+        $survey = Survey::findOrFail($surveyId);
+
+        if ($survey->owner->isAn(User::ADMIN) || $survey->owner->isAn(User::SUPERADMIN)) {
+            $company = $survey->owner;
+        } else {
+            $company = $survey->owner->company;
+        }
+
+        $shared = SurveyCandidateSharedReport::where([
+            'surveyId'      => $survey->id,
+            'recipientId'   => $request->recipient
+        ])->with('user')->get();
+        $sharedIds = $shared->map(function($item) {
+            return $item->id;
+        })->toArray();
+
+        $users = User::inTheCompany($company)
+                    ->whereNotIn('userId', $sharedIds)
+                    ->whereIn('accessLevel', [0, 1, 2])
+                    ->orderBy('name', 'ASC')
+                    ->get();
+
+        $shared = $shared->map(function($user) {
+            return [
+                'id'    => $user->id,
+                'name'  => $user->name
+            ];
+        });
+        $users = $users->map(function($user) {
+            return [
+                'id'    => $user->id,
+                'name'  => $user->name
+            ];
+        });
+
+        return response()->jsonHal([
+            'users'     => $users,
+            'shared'    => $shared
+        ]);
+    }
+
+    public function saveReportShares(Request $request, $surveyId)
+    {
+        $survey = Survey::findOrFail($surveyId);
+
+        $this->validate($request, [
+            'recipient_id'  => 'required|integer|exists:recipients,id',
+            'shared'        => 'required|array',
+            'shared.*'      => 'required|integer|exists:users,id'
+        ]);
+
+        $existing = SurveyCandidateSharedReport::where([
+                'surveyId'      => $survey->id,
+                'recipientId'   => $request->recipient_id
+            ])
+            ->get()
+            ->map(function ($item) {
+                return $item->userId;
+            })
+            ->toArray();
+
+        $toAdd = array_diff($request->shared, $existing);
+        $toRemove = array_diff($existing, $request->shared);
+        
+        foreach ($toAdd as $userId) {
+            $scsr = new SurveyCandidateSharedReport;
+            $scsr->surveyId = $survey->id;
+            $scsr->recipientId = $request->recipient_id;
+            $scsr->userId = $userId;
+            $scsr->save();
+        }
+
+        foreach ($toRemove as $userId) {
+            SurveyCandidateSharedReport::where([
+                'surveyId'      => $survey->id,
+                'recipientId'   => $request->recipient_id,
+                'userId'        => $userId
+            ])->delete();
+        }
+
+        return response('', 200);
     }
 
 }

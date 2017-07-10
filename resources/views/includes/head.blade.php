@@ -22,8 +22,11 @@
                 }
 
                 settings.url = baseUrl + settings.url;
-                settings.data._token = "{{ csrf_token() }}";
-                settings.data = jQuery.param(settings.data, false);
+                if (settings.type !== 'GET') {
+                    settings.data = settings.data || {};
+                    settings.data._token = "{{ csrf_token() }}";
+                    settings.data = $.param(settings.data, false);
+                }
                 return true;
             }
         });

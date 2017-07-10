@@ -116,6 +116,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/survey/{id}/report', 'ReportController@showReport');
         Route::get('/survey/{id}/share-reports', 'ReportController@fetchReportShares')
             ->name('reports.share');
+        Route::post('/survey/{id}/share-reports', 'ReportController@saveReportShares');
     });
 
     Route::post('/survey/generate-report', 'ReportController@createPDF');
