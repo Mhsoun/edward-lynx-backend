@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\SurveyTypes;
 use Illuminate\Http\Request;
+use App\Models\DevelopmentPlan;
 use App\Models\QuestionCategory;
+use App\Models\SurveySharedReport;
 use App\Models\TeamDevelopmentPlan;
 use App\Http\Controllers\Controller;
 use App\Models\DevelopmentPlanTeamAttribute;
@@ -123,5 +126,48 @@ class DevelopmentPlanTeamManagerController extends Controller
     {
         $devPlan->delete();
         return response('', 204, ['Content-type' => 'application/json']);
+    }
+
+    /**
+     * Manager reports endpoint.
+     * 
+     * @param   Illuminate\Http\Request     $request
+     * @return  App\Http\JsonHalResponse
+     */
+    public function reports(Request $request)
+    {
+        $currentUser = $request->user();
+        $ssr = SurveySharedReport::where('userId', $currentUser->id)->get();
+
+        return response()->jsonHal($ssr);
+    }
+
+    /**
+     * Serialies a development plan into its JSON equivalent.
+     * 
+     * @param   App\Models\DevelopmentPlan  $devPlan
+     * @return  array
+     */
+    protected function serializeDevPlan(DevelopmentPlan $devPlan)
+    {
+        return [
+            '_links'    => [
+                'self'  => ['href' => route('api1-dev-plan-manager-teams.show', $devPlan)],
+                'goals' => ['href' => route('api1-dev-plan-goals.index', $devPlan)]
+            ],
+            'id'        => $devPlan->id,
+            'name'      => $devPlan->name,
+            'ownerId'   => $devPlan->ownerId,
+            'position'  => $devPlan->position,
+            'checked'   => $devPlan->checked,
+            'visible'   => $devPlan->visible,
+            'progress'  => $devPlan->calculateProgress(),
+            'goals'     => $devPlan->goals->map(function ($goal) {
+                return [
+                    'title'     => $goal->title,
+                    'progress'  => $goal->calculateProgress()
+                ];
+            })
+        ];
     }
 }

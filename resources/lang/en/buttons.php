@@ -33,5 +33,6 @@ return [
     'reset' => 'Reset',
     'generate' => 'Generate',
 	'clickHere' => 'click here',
-	'load' => 'Load'
+	'load' => 'Load',
+    'shareReport' => 'Share Report'
 ];

@@ -124,6 +124,9 @@ Route::group(['prefix' => '/dev-plans-manager'], function() {
         ->name('api1-dev-plan-manager-teams.show');
     Route::delete('/teams/{devPlan}', 'DevelopmentPlanTeamManagerController@destroy')
         ->middleware('can:delete,devPlan,can:manage,App\Models\User');
+
+    Route::get('/reports', 'DevelopmentPlanTeamManagerController@reports')
+        ->name('api1-dev-plan-manager-reports');
 });
 
 // /categories Endpoints

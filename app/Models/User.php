@@ -192,6 +192,19 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     }
 
     /**
+     * Scopes the query to return users in the same company.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @param   App\Models\User                         $company
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeInTheCompany(Builder $query, User $company)
+    {
+        return $query->where('parentId', $company->id)
+                     ->orWhere('id', $company->id);
+    }
+
+    /**
     * Returns the default emails
     */
     private function defaultEmails()
