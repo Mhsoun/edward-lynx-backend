@@ -40,4 +40,54 @@ class SurveySharedReport extends Model
         return $this->hasOne(User::class, 'id', 'userId');
     }
 
+    /**
+     * Returns the JSON representation of this class.
+     * 
+     * @return  array
+     */
+    public function jsonSerialize()
+    {
+        $recipientsToReports = [];
+        foreach ($this->survey->recipients as $surveyRecipient) {
+            $recipient = $surveyRecipient->recipient;
+            foreach ($this->survey->reports as $report) {
+                array_set($recipientsToReports, "{$surveyRecipient->recipient->id}.{$this->survey->id}.{$report->id}", $report);
+            }
+        }
+
+        $json = [];
+        foreach ($recipientsToReports as $id => $surveys) {
+            $recipient = Recipient::find($id);
+            $recipientJson = [
+                'id'        => $recipient->id,
+                'name'      => $recipient->name,
+                'surveys'   => [],
+            ];
+
+            foreach ($surveys as $id => $reports) {
+                $survey = Survey::find($id);
+                $surveyJson = [
+                    'id'        => $survey->id,
+                    'name'      => $survey->name,
+                    'type'      => $survey->type,
+                    'reports'   => []
+                ];
+
+                foreach ($reports as $report) {
+                    $surveyJson['reports'][] = [
+                        'id'    => $report->id,
+                        'name'  => basename($report->fileName, '.pdf'),
+                        'link'  => action('ReportController@viewReport', $report->id)
+                    ];
+                }
+
+                $recipientJson['surveys'][] = $surveyJson;
+            }
+
+            $json[] = $recipientJson;
+        }
+
+        return $json;
+    }
+
 }

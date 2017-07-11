@@ -180,35 +180,9 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function reports(Request $request)
     {
         $currentUser = $request->user();
-        $shared = SurveySharedReport::where('userId', $currentUser->id)->get();
+        $ssr = SurveySharedReport::where('userId', $currentUser->id)->get();
 
-        $response = [];
-        foreach ($shared as $sharedItem) {
-            $survey = $sharedItem->survey;
-            $reports = $survey->reports;
-            if (SurveyTypes::isIndividualLike($survey)) {
-
-            } else {
-                $item = [
-                    'id'        => $survey->id,
-                    'name'      => $survey->name,
-                    'type'      => 'team',
-                    'reports'   => [],
-                ];
-                
-                foreach ($reports as $report) {
-                    $item['reports'][] = [
-                        'id'    => $report->id,
-                        'name'  => basename($report->fileName, '.pdf'),
-                        'url'   => action('ReportController@viewReport', $report->id)
-                    ];
-                }
-
-                $response[] = $item;
-            }
-        }
-
-        return response()->jsonHal($response);
+        return response()->jsonHal($ssr);
     }
 
     /**
