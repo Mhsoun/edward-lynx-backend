@@ -16,6 +16,43 @@ class TeamDevelopmentPlan extends Model implements Routable
     protected $fillable = ['position', 'visible'];
 
     /**
+     * Creates a new team development plan, creating a question category
+     * for it if it doesn't exist yet.
+     * 
+     * @param   App\Models\User     $owner
+     * @param   string              $name
+     * @param   string              $lang
+     * @return  App\Models\TeamDevelopmentPlan
+     */
+    public function make(User $owner, $name, $lang)
+    {
+        $category = QuestionCategory::where([
+            'title'             => $name,
+            'lang'              => $lang,
+            'ownerId'           => $owner->id,
+            'targetSurveyType'  => 0,
+            'isSurvey'          => false
+        ])->first();
+
+        // If no category with that name exists, create a new one.
+        if (!$category) {
+            $category = new QuestionCategory(['title' => $name]);
+            $category->lang = $lang;
+            $category->ownerId = $owner->id;
+            $category->save();
+        }
+
+        self::shift($owner);
+
+        $devPlan = new self;
+        $devPlan->ownerId = $owner->id;
+        $devPlan->categoryId = $category->id;
+        $devPlan->save();
+
+        return $devPlan;
+    }
+
+    /**
      * Moves up all of a user's development plans position by 1.
      * 
      * @param   App\Models\User  $owner
