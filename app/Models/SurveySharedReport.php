@@ -47,7 +47,7 @@ class SurveySharedReport extends Model
                         'id'    => $report->id,
                         'name'  => basename($report->fileName, '.pdf'),
                         // 'link'  => action('ReportController@viewReport', $report->id),
-                        'link'  => secure_url('/reports/' . $report->fileName)
+                        'link'  => secure_url('/reports/' . rawurlencode($report->fileName))
                     ];
                 }
 
