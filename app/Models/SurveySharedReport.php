@@ -46,7 +46,8 @@ class SurveySharedReport extends Model
                     $surveyJson['reports'][] = [
                         'id'    => $report->id,
                         'name'  => basename($report->fileName, '.pdf'),
-                        'link'  => action('ReportController@viewReport', $report->id),
+                        // 'link'  => action('ReportController@viewReport', $report->id),
+                        'link'  => secure_url('/reports/' . $report->fileName)
                     ];
                 }
 
