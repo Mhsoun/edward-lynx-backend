@@ -138,8 +138,9 @@ class DevelopmentPlanTeamManagerController extends Controller
     {
         $currentUser = $request->user();
         $ssr = SurveySharedReport::where('userId', $currentUser->id)->get();
+        $json = SurveySharedReport::json($ssr);
 
-        return response()->jsonHal($ssr);
+        return response()->jsonHal($json);
     }
 
     /**
