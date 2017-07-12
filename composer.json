@@ -19,7 +19,8 @@
     "alfa6661/laravel-firebase": "^2.0",
     "mpdf/mpdf": "^6.1",
     "phpoffice/phpexcel": "^1.8",
-    "laravel/passport": "v1.0.17"
+    "laravel/passport": "v1.0.17",
+    "league/oauth2-server": "v5.1.3"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.0",
