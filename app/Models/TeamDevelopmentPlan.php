@@ -126,6 +126,11 @@ class TeamDevelopmentPlan extends Model implements Routable
         return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
     }
 
+    /**
+     * Returns the goals attached to this team development plan.
+     * 
+     * @return  Illuminate\Database\Eloquent\Collection
+     */
     public function goals()
     {
         $managedUsers = $this->owner->managedUsers->map(function ($user) {
@@ -158,6 +163,11 @@ class TeamDevelopmentPlan extends Model implements Routable
         return $json;
     }
 
+    /**
+     * Returns the goals sorted by user.
+     * 
+     * @return  array
+     */
     protected function goalsByUser()
     {
         $user2Goals = [];
