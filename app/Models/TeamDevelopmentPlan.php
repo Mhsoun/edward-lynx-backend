@@ -24,7 +24,7 @@ class TeamDevelopmentPlan extends Model implements Routable
      * @param   string              $lang
      * @return  App\Models\TeamDevelopmentPlan
      */
-    public function make(User $owner, $name, $lang)
+    public static function make(User $owner, $name, $lang)
     {
         $category = QuestionCategory::where([
             'title'             => $name,
