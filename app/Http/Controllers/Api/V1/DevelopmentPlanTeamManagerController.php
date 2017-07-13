@@ -37,30 +37,13 @@ class DevelopmentPlanTeamManagerController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'categoryId'    => 'required|integer|exists:question_categories,id'
+            'name'          => 'required|string|max:255',
+            'lang'          => 'required|in:en,sv,fi'
         ]);
 
         $currentUser = $request->user();
-        $category = QuestionCategory::find($request->categoryId);
-
-        // Check if the current user has access to the category.
-        if (!$category->owner->colleagueOf($currentUser) && $category->isSurvey) {
-            abort(400);
-        }
-
-        // Return an existing development plan if it already exists.
-        if ($devPlan = $currentUser->teamDevelopmentPlans()->where('categoryId', $category->id)->first()) {
-            return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
-        }
-
-        TeamDevelopmentPlan::shift($currentUser);
-
-        $devPlan = new TeamDevelopmentPlan;
-        $devPlan->ownerId = $currentUser->id;
-        $devPlan->categoryId = $category->id;
-        $devPlan->save();
-
-        TeamDevelopmentPlan::sort($currentUser);
+        
+        $devPlan = TeamDevelopmentPlan::make($currentUser, $request->name, $request->lang);
 
         return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
     }
@@ -141,34 +124,5 @@ class DevelopmentPlanTeamManagerController extends Controller
         $json = SurveySharedReport::json($ssr);
 
         return response()->jsonHal($json);
-    }
-
-    /**
-     * Serialies a development plan into its JSON equivalent.
-     * 
-     * @param   App\Models\DevelopmentPlan  $devPlan
-     * @return  array
-     */
-    protected function serializeDevPlan(DevelopmentPlan $devPlan)
-    {
-        return [
-            '_links'    => [
-                'self'  => ['href' => route('api1-dev-plan-manager-teams.show', $devPlan)],
-                'goals' => ['href' => route('api1-dev-plan-goals.index', $devPlan)]
-            ],
-            'id'        => $devPlan->id,
-            'name'      => $devPlan->name,
-            'ownerId'   => $devPlan->ownerId,
-            'position'  => $devPlan->position,
-            'checked'   => $devPlan->checked,
-            'visible'   => $devPlan->visible,
-            'progress'  => $devPlan->calculateProgress(),
-            'goals'     => $devPlan->goals->map(function ($goal) {
-                return [
-                    'title'     => $goal->title,
-                    'progress'  => $goal->calculateProgress()
-                ];
-            })
-        ];
     }
 }

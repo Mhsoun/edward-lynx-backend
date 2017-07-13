@@ -16,6 +16,43 @@ class TeamDevelopmentPlan extends Model implements Routable
     protected $fillable = ['position', 'visible'];
 
     /**
+     * Creates a new team development plan, creating a question category
+     * for it if it doesn't exist yet.
+     * 
+     * @param   App\Models\User     $owner
+     * @param   string              $name
+     * @param   string              $lang
+     * @return  App\Models\TeamDevelopmentPlan
+     */
+    public static function make(User $owner, $name, $lang)
+    {
+        $category = QuestionCategory::where([
+            'title'             => $name,
+            'lang'              => $lang,
+            'ownerId'           => $owner->id,
+            'targetSurveyType'  => 0,
+            'isSurvey'          => false
+        ])->first();
+
+        // If no category with that name exists, create a new one.
+        if (!$category) {
+            $category = new QuestionCategory(['title' => $name]);
+            $category->lang = $lang;
+            $category->ownerId = $owner->id;
+            $category->save();
+        }
+
+        self::shift($owner);
+
+        $devPlan = new self;
+        $devPlan->ownerId = $owner->id;
+        $devPlan->categoryId = $category->id;
+        $devPlan->save();
+
+        return $devPlan;
+    }
+
+    /**
      * Moves up all of a user's development plans position by 1.
      * 
      * @param   App\Models\User  $owner
@@ -89,6 +126,11 @@ class TeamDevelopmentPlan extends Model implements Routable
         return $this->hasOne(QuestionCategory::class, 'id', 'categoryId');
     }
 
+    /**
+     * Returns the goals attached to this team development plan.
+     * 
+     * @return  Illuminate\Database\Eloquent\Collection
+     */
     public function goals()
     {
         $managedUsers = $this->owner->managedUsers->map(function ($user) {
@@ -101,17 +143,43 @@ class TeamDevelopmentPlan extends Model implements Routable
     }
 
     /**
+     * Calculate the progress of this development plan.
+     * 
+     * @return  float
+     */
+    public function calculateProgress()
+    {
+        $count = $this->goals()->count();
+        if ($count == 0) {
+            return 0;
+        }
+
+        $total = 0;
+        foreach ($this->goals as $goal) {
+            $total += $goal->calculateProgress();
+        }
+        return $total / $count;
+    }
+
+    /**
      * Returns the JSON representation of this model.
      * 
      * @return  array
      */
     public function jsonSerialize($options = 0)
     {
+        $progress = $this->calculateProgress();
+        $checked = $progress == 1;
+
         $json = [
-            'id'        => $this->id,
-            'name'      => $this->category->name,
-            'ownerId'   => $this->ownerId,
-            'visible'   => $this->attributes['visible'],
+            'id'            => $this->id,
+            'categoryId'    => $this->category->id,
+            'ownerId'       => $this->ownerId,
+            'name'          => $this->category->title,
+            'visible'       => $this->attributes['visible'],
+            'position'      => $this->position,
+            'progress'      => $progress,
+            'checked'       => $checked,
         ];
 
         if ($options == JsonHalResponse::SERIALIZE_FULL) {
@@ -121,6 +189,11 @@ class TeamDevelopmentPlan extends Model implements Routable
         return $json;
     }
 
+    /**
+     * Returns the goals sorted by user.
+     * 
+     * @return  array
+     */
     protected function goalsByUser()
     {
         $user2Goals = [];
