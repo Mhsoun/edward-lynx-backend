@@ -2,6 +2,7 @@
 
 use App\Contracts\Routable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
 * Represents a question category
@@ -49,6 +50,17 @@ class QuestionCategory extends Model implements Routable
     public function url()
     {
         return route('api1-category', $this);
+    }
+
+    /**
+     * Scope a query to not include instant feedback categories.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNotForInstantFeedbacks(Builder $query)
+    {
+        return $query->where('title', '!=', 'Instant Feedbacks Category');
     }
 
 	/**

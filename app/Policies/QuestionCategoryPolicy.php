@@ -32,6 +32,12 @@ class QuestionCategoryPolicy
      */
     public function view(User $user, QuestionCategory $category)
     {
-        return $category->ownerId == $user->id;
+        if ($category->ownerId == $user->id) {
+            return true;
+        } elseif ($category->owner->colleagueOf($user)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
