@@ -226,6 +226,7 @@ Route::get('/survey-invite/{link}', 'InviteController@show');
 /* User reports */
 Route::get('/survey/user-report', 'ReportController@showUserReport');
 Route::post('/survey/generate-user-report', 'ReportController@createUserPDF');
+Route::get('/survey/generate-user-report', 'ReportController@createUserPDF');
 
 /* Routes for answering an instant feedback */
 Route::get('/instant-feedbacks/answer/{link}', 'InstantFeedbackController@answer')
