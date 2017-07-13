@@ -155,7 +155,7 @@ class TeamDevelopmentPlan extends Model implements Routable
         }
 
         $total = 0;
-        foreach ($this->goals as $goal) {
+        foreach ($this->goals() as $goal) {
             $total += $goal->calculateProgress();
         }
         return $total / $count;
