@@ -11,6 +11,13 @@ class SurveySharedReport extends Model
 
     public $timestamps = false;
 
+    /**
+     * Processes a collection of shared reports and returns
+     * the JSON representation of it.
+     * 
+     * @param   Illuminate\Support\Collection   $sharedReports
+     * @return  array
+     */
     public static function json($sharedReports)
     {
         $recipientsToSurveys = [];
@@ -88,66 +95,6 @@ class SurveySharedReport extends Model
     public function user()
     {
         return $this->hasOne(User::class, 'id', 'userId');
-    }
-
-    /**
-     * Returns the JSON representation of this class.
-     * 
-     * @return  array
-     */
-    public function jsonSerialize()
-    {
-        $recipientsToReports = [];
-        foreach ($this->survey->recipients as $surveyRecipient) {
-            $recipient = $surveyRecipient->recipient;
-            foreach ($this->survey->reports as $report) {
-                array_set($recipientsToReports, "{$surveyRecipient->recipient->id}.{$this->survey->id}.{$report->id}", $report->toArray());
-            }
-        }
-
-        dd($recipientsToReports);
-
-        $recipients = [];
-
-        $json = [];
-
-        foreach ($recipientsToReports as $id => $surveys) {
-            $recipient = Recipient::find($id);
-
-            if (!isset($recipients[$recipient->id])) {
-                $recipients[$recipient->id] = [
-                    'id'        => $recipient->id,
-                    'name'      => $recipient->name,
-                    'surveys'   => [],
-                ];
-            }
-
-            foreach ($surveys as $id => $reports) {
-                $survey = Survey::find($id);
-                $surveyJson = [
-                    'id'        => $survey->id,
-                    'name'      => $survey->name,
-                    'type'      => $survey->type,
-                    'reports'   => []
-                ];
-
-                foreach ($reports as $report) {
-                    $surveyJson['reports'][] = [
-                        'id'    => $report->id,
-                        'name'  => basename($report->fileName, '.pdf'),
-                        'link'  => action('ReportController@viewReport', $report->id)
-                    ];
-                }
-
-                $recipientColl[$recipient->id]['surveys'][] = $surveyJson;
-            }
-
-            // $json[] = $recipientJson;
-        }
-
-        dd($recipientColl);
-
-        return $json;
     }
 
 }
