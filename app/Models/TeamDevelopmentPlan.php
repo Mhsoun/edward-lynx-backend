@@ -143,17 +143,43 @@ class TeamDevelopmentPlan extends Model implements Routable
     }
 
     /**
+     * Calculate the progress of this development plan.
+     * 
+     * @return  float
+     */
+    public function calculateProgress()
+    {
+        $count = $this->goals()->count();
+        if ($count == 0) {
+            return 0;
+        }
+
+        $total = 0;
+        foreach ($this->goals as $goal) {
+            $total += $goal->calculateProgress();
+        }
+        return $total / $count;
+    }
+
+    /**
      * Returns the JSON representation of this model.
      * 
      * @return  array
      */
     public function jsonSerialize($options = 0)
     {
+        $progress = $this->calculateProgress();
+        $checked = $progress == 1;
+
         $json = [
-            'id'        => $this->id,
-            'name'      => $this->category->name,
-            'ownerId'   => $this->ownerId,
-            'visible'   => $this->attributes['visible'],
+            'id'            => $this->id,
+            'categoryId'    => $this->category->id,
+            'ownerId'       => $this->ownerId,
+            'name'          => $this->category->title,
+            'visible'       => $this->attributes['visible'],
+            'position'      => $this->position,
+            'progress'      => $progress,
+            'checked'       => $checked,
         ];
 
         if ($options == JsonHalResponse::SERIALIZE_FULL) {
