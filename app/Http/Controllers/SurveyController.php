@@ -122,7 +122,9 @@ class SurveyController extends Controller
             return $group->fullName();
         });
 
-        $categories = \App\Models\QuestionCategory::where('ownerId', '=', $companyId)->get();
+        $categories = \App\Models\QuestionCategory::where('ownerId', '=', $companyId)
+                    ->where('title', '!=', 'Instant Feedbacks Category')
+                    ->get();
         return view('survey.create', compact('recipients', 'groups', 'categories', 'companyId'));
     }
 
