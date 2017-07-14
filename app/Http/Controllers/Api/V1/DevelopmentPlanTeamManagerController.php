@@ -77,12 +77,12 @@ class DevelopmentPlanTeamManagerController extends Controller
         TeamDevelopmentPlan::sort($currentUser);
 
         $response = [];
-        $devPlans = $currentUser->teamDevelopmentPlans();
+        $devPlans = $currentUser->teamDevelopmentPlans;
         foreach ($devPlans as $devPlan) {
-            $response['items'][] = [
+            $response[] = [
                 'id'        => $devPlan->id,
-                'position'  => $teamAttr->position,
-                'visible'   => $teamAttr->visible
+                'position'  => $devPlan->position,
+                'visible'   => $devPlan->visible
             ];
         }
 
