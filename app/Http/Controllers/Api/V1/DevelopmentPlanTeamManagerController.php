@@ -45,7 +45,9 @@ class DevelopmentPlanTeamManagerController extends Controller
         
         $devPlan = TeamDevelopmentPlan::make($currentUser, $request->name, $request->lang);
 
-        return createdResponse(['Location' => route('api1-dev-plan-manager-teams.show', $devPlan)]);
+        return response()->jsonHal($devPlan, 201, [
+            'Location' => route('api1-dev-plan-manager-teams.show', $devPlan)
+        ]);
     }
 
     /**
