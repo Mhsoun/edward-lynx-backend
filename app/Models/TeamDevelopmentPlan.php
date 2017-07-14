@@ -30,7 +30,7 @@ class TeamDevelopmentPlan extends Model implements Routable
             'title'             => $name,
             'lang'              => $lang,
             'ownerId'           => $owner->id,
-            'targetSurveyType'  => 0,
+            'targetSurveyType'  => null,
             'isSurvey'          => false
         ])->first();
 
@@ -39,6 +39,7 @@ class TeamDevelopmentPlan extends Model implements Routable
             $category = new QuestionCategory(['title' => $name]);
             $category->lang = $lang;
             $category->ownerId = $owner->id;
+            $category->targetSurveyType = null;
             $category->save();
         }
 
