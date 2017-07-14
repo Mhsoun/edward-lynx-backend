@@ -44,7 +44,10 @@ class TeamDevelopmentPlan extends Model implements Routable
 
         self::shift($owner);
 
-        $devPlan = new self;
+        $devPlan = new self([
+            'position'  => 0,
+            'visible'   => false
+        ]);
         $devPlan->ownerId = $owner->id;
         $devPlan->categoryId = $category->id;
         $devPlan->save();
