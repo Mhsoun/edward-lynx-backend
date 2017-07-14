@@ -117,6 +117,8 @@ Route::group(['prefix' => '/dev-plans-manager'], function() {
         ->name('api1-dev-plan-manager-teams');
     Route::post('/teams', 'DevelopmentPlanTeamManagerController@store')
         ->middleware('can:manage,App\Models\User');
+    Route::patch('/teams', 'DevelopmentPlanTeamManagerController@sort')
+        ->middleware('can:manage,App\Models\User');
     Route::put('/teams', 'DevelopmentPlanTeamManagerController@sort')
         ->middleware('can:manage,App\Models\User');
     Route::get('/teams/{devPlan}', 'DevelopmentPlanTeamManagerController@show')
