@@ -76,6 +76,7 @@ class DevelopmentPlanTeamManagerController extends Controller
 
         TeamDevelopmentPlan::sort($currentUser);
 
+        $response = [];
         $devPlans = $currentUser->teamDevelopmentPlans();
         foreach ($devPlans as $devPlan) {
             $response['items'][] = [
