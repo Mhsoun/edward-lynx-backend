@@ -4,6 +4,7 @@ use App\SurveyTypes;
 use App\Models\User;
 use App\Models\Survey;
 use App\Models\Recipient;
+use App\Models\SurveyCandidate;
 use App\Models\SurveyRecipient;
 
 class SurveyPolicy extends Policy
