@@ -938,6 +938,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 
         $instantFeedbacks = InstantFeedback::answerableBy($this)
                                 ->latest('createdAt')
+                                ->limit(2)
                                 ->get();
         $numIf = 0;
         foreach ($instantFeedbacks as $if) {
@@ -965,16 +966,17 @@ class User extends Authenticatable implements AuthorizableContract, Routable
             }
         });
 
+        // Only return the top two instant feedbacks.
         if ($numIf > 2) {
-            return $sorted->filter(function($item, $i) {
+            $ifCounter = 0;
+            return $sorted->filter(function($item) use (&$ifCounter) {
                 if ($item instanceof InstantFeedback) {
-                    return $i <= 2;
+                    $ifCounter++;
+                    return $ifCounter < 2;
                 } else {
                     return true;
                 }
             });
-        } else {
-            return $sorted;
         }
 
         return $sorted;
