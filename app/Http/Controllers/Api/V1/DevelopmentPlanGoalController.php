@@ -99,7 +99,7 @@ class DevelopmentPlanGoalController extends Controller
             }
         }
 
-        if ($request->exists('categoryId') && !$devPlan->isTeam()) {
+        if ($request->exists('categoryId')) {
             if ($request->categoryId) {
                 $category = QuestionCategory::find($request->categoryId);
                 if ($currentUser->can('view', $category)) {
