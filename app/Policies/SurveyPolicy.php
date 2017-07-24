@@ -116,6 +116,8 @@ class SurveyPolicy extends Policy
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
+        } elseif (SurveyCandidate::isCandidateOf($survey, $user->email)) {
+            return true;
         } else {
             return false;
         }

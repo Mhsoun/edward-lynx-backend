@@ -22,6 +22,25 @@ class SurveyCandidate extends Model
 	protected $dates = ['endDate', 'endDateRecipients'];
 
     /**
+     * Returns TRUE if the provided email is a candidate of a survey.
+     * 
+     * @param   App\Models\Survey   $survey
+     * @param   string              $email
+     * @return  boolean
+     */
+    public static function isCandidateOf(Survey $survey, $email)
+    {
+        $recipients = Recipient::where('mail', $email)
+                        ->get()
+                        ->map(function($item) {
+                            return $item->id;
+                        })
+                        ->toArray();
+
+        return $survey->candidates()->whereIn('recipientId', $recipients)->count() > 0;
+    }
+
+    /**
      * Returns the survey that the recipient belongs to
      */
     public function survey()
