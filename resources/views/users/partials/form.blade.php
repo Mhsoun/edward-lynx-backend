@@ -39,11 +39,11 @@ if ($name_count == 1) {
     <div class="col-md-4 form-group">
         <label for="gender-x">Gender</label><br>
         <label class="radio-inline">
-            <input type="radio" name="gender" value="male" @if(old('gender', $user->gender) == 'male') checked @endif>
+            <input type="radio" name="gender" value="male" required @if(old('gender', $user->gender) == 'male') checked @endif>
             Male
         </label>
         <label class="radio-inline">
-            <input type="radio" name="gender" value="female" @if(old('gender', $user->gender) == 'female') checked @endif>
+            <input type="radio" name="gender" value="female" required @if(old('gender', $user->gender) == 'female') checked @endif>
             Female
         </label>
     </div>
