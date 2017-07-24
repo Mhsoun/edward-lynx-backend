@@ -85,7 +85,8 @@ class SurveyController extends Controller
                             })
                             ->toArray();
 
-            $surveys = Survey::join('survey_candidates', 'surveys.id', '=', 'survey_candidates.recipientId')
+            $surveys = Survey::select('surveys.*')
+                           ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
                            ->whereIn('survey_candidates.recipientId', $candidates)
                            ->valid()
                            ->whereIn('type', $supportedTypes)
