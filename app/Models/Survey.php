@@ -94,7 +94,7 @@ class Survey extends Model implements Routable, JsonHalLinking
      */
     public function scopeValid(Builder $query)
     {
-        return $query->where('endDate', '>', Carbon::now());
+        return $query->where('surveys.endDate', '>', Carbon::now());
     }
 
     public function scopeAnswerableBy(Builder $query, User $user)
