@@ -106,7 +106,7 @@ class AnswerController extends Controller
             
             // Try to check if we have an answer to the question
             $surveyAnswer = SurveyAnswer::where([
-                'answeredById'      => $recipient->id,
+                'answeredById'      => $recipient->recipient->id,
                 'questionId'        => $question->id,
                 'invitedById'       => $recipient->invitedById
             ])->first();
