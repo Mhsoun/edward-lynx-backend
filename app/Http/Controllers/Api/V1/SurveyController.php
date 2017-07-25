@@ -214,10 +214,11 @@ class SurveyController extends Controller
         $answers = $survey->answers()
                           ->where('answeredById', $recipient->id)
                           ->getResults();
+        $numerics = [0, 1, 2, 3, 4, 6, 8];
 
         foreach ($answers as $answer) {
             $questionToAnswers[$answer->questionId] = [
-                'value' => is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue
+                'value' => in_array($answer->question->answerType, $numerics) ? $answer->answerValue : $answer->answerText
             ];
 
             if ($answer->question->answerType == 7) {
