@@ -214,15 +214,15 @@ class SurveyController extends Controller
         $answers = $survey->answers()
                           ->where('answeredById', $recipient->id)
                           ->getResults();
-        $numerics = [0, 1, 2, 3, 4, 6, 8];
 
         foreach ($answers as $answer) {
+            $ans = $answer->jsonSerialize();
             $questionToAnswers[$answer->questionId] = [
-                'value' => in_array($answer->question->answerType, $numerics) ? $answer->answerValue : $answer->answerText
+                'value' => $ans['answer'] 
             ];
 
-            if ($answer->question->answerType == 7) {
-                $questionToAnswers[$answer->questionId]['explanation'] = $answer->answerText;
+            if (isset($ans['explanation'])) {
+                $questionToAnswers[$answer->questionId]['explanation'] = $ans['explanation'];
             }
         }
          
