@@ -231,10 +231,10 @@ class SurveyController extends Controller
             $json = $item->jsonSerialize();
             $json['questions'] = array_map(function($question) use ($questionToAnswers) {
                 $questionId = $question['id'];
-                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId] : null;
+                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId]['value'] : null;
                 
-                if (isset($questionToAnswers['explanation'])) {
-                    $question['explanation'] = $questionToAnswers['explanation'];
+                if (isset($questionToAnswers[$questionId]['explanation'])) {
+                    $question['explanation'] = $questionToAnswers[$questionId]['explanation'];
                 }
 
                 return $question;
