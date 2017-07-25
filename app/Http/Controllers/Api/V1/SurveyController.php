@@ -216,7 +216,13 @@ class SurveyController extends Controller
                           ->getResults();
 
         foreach ($answers as $answer) {
-            $questionToAnswers[$answer->questionId] = is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue;
+            $questionToAnswers[$answer->questionId] = [
+                'value' => is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue
+            ];
+
+            if ($answer->question->answerType == 7) {
+                $questionToAnswers[$answer->questionId]['explanation'] = $answer->answerText;
+            }
         }
          
         // Include the user's answer to each question 
@@ -226,6 +232,11 @@ class SurveyController extends Controller
             $json['questions'] = array_map(function($question) use ($questionToAnswers) {
                 $questionId = $question['id'];
                 $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId] : null;
+                
+                if (isset($questionToAnswers['explanation'])) {
+                    $question['explanation'] = $questionToAnswers['explanation'];
+                }
+
                 return $question;
             }, $json['questions']);
             return $json;
