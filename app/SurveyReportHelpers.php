@@ -130,6 +130,10 @@ abstract class SurveyReportHelpers
     */
     public static function sortQuestionsByOrder(&$questions, $orders)
     {
+        if (!is_array($questions)) {
+            return;
+        }
+
         usort($questions, function ($x, $y) use (&$orders) {
             $orderX = $orders[$x->id];
             $orderY = $orders[$y->id];
