@@ -550,11 +550,12 @@ class SurveyController extends Controller
      * Invites a guest recipient to rate a candidate.
      * 
      * @param  App\Models\Survey            $survey
-     * @param  App\Models\SurveyCandidate   $inviter
+     * @param  App\Models\SurveyCandidate
+     *         App\Models\SurveyRecipient   $inviter
      * @param  array                        $recipient
      * @return App\Models\SurveyRecipient
      */
-    public function inviteAnonymousRecipient(Survey $survey, SurveyCandidate $inviter, $recipient)
+    public function inviteAnonymousRecipient(Survey $survey, $inviter, $recipient)
     {
         $owner = $survey->ownerId;
         $name = $recipient['name'];
