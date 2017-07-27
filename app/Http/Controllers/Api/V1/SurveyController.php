@@ -67,10 +67,12 @@ class SurveyController extends Controller
             }
         };
 
+        $now = Carbon::now();
         $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
             $surveys = Survey::answerableBy($user)
                             ->valid()
+                            ->where('startDate', '>=', $now)
                             ->whereIn('type', $supportedTypes)
                             ->latest('endDate')
                             ->orderByRaw('survey_recipients.hasAnswered ASC')
