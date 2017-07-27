@@ -1262,7 +1262,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 		    }
 
         } elseif ($this->type == \App\SurveyTypes::Progress) {
-            $report = \App\SurveyReportProgress::create($survey, null);
+            $report = \App\SurveyReportProgress::create($this, null);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
             $report = \App\SurveyReportNormal::create($survey, null);
         }
