@@ -296,11 +296,15 @@ class SurveyController extends Controller
         }
 
         $currentUser = $request->user();
-        $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
-        $inviter = SurveyCandidate::where([
-            'recipientId'   => $recipient->id,
-            'surveyId'      => $survey->id
-        ])->first();
+        $recipients = Recipient::where('mail', $currentUser->email)
+                        ->get()
+                        ->map(function ($item) {
+                            return $item->id;
+                        })
+                        ->toArray();
+        $inviter = SurveyCandidate::where('surveyId', $survey->id)
+                    ->whereIn('recipientId', $recipients)
+                    ->first();
 
         foreach ($request->recipients as $recipient) {
             if (!empty($recipient['id'])) {
