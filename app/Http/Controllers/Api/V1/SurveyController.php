@@ -72,7 +72,6 @@ class SurveyController extends Controller
         if ($request->filter === 'answerable') {
             $surveys = Survey::answerableBy($user)
                             ->valid()
-                            ->where('startDate', '<=', $now)
                             ->whereIn('type', $supportedTypes)
                             ->latest('endDate')
                             ->orderByRaw('survey_recipients.hasAnswered ASC')
