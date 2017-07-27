@@ -302,9 +302,16 @@ class SurveyController extends Controller
                             return $item->id;
                         })
                         ->toArray();
-        $inviter = SurveyCandidate::where('surveyId', $survey->id)
+
+        if ($survey->type == 3) {
+            $inviter = SurveyRecipient::where('surveyId', $survey->id)
                     ->whereIn('recipientId', $recipients)
                     ->first();
+        } else {
+            $inviter = SurveyCandidate::where('surveyId', $survey->id)
+                    ->whereIn('recipientId', $recipients)
+                    ->first();
+        }
 
         foreach ($request->recipients as $recipient) {
             if (!empty($recipient['id'])) {
