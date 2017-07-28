@@ -79,17 +79,17 @@ class SurveyController extends Controller
                             ->sort($statusSorter);
 
         } else {
-            $candidates = Recipient::where('mail', $user->email)
-                            ->get()
-                            ->map(function($item) {
-                                return $item->id;
-                            })
-                            ->toArray();
+            // $candidates = Recipient::where('mail', $user->email)
+                            // ->get()
+                            // ->map(function($item) {
+                                // return $item->id;
+                            // })
+                            // ->toArray();
 
             $surveys = Survey::select('surveys.*')
-                           ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
-                           ->whereIn('survey_candidates.recipientId', $candidates)
-                           ->orWhere('surveys.ownerId', $user->id)
+                           // ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
+                           // ->whereIn('survey_candidates.recipientId', $candidates)
+                           ->where('surveys.ownerId', $user->id)
                            // ->valid()
                            ->whereIn('type', $supportedTypes)
                            ->latest('surveys.endDate')
