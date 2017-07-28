@@ -90,7 +90,7 @@ class SurveyController extends Controller
                            ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
                            ->whereIn('survey_candidates.recipientId', $candidates)
                            ->orWhere('surveys.ownerId', $user->id)
-                           ->valid()
+                           // ->valid()
                            ->whereIn('type', $supportedTypes)
                            ->latest('surveys.endDate')
                            ->paginate($num);
