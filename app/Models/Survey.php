@@ -1281,6 +1281,7 @@ class Survey extends Model implements Routable, JsonHalLinking
             }
             */
             $report = \App\SurveyReportProgress::create($this, null);
+            $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
             $report = \App\SurveyReportNormal::create($this, null);
         }
