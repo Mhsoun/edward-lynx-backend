@@ -971,13 +971,17 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         if (SurveyTypes::isGroupLike($this->type)) {
             $report = \App\SurveyReportGroup::create($this);
-        } elseif ($this->type == \App\SurveyTypes::Individual || $this->type == \App\SurveyTypes::Progress) {
+        } elseif ($this->type == \App\SurveyTypes::Individual ||
+                  $this->type == \App\SurveyTypes::Progress   ||
+                  $this->type == \App\SurveyTypes::Normal) {
 
             // Build report depending on the survey type.
             if ($this->type == \App\SurveyTypes::Individual) {
                 $report = \App\SurveyReport360::create($this, null, null);
             } elseif ($this->type == \App\SurveyTypes::Progress) {
                 $report = \App\SurveyReportProgress::create($this, null);
+            } elseif ($this->type == \App\SurveyTypes::Normal) {
+                $report = \App\SurveyReportNormal::create($this, null);
             }
 
             $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
@@ -1268,62 +1272,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 		    	}
 		    }
 
-        } elseif ($this->type == \App\SurveyTypes::Progress) {
-            /*
-            $currentUser = request()->user();
-            $recipients = Recipient::where('mail', $currentUser->email)
-                            ->get()
-                            ->map(function ($item) {
-                                return $item->id;
-                            })
-                            ->toArray();
-
-            // Assumes that the current user is a candidate
-            $candidate = SurveyCandidate::where('surveyId', $this->id)
-                            ->whereIn('recipientId', $recipients)
-                            ->first();
-
-            if (is_null($candidate)) {
-                throw new \RuntimeException("Cannot find candidate for the currently logged-in user.");
-            }
-            */
-            $report = \App\SurveyReportProgress::create($this, null);
-            $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
-            $selfRoleActualId = \App\Roles::selfRoleId();
-
-            $roles = [];
-            foreach ($recipients as $recipient) {
-                $roleId = $recipient->roleId;
-                $roleName = Roles::name($roleId);
-
-                if ($isGroupReport && $roleId == $selfRoleActualId) {
-                    $roleId = $selfRoleId;
-                }
-
-                if ($roleId == $selfRoleId) {
-                    $roleName = $selfRoleName;
-                }
-
-                $role = null;
-                if(!array_key_exists($roleId, $roles)) {
-                    $role = (object) [
-                        'id' => $roleId,
-                        'name' => $roleName,
-                        'toEvaluate' => $roleId == $selfRoleId,
-                        'count' => 0
-                    ];
-
-                    $roles[$roleId] = $role;
-                } else {
-                    $role = $roles[$roleId];
-                }
-
-                $role->count++;
-            }
-
-            $roles = \App\SurveyReport::sortByRoleId($roles, $this->type);
-        } elseif ($this->type == \App\SurveyTypes::Normal) {
-            $report = \App\SurveyReportNormal::create($this, null);
         }
 
         $data['response_rate'] = array_map(function($item) use ($selfRoleId) {
