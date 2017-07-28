@@ -1280,7 +1280,7 @@ class Survey extends Model implements Routable, JsonHalLinking
                 throw new \RuntimeException("Cannot find candidate for the currently logged-in user.");
             }
             */
-            $report = \App\SurveyReportProgress::create($this, $candidate);
+            $report = \App\SurveyReportProgress::create($this, null);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
             $report = \App\SurveyReportNormal::create($this, null);
         }
