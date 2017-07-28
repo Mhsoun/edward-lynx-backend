@@ -48,7 +48,9 @@ abstract class SurveyReportProgress
 
         foreach ($selfAndOtherRoles as $role) {
             \App\SurveyReportHelpers::sortQuestionsByOrder($role->questions, $questionOrders);
-            $role->questions = \App\SurveyReportHelpers::calculateQuestionsAverage($role->questions);
+            if (!is_null($role->questions)) {
+                $role->questions = \App\SurveyReportHelpers::calculateQuestionsAverage($role->questions);
+            }
         }
 
         $data->selfAndOtherRoles = $selfAndOtherRoles;
