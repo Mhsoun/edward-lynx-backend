@@ -1282,6 +1282,39 @@ class Survey extends Model implements Routable, JsonHalLinking
             */
             $report = \App\SurveyReportProgress::create($this, null);
             $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
+            $selfRoleActualId = \App\Roles::selfRoleId();
+
+            $roles = [];
+            foreach ($recipients as $recipient) {
+                $roleId = $recipient->roleId;
+                $roleName = Roles::name($roleId);
+
+                if ($isGroupReport && $roleId == $selfRoleActualId) {
+                    $roleId = $selfRoleId;
+                }
+
+                if ($roleId == $selfRoleId) {
+                    $roleName = $selfRoleName;
+                }
+
+                $role = null;
+                if(!array_key_exists($roleId, $roles)) {
+                    $role = (object) [
+                        'id' => $roleId,
+                        'name' => $roleName,
+                        'toEvaluate' => $roleId == $selfRoleId,
+                        'count' => 0
+                    ];
+
+                    $roles[$roleId] = $role;
+                } else {
+                    $role = $roles[$roleId];
+                }
+
+                $role->count++;
+            }
+
+            $roles = \App\SurveyReport::sortByRoleId($roles, $this->type);
         } elseif ($this->type == \App\SurveyTypes::Normal) {
             $report = \App\SurveyReportNormal::create($this, null);
         }
