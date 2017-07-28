@@ -89,6 +89,7 @@ class SurveyController extends Controller
             $surveys = Survey::select('surveys.*')
                            ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
                            ->whereIn('survey_candidates.recipientId', $candidates)
+                           ->orWhere('surveys.ownerId', $user->id)
                            ->valid()
                            ->whereIn('type', $supportedTypes)
                            ->latest('surveys.endDate')
