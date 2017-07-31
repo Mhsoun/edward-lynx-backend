@@ -1430,6 +1430,13 @@ class Survey extends Model implements Routable, JsonHalLinking
             ];
         }, $report->yesOrNoQuestions);
 
+        // If some fields are empty remove them from the result data.
+        foreach ($data as $key => $value) {
+            if (empty($value)) {
+                unset($data[$key]);
+            }
+        }
+
         return $data;
     }
 
