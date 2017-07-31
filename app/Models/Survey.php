@@ -1373,28 +1373,30 @@ class Survey extends Model implements Routable, JsonHalLinking
             $data['blindspot'] = $report->blindSpots;
         }
 
-        $data['breakdown'] = array_map(function($item) use ($selfRoleId) {
+        if (isset($report->categoriesByRole)) {
+            $data['breakdown'] = array_map(function($item) use ($selfRoleId) {
 
-            return [
-            	'category' => $item->name,
-            	'dataPoints' => array_map(function($item2) use ($selfRoleId) {
-            		$role_style = "";
+                return [
+                	'category' => $item->name,
+                	'dataPoints' => array_map(function($item2) use ($selfRoleId) {
+                		$role_style = "";
 
-		        	if($item2->id == $selfRoleId) {
-		        		$role_style = "selfColor";
-		        	}else if($item2->id == -1) {
-		        		$role_style = "otherColor";
-		        	}else {
-		        		$role_style = "orangeColor";
-		        	}
-                    return [
-                        'title' => $item2->name,
-                        'percentage' => round($item2->average, 2),
-                        'role_style' => $role_style
-                    ];
-                }, $item->roles)
-            ];
-        }, $report->categoriesByRole);
+    		        	if($item2->id == $selfRoleId) {
+    		        		$role_style = "selfColor";
+    		        	}else if($item2->id == -1) {
+    		        		$role_style = "otherColor";
+    		        	}else {
+    		        		$role_style = "orangeColor";
+    		        	}
+                        return [
+                            'title' => $item2->name,
+                            'percentage' => round($item2->average, 2),
+                            'role_style' => $role_style
+                        ];
+                    }, $item->roles)
+                ];
+            }, $report->categoriesByRole);
+        }
 
         $data['detailed_answer_summary'] = array_map(function($item) {
 
