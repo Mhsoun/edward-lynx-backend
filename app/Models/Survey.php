@@ -1430,19 +1430,20 @@ class Survey extends Model implements Routable, JsonHalLinking
             ];
         }, $report->yesOrNoQuestions);
 
-        // If some fields are empty remove them from the result data.
-        foreach ($data as $key => $value) {
-            if (empty($value)) {
-                unset($data[$key]);
-            }
-        }
-
-        // Highest and lowest individual may be deep
+        // Highest and lowest individual keys are deep so remove
+        // them if they are empty.
         if (empty($data['highestLowestIndividual']['highest'])) {
             unset($data['highestLowestIndividual']['highest']);
         }
         if (empty($data['highestLowestIndividual']['lowest'])) {
             unset($data['highestLowestIndividual']['lowest']);
+        }
+
+        // If some fields are empty remove them from the result data.
+        foreach ($data as $key => $value) {
+            if (empty($value)) {
+                unset($data[$key]);
+            }
         }        
 
         return $data;
