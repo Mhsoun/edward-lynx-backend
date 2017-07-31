@@ -1369,7 +1369,9 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         $data['highestLowestIndividual'] = $highestLowestResultsFinal;
 
-        $data['blindspot'] = $report->blindSpots;
+        if (isset($report->blindSpots)) {
+            $data['blindspot'] = $report->blindSpots;
+        }
 
         $data['breakdown'] = array_map(function($item) use ($selfRoleId) {
 
