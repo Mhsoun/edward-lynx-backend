@@ -984,7 +984,7 @@ class Survey extends Model implements Routable, JsonHalLinking
                 $report = \App\SurveyReportNormal::create($this, null);
             }
 
-            $isGroup = \App\SurveyTypes::isGroupLike($survey->type);
+            $isGroup = \App\SurveyTypes::isGroupLike($this->type);
             $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
             $surveyParserData = \App\EmailContentParser::createReportParserData($this, null, null);
 
