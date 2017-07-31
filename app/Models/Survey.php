@@ -995,7 +995,11 @@ class Survey extends Model implements Routable, JsonHalLinking
 
             $isNormal = $this->type == \App\SurveyTypes::Normal;
 
-            $questionsByRole = $report->questionsByRole;
+            if (isset($report->questionsByRole)) {
+                $questionsByRole = $report->questionsByRole;
+            } else {
+                $questionsByRole = [];
+            }
 
             //Determine the self role name
 	        $selfRoleName = "";
