@@ -1437,6 +1437,14 @@ class Survey extends Model implements Routable, JsonHalLinking
             }
         }
 
+        // Highest and lowest individual may be deep
+        if (empty($data['highestLowestIndividual']['highest'])) {
+            unset($data['highestLowestIndividual']['highest']);
+        }
+        if (empty($data['highestLowestIndividual']['lowest'])) {
+            unset($data['highestLowestIndividual']['lowest']);
+        }        
+
         return $data;
     }
 
