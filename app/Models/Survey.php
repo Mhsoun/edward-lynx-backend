@@ -1326,30 +1326,31 @@ class Survey extends Model implements Routable, JsonHalLinking
                     }, $item->roles)
                 ];
             }, $report->selfAndOthersCategories);
+
+            $data['radar_diagram'] = array_map(function($item) use ($selfRoleId) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'roles' => array_map(function($item2) use ($selfRoleId) {
+                    	if($item2->id == $selfRoleId) {
+    		        		$role_style = "selfColor";
+    		        	}else if($item2->id == -1) {
+    		        		$role_style = "otherColor";
+    		        	}else {
+    		        		$role_style = "orangeColor";
+    		        	}
+
+                        return [
+                            'id' => $item2->id,
+                            'name' => $item2->name,
+                            'average' => $item2->average,
+                            'role_style' => $role_style
+                        ];
+                    }, $item->roles)
+                ];
+            }, $report->selfAndOthersCategories);
+
         }
-
-        $data['radar_diagram'] = array_map(function($item) use ($selfRoleId) {
-            return [
-                'id' => $item->id,
-                'name' => $item->name,
-                'roles' => array_map(function($item2) use ($selfRoleId) {
-                	if($item2->id == $selfRoleId) {
-		        		$role_style = "selfColor";
-		        	}else if($item2->id == -1) {
-		        		$role_style = "otherColor";
-		        	}else {
-		        		$role_style = "orangeColor";
-		        	}
-
-                    return [
-                        'id' => $item2->id,
-                        'name' => $item2->name,
-                        'average' => $item2->average,
-                        'role_style' => $role_style
-                    ];
-                }, $item->roles)
-            ];
-        }, $report->selfAndOthersCategories);
 
         $data['comments'] = array_map(function($item) use ($surveyParserData) {
 
