@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use DB;
 use App\Models\BaseModel;
 use App\Contracts\Routable;
+use App\Contracts\JsonHalLinking;
 use Illuminate\Database\Eloquent\Builder;
 
-class DevelopmentPlan extends BaseModel implements Routable
+class DevelopmentPlan extends BaseModel implements Routable, JsonHalLinking
 {
-    
+
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
-    public $fillable = ['name'];
+    public $fillable = ['name', 'shared'];
     
     protected $visible = ['id', 'name', 'checked', 'shared', 'createdAt', 'updatedAt'];
 
@@ -25,6 +27,18 @@ class DevelopmentPlan extends BaseModel implements Routable
     public function url()
     {
         return route('api1-dev-plan', $this);
+    }
+
+    /**
+     * Returns additional JSON-HAL links.
+     * 
+     * @return  array
+     */
+    public function jsonHalLinks()
+    {
+        return [
+            'goals' => route('api1-dev-plan-goals.index', $this)
+        ];
     }
 
     /**
@@ -97,27 +111,34 @@ class DevelopmentPlan extends BaseModel implements Routable
     }
     
     /**
+     * Calculate the progress of this development plan.
+     * 
+     * @return  float
+     */
+    public function calculateProgress()
+    {
+        $count = $this->goals()->count();
+        if ($count == 0) {
+            return 0;
+        }
+
+        $total = 0;
+        foreach ($this->goals as $goal) {
+            $total += $goal->calculateProgress();
+        }
+        return $total / $count;
+    }
+
+    /**
      * Include this development plan's goals when serializing to JSON.
      *
      * @return  array
      */
-    public function jsonSerialize()
+    public function jsonSerialize($type = 0)
     {
         $json = parent::jsonSerialize();
         $json['goals'] = $this->goals;
         return $json;
-    }
-    
-    /**
-     * Returns additional links for JSON-HAL links field.
-     *
-     * @return  array
-     */
-    public function jsonHalLinks()
-    {
-        return [
-            'owner' => $this->owner->url()
-        ];
     }
     
 }

@@ -119,13 +119,13 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     }
 
     /**
-     * Returns development plans for this user.
-     *
+     * Returns this user's team development plans.
+     * 
      * @return  Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function myDevelopmentPlans()
+    public function teamDevelopmentPlans()
     {
-        return $this->hasMany(DevelopmentPlan::class, 'targetId');
+        return $this->hasMany(TeamDevelopmentPlan::class, 'ownerId');
     }
 
     /**
@@ -189,6 +189,19 @@ class User extends Authenticatable implements AuthorizableContract, Routable
     public function scopeCompanies(Builder $query)
     {
         return $query->whereNull('parentId');
+    }
+
+    /**
+     * Scopes the query to return users in the same company.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @param   App\Models\User                         $company
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeInTheCompany(Builder $query, User $company)
+    {
+        return $query->where('parentId', $company->id)
+                     ->orWhere('id', $company->id);
     }
 
     /**
@@ -887,11 +900,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 	 * @return	string
 	 */
 	public function getTypeAttribute()
-	{
-        if (!$this->accessLevel) {
-            return 1;
-        }
-        
+	{   
 		return self::ACCESS_LEVELS[$this->accessLevel];
 	}
 
@@ -929,6 +938,7 @@ class User extends Authenticatable implements AuthorizableContract, Routable
 
         $instantFeedbacks = InstantFeedback::answerableBy($this)
                                 ->latest('createdAt')
+                                ->limit(2)
                                 ->get();
         $numIf = 0;
         foreach ($instantFeedbacks as $if) {
@@ -949,7 +959,6 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         $sorted = $collection->sortBy(function ($item) {
             if ($item instanceof DevelopmentPlanGoal) {
                 return $item->dueDate->timestamp;
-                // return $item->developmentPlan->dueDate->timestamp;
             } elseif ($item instanceof InstantFeedback) {
                 return $item->createdAt->timestamp;
             } elseif ($item instanceof Survey) {
@@ -957,16 +966,17 @@ class User extends Authenticatable implements AuthorizableContract, Routable
             }
         });
 
+        // Only return the top two instant feedbacks.
         if ($numIf > 2) {
-            return $sorted->filter(function($item, $i) {
+            $ifCounter = 0;
+            return $sorted->filter(function($item) use (&$ifCounter) {
                 if ($item instanceof InstantFeedback) {
-                    return $i <= 2;
+                    $ifCounter++;
+                    return $ifCounter < 2;
                 } else {
                     return true;
                 }
             });
-        } else {
-            return $sorted;
         }
 
         return $sorted;

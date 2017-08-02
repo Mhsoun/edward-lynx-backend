@@ -75,6 +75,7 @@
                             </a>
                         @endif
 
+                        <a href="#share-report-modal" class="btn btn-default btn-xs" title="Share Report" data-toggle="modal" data-target="#share-report-modal" data-survey-id="{{ $survey->id }}" data-recipient-id="{{ $candidate->recipient->id }}"><i class="glyphicon glyphicon-list-alt"></i></a>
                         <a class="btn btn-danger btn-xs" href="javascript:deleteParticipant('{{ $deleteLink }}', 2)">
                             <span class="glyphicon glyphicon-trash"></span>
                         </a>

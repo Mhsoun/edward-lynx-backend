@@ -67,6 +67,7 @@ class SurveyController extends Controller
             }
         };
 
+        $now = Carbon::now();
         $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
             $surveys = Survey::answerableBy($user)
@@ -78,10 +79,20 @@ class SurveyController extends Controller
                             ->sort($statusSorter);
 
         } else {
-            $surveys = Survey::where('ownerId', $user->id)
-                           ->valid()
+            // $candidates = Recipient::where('mail', $user->email)
+                            // ->get()
+                            // ->map(function($item) {
+                                // return $item->id;
+                            // })
+                            // ->toArray();
+
+            $surveys = Survey::select('surveys.*')
+                           // ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
+                           // ->whereIn('survey_candidates.recipientId', $candidates)
+                           ->where('surveys.ownerId', $user->id)
+                           // ->valid()
                            ->whereIn('type', $supportedTypes)
-                           ->latest('endDate')
+                           ->latest('surveys.endDate')
                            ->paginate($num);
         }
         
@@ -207,7 +218,14 @@ class SurveyController extends Controller
                           ->getResults();
 
         foreach ($answers as $answer) {
-            $questionToAnswers[$answer->questionId] = is_null($answer->answerValue) ? $answer->answerText : $answer->answerValue;
+            $ans = $answer->jsonSerialize();
+            $questionToAnswers[$answer->questionId] = [
+                'value' => $ans['answer'] 
+            ];
+
+            if (isset($ans['explanation'])) {
+                $questionToAnswers[$answer->questionId]['explanation'] = $ans['explanation'];
+            }
         }
          
         // Include the user's answer to each question 
@@ -216,7 +234,12 @@ class SurveyController extends Controller
             $json = $item->jsonSerialize();
             $json['questions'] = array_map(function($question) use ($questionToAnswers) {
                 $questionId = $question['id'];
-                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId] : null;
+                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId]['value'] : null;
+                
+                if (isset($questionToAnswers[$questionId]['explanation'])) {
+                    $question['explanation'] = $questionToAnswers[$questionId]['explanation'];
+                }
+
                 return $question;
             }, $json['questions']);
             return $json;
@@ -273,11 +296,22 @@ class SurveyController extends Controller
         }
 
         $currentUser = $request->user();
-        $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
-        $inviter = SurveyCandidate::where([
-            'recipientId'   => $recipient->id,
-            'surveyId'      => $survey->id
-        ])->first();
+        $recipients = Recipient::where('mail', $currentUser->email)
+                        ->get()
+                        ->map(function ($item) {
+                            return $item->id;
+                        })
+                        ->toArray();
+
+        if ($survey->type == 3) {
+            $inviter = SurveyRecipient::where('surveyId', $survey->id)
+                    ->whereIn('recipientId', $recipients)
+                    ->first();
+        } else {
+            $inviter = SurveyCandidate::where('surveyId', $survey->id)
+                    ->whereIn('recipientId', $recipients)
+                    ->first();
+        }
 
         foreach ($request->recipients as $recipient) {
             if (!empty($recipient['id'])) {
@@ -516,11 +550,12 @@ class SurveyController extends Controller
      * Invites a guest recipient to rate a candidate.
      * 
      * @param  App\Models\Survey            $survey
-     * @param  App\Models\SurveyCandidate   $inviter
+     * @param  App\Models\SurveyCandidate
+     *         App\Models\SurveyRecipient   $inviter
      * @param  array                        $recipient
      * @return App\Models\SurveyRecipient
      */
-    public function inviteAnonymousRecipient(Survey $survey, SurveyCandidate $inviter, $recipient)
+    public function inviteAnonymousRecipient(Survey $survey, $inviter, $recipient)
     {
         $owner = $survey->ownerId;
         $name = $recipient['name'];
@@ -531,7 +566,7 @@ class SurveyController extends Controller
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $recipient->id)
             ->where('surveyId', '=', $survey->id)
-            ->where('invitedById', '=', $owner)
+            // ->where('invitedById', '=', $owner) // Changes
             ->first();
 
         if ($existingRecipient) {
@@ -569,7 +604,7 @@ class SurveyController extends Controller
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $user->id)
             ->where('surveyId', '=', $survey->id)
-            ->where('invitedById', '=', $owner)
+            // ->where('invitedById', '=', $owner)
             ->first();
 
         if ($existingRecipient) {

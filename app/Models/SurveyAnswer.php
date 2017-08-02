@@ -81,9 +81,15 @@ class SurveyAnswer extends Model
     public function jsonSerialize()
     {
         $answerType = $this->question->answerTypeObject();
-        return [
+        $json = [
             'question'  => $this->questionId,
             'answer'    => $this->value
         ];
+
+        if ($this->question->answerType == 7) {
+            $json['explanation'] = $this->answerText;
+        }
+
+        return $json;
     }
 }

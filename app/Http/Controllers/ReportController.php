@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\SurveyTypes;
 use App\Models\Survey;
 use App\SurveyReportHelpers;
+use App\Models\SurveySharedReport;
 
 /**
 * Represents a controller for creating and viewing reports
@@ -646,4 +647,119 @@ class ReportController extends Controller
                 ],
                 (array)$answerData));
     }
+
+    /**
+     * AJAX endpoint for retrieving a survey's shared reports.
+     * 
+     * @param   Illuminate\Http\Request $request
+     * @param   integer                 $surveyId
+     * @return  App\Http\JsonHalResponse
+     */
+    public function fetchReportShares(Request $request, $surveyId)
+    {
+        $survey = Survey::findOrFail($surveyId);
+
+        // Only require recipient ID for Lynx Progress and 360 surveys.
+        if (in_array($survey->type, [0, 2])) {
+            $this->validate($request, [
+                'recipient_id'   => 'required|integer|exists:recipients,id',
+            ]);
+        }
+
+        if ($survey->owner->isAn(User::ADMIN) || $survey->owner->isAn(User::SUPERADMIN)) {
+            $company = $survey->owner;
+        } else {
+            $company = $survey->owner->company;
+        }
+
+        $shared = SurveySharedReport::where([
+            'surveyId'      => $survey->id,
+            'recipientId'   => $request->recipient_id
+        ])->with('user')->get();
+        $sharedIds = $shared->map(function($item) {
+            return $item->userId;
+        })->toArray();
+
+        $users = User::inTheCompany($company)
+                    ->whereNotIn('id', $sharedIds)
+                    ->whereIn('accessLevel', [0, 1, 2])
+                    ->orderBy('name', 'ASC')
+                    ->get();
+
+        $shared = $shared->map(function($item) {
+            return [
+                'id'    => $item->user->id,
+                'name'  => $item->user->name,
+            ];
+        });
+        $users = $users->map(function($user) {
+            return [
+                'id'    => $user->id,
+                'name'  => $user->name,
+            ];
+        });
+
+        return response()->jsonHal([
+            'users'     => $users,
+            'shared'    => $shared
+        ]);
+    }
+
+    /**
+     * AJAX endpoint for saving a survey's shared reports.
+     * 
+     * @param   Illuminate\Http\Request $request
+     * @param   integer                 $surveyId
+     * @return  App\Http\JsonHalResponse
+     */
+    public function saveReportShares(Request $request, $surveyId)
+    {
+        $survey = Survey::findOrFail($surveyId);
+
+        $this->validate($request, [
+            'shared'        => 'array',
+            'shared.*'      => 'required|integer|exists:users,id'
+        ]);
+
+        // Only require recipient ID for Lynx Progress and 360 surveys.
+        if (in_array($survey->type, [0, 2])) {
+            $this->validate($request, [
+                'recipient_id'  => 'required|integer|exists:recipients,id',
+            ]);
+        }
+
+        $shared = $request->get('shared', []);
+
+        $existing = SurveySharedReport::where([
+                'surveyId'      => $survey->id,
+                'recipientId'   => $request->recipient_id
+            ])
+            ->get()
+            ->map(function ($item) {
+                return $item->userId;
+            })
+            ->toArray();
+
+        $toAdd = array_diff($shared, $existing);
+        $toRemove = array_diff($existing, $shared);
+        
+        foreach ($toAdd as $userId) {
+            $scsr = new SurveySharedReport;
+            $scsr->surveyId = $survey->id;
+            $scsr->recipientId = $request->recipient_id;
+            $scsr->userId = $userId;
+            $scsr->save();
+        }
+
+        foreach ($toRemove as $userId) {
+            SurveySharedReport::where([
+                'surveyId'      => $survey->id,
+                'recipientId'   => $request->recipient_id,
+                'userId'        => $userId
+            ])->delete();
+        }
+
+        return response('', 200);
+    }
+
 }

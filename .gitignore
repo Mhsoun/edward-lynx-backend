@@ -5,6 +5,10 @@
 /public/reports
 composer.phar
 composer.lock
+vendor/
+bin/
+logs/
+
 .env
 .env.*.php
 .env.php

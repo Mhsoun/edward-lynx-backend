@@ -94,7 +94,7 @@ class Survey extends Model implements Routable, JsonHalLinking
      */
     public function scopeValid(Builder $query)
     {
-        return $query->where('endDate', '>', Carbon::now());
+        return $query->where('surveys.endDate', '>', Carbon::now());
     }
 
     public function scopeAnswerableBy(Builder $query, User $user)
@@ -971,8 +971,20 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         if (SurveyTypes::isGroupLike($this->type)) {
             $report = \App\SurveyReportGroup::create($this);
-        } elseif ($this->type == \App\SurveyTypes::Individual) {
-            $report = \App\SurveyReport360::create($this, null, null);
+        } elseif ($this->type == \App\SurveyTypes::Individual ||
+                  $this->type == \App\SurveyTypes::Progress   ||
+                  $this->type == \App\SurveyTypes::Normal) {
+
+            // Build report depending on the survey type.
+            if ($this->type == \App\SurveyTypes::Individual) {
+                $report = \App\SurveyReport360::create($this, null, null);
+            } elseif ($this->type == \App\SurveyTypes::Progress) {
+                $report = \App\SurveyReportProgress::create($this, null);
+            } elseif ($this->type == \App\SurveyTypes::Normal) {
+                $report = \App\SurveyReportNormal::create($this, null);
+            }
+
+            $isGroup = \App\SurveyTypes::isGroupLike($this->type);
             $selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
             $surveyParserData = \App\EmailContentParser::createReportParserData($this, null, null);
 
@@ -984,7 +996,11 @@ class Survey extends Model implements Routable, JsonHalLinking
 
             $isNormal = $this->type == \App\SurveyTypes::Normal;
 
-            $questionsByRole = $report->questionsByRole;
+            if (isset($report->questionsByRole)) {
+                $questionsByRole = $report->questionsByRole;
+            } else {
+                $questionsByRole = [];
+            }
 
             //Determine the self role name
 	        $selfRoleName = "";
@@ -1261,10 +1277,6 @@ class Survey extends Model implements Routable, JsonHalLinking
 		    	}
 		    }
 
-        } elseif ($this->type == \App\SurveyTypes::Progress) {
-            $report = \App\SurveyReportProgress::create($survey, null);
-        } elseif ($this->type == \App\SurveyTypes::Normal) {
-            $report = \App\SurveyReportNormal::create($survey, null);
         }
 
         $data['response_rate'] = array_map(function($item) use ($selfRoleId) {
@@ -1291,51 +1303,54 @@ class Survey extends Model implements Routable, JsonHalLinking
             ];
         }, $averageCategories);
 
-        $data['ioc'] = array_map(function($item) use ($selfRoleId) {
-            return [
-                'id'        => $item->id,
-                'name'      => $item->name,
-                'roles'     => array_map(function($item2) use ($selfRoleId) {
-                	if($item2->id == $selfRoleId) {
-		        		$role_style = "selfColor";
-		        	}else if($item2->id == -1) {
-		        		$role_style = "otherColor";
-		        	}else {
-		        		$role_style = "orangeColor";
-		        	}
+        if (isset($report->selfAndOthersCategories)) {
+            $data['ioc'] = array_map(function($item) use ($selfRoleId) {
+                return [
+                    'id'        => $item->id,
+                    'name'      => $item->name,
+                    'roles'     => array_map(function($item2) use ($selfRoleId) {
+                    	if($item2->id == $selfRoleId) {
+    		        		$role_style = "selfColor";
+    		        	}else if($item2->id == -1) {
+    		        		$role_style = "otherColor";
+    		        	}else {
+    		        		$role_style = "orangeColor";
+    		        	}
 
-                    return [
-                        'id' => $item2->id,
-                        'name' => $item2->name,
-                        'average' => $item2->average,
-                        'role_style' => $role_style
-                    ];
-                }, $item->roles)
-            ];
-        }, $report->selfAndOthersCategories);
+                        return [
+                            'id' => $item2->id,
+                            'name' => $item2->name,
+                            'average' => $item2->average,
+                            'role_style' => $role_style
+                        ];
+                    }, $item->roles)
+                ];
+            }, $report->selfAndOthersCategories);
 
-        $data['radar_diagram'] = array_map(function($item) use ($selfRoleId) {
-            return [
-                'id' => $item->id,
-                'name' => $item->name,
-                'roles' => array_map(function($item2) use ($selfRoleId) {
-                	if($item2->id == $selfRoleId) {
-		        		$role_style = "selfColor";
-		        	}else if($item2->id == -1) {
-		        		$role_style = "otherColor";
-		        	}else {
-		        		$role_style = "orangeColor";
-		        	}
+            $data['radar_diagram'] = array_map(function($item) use ($selfRoleId) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'roles' => array_map(function($item2) use ($selfRoleId) {
+                    	if($item2->id == $selfRoleId) {
+    		        		$role_style = "selfColor";
+    		        	}else if($item2->id == -1) {
+    		        		$role_style = "otherColor";
+    		        	}else {
+    		        		$role_style = "orangeColor";
+    		        	}
 
-                    return [
-                        'id' => $item2->id,
-                        'name' => $item2->name,
-                        'average' => $item2->average,
-                        'role_style' => $role_style
-                    ];
-                }, $item->roles)
-            ];
-        }, $report->selfAndOthersCategories);
+                        return [
+                            'id' => $item2->id,
+                            'name' => $item2->name,
+                            'average' => $item2->average,
+                            'role_style' => $role_style
+                        ];
+                    }, $item->roles)
+                ];
+            }, $report->selfAndOthersCategories);
+
+        }
 
         $data['comments'] = array_map(function($item) use ($surveyParserData) {
 
@@ -1354,30 +1369,34 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         $data['highestLowestIndividual'] = $highestLowestResultsFinal;
 
-        $data['blindspot'] = $report->blindSpots;
+        if (isset($report->blindSpots)) {
+            $data['blindspot'] = $report->blindSpots;
+        }
 
-        $data['breakdown'] = array_map(function($item) use ($selfRoleId) {
+        if (isset($report->categoriesByRole)) {
+            $data['breakdown'] = array_map(function($item) use ($selfRoleId) {
 
-            return [
-            	'category' => $item->name,
-            	'dataPoints' => array_map(function($item2) use ($selfRoleId) {
-            		$role_style = "";
+                return [
+                	'category' => $item->name,
+                	'dataPoints' => array_map(function($item2) use ($selfRoleId) {
+                		$role_style = "";
 
-		        	if($item2->id == $selfRoleId) {
-		        		$role_style = "selfColor";
-		        	}else if($item2->id == -1) {
-		        		$role_style = "otherColor";
-		        	}else {
-		        		$role_style = "orangeColor";
-		        	}
-                    return [
-                        'title' => $item2->name,
-                        'percentage' => round($item2->average, 2),
-                        'role_style' => $role_style
-                    ];
-                }, $item->roles)
-            ];
-        }, $report->categoriesByRole);
+    		        	if($item2->id == $selfRoleId) {
+    		        		$role_style = "selfColor";
+    		        	}else if($item2->id == -1) {
+    		        		$role_style = "otherColor";
+    		        	}else {
+    		        		$role_style = "orangeColor";
+    		        	}
+                        return [
+                            'title' => $item2->name,
+                            'percentage' => round($item2->average, 2),
+                            'role_style' => $role_style
+                        ];
+                    }, $item->roles)
+                ];
+            }, $report->categoriesByRole);
+        }
 
         $data['detailed_answer_summary'] = array_map(function($item) {
 
@@ -1410,6 +1429,22 @@ class Survey extends Model implements Routable, JsonHalLinking
                 'naPercentage' => round($item->naRatio * 100)
             ];
         }, $report->yesOrNoQuestions);
+
+        // Highest and lowest individual keys are deep so remove
+        // them if they are empty.
+        if (empty($data['highestLowestIndividual']['highest'])) {
+            unset($data['highestLowestIndividual']['highest']);
+        }
+        if (empty($data['highestLowestIndividual']['lowest'])) {
+            unset($data['highestLowestIndividual']['lowest']);
+        }
+
+        // If some fields are empty remove them from the result data.
+        foreach ($data as $key => $value) {
+            if (empty($value)) {
+                unset($data[$key]);
+            }
+        }        
 
         return $data;
     }

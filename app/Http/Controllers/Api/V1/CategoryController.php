@@ -17,12 +17,15 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $categories = QuestionCategory::where([
-                'ownerId'   => $user->id,
-                'isSurvey'  => true
-            ])
-            ->orderBy('title', 'asc')
+        $currentUser = $request->user();
+        $colleagues = $currentUser->colleagues()->map(function ($item) {
+            return $item->id;
+        })->toArray();
+
+        $categories = QuestionCategory::notForInstantFeedbacks()
+            ->where('isSurvey', false)
+            ->whereIn('ownerId', $colleagues)
+            ->orderBy('title', 'ASC')
             ->get();
         
         return response()->jsonHal($categories);

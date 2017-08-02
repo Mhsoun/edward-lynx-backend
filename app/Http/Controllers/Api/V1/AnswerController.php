@@ -50,7 +50,7 @@ class AnswerController extends Controller
     {   
         $this->validate($request, [
             'key'                   => 'required|exists:survey_recipients,link',
-            'answers'               => 'required|array',
+            'answers'               => 'array',
             'answers.*.question'    => 'required|integer|exists:questions,id',
             'answers.*.value'       => 'required',
             'final'                 => 'boolean'
@@ -106,7 +106,7 @@ class AnswerController extends Controller
             
             // Try to check if we have an answer to the question
             $surveyAnswer = SurveyAnswer::where([
-                'answeredById'      => $recipient->id,
+                'answeredById'      => $recipient->recipient->id,
                 'questionId'        => $question->id,
                 'invitedById'       => $recipient->invitedById
             ])->first();

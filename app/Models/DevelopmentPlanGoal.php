@@ -99,6 +99,16 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     }
 
     /**
+     * Returns the owner of this development plan goal.
+     * 
+     * @return  Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'ownerId');
+    }
+
+    /**
      * Goals are sorted by their position by default.
      *
      * @param   Illuminate\Database\Eloquent\Builder    $builder
@@ -145,6 +155,19 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
         
         $this->save();
         return $this->checked;
+    }
+
+    /**
+     * Returns the progress percentage of this goal: from 0 to 1.
+     * 
+     * @return  float 
+     */
+    public function calculateProgress()
+    {
+        $checkedActions = $this->actions()->where('checked', true)->count();
+        $totalActions = $this->actions()->count();
+
+        return $checkedActions / $totalActions;
     }
 
     /**

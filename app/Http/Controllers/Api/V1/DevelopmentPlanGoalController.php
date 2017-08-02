@@ -35,13 +35,19 @@ class DevelopmentPlanGoalController extends Controller
         ]);
 
         $currentUser = $request->user();
-        $attributes = $request->only('title', 'description', 'position');
-        $attributes['dueDate'] = $request->has('dueDate') ? dateFromIso8601String($request->dueDate) : null;
 
-        if ($request->has('categoryId')) {
+        $goal = new DevelopmentPlanGoal($request->only('title', 'description', 'position'));
+        $goal->developmentPlanId = $devPlan->id;
+        $goal->ownerId = $currentUser->id;
+
+        if ($request->has('dueDate')) {
+            $goal->dueDate = dateFromIso8601String($request->dueDate);
+        }
+
+        if ($request->has('categoryId') && !$devPlan->isTeam()) {
             $category = QuestionCategory::find($request->categoryId);
             if ($currentUser->can('view', $category)) {
-                $attributes['categoryId'] = $category->id;
+                $goal->categoryId = $category->id;
             } else {
                 throw new CustomValidationException([
                     'categoryId' => ['Invalid category id.']
@@ -49,13 +55,7 @@ class DevelopmentPlanGoalController extends Controller
             }
         }
 
-        $goal = $devPlan->goals()
-                        ->create($attributes);
-
-        if (isset($attributes['categoryId'])) {
-            $goal->categoryId = $attributes['categoryId'];
-            $goal->save();
-        }
+        $goal->save();
 
         foreach ($request->actions as $action) {
             $goal->actions()->create($action);

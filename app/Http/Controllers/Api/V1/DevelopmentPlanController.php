@@ -67,6 +67,7 @@ class DevelopmentPlanController extends Controller
     {
         $this->validate($request, [
             'name'                          => 'required|string|max:255',
+            'shared'                        => 'boolean',
             'goals'                         => 'required|array',
             'goals.*.title'                 => 'required|string|max:255',
             'goals.*.description'           => 'string',
@@ -82,6 +83,11 @@ class DevelopmentPlanController extends Controller
         // Create initial dev plan
         $devPlan = new DevelopmentPlan($request->only('name'));
         $devPlan->ownerId = $user->id;
+
+        if ($request->has('shared')) {
+            $devPlan->shared = $request->shared;
+        }
+
         $devPlan->save();
 
         // Process development plan goals
@@ -93,16 +99,18 @@ class DevelopmentPlanController extends Controller
                 'position'      => $g['position'],
             ];
 
+            $goal = new DevelopmentPlanGoal($attributes);
+            $goal->developmentPlanId = $devPlan->id;
+            $goal->ownerId = $user->id;
+
             // Process category ID for goal.
             if (!empty($g['categoryId'])) {
                 $category = QuestionCategory::find($g['categoryId']);
                 if ($user->can('view', $category)) {
-                    $attributes['categoryId'] = $g['categoryId'];
+                    $goal->categoryId = $g['categoryId'];
                 }
             }
 
-            $goal = $devPlan->goals()->create($attributes);
-            $goal->categoryId = !empty($attributes['categoryId']) ? $attributes['categoryId'] : null;
             $goal->save();
             
             // Create actions under each goal.

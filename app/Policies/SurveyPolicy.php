@@ -4,6 +4,7 @@ use App\SurveyTypes;
 use App\Models\User;
 use App\Models\Survey;
 use App\Models\Recipient;
+use App\Models\SurveyCandidate;
 use App\Models\SurveyRecipient;
 
 class SurveyPolicy extends Policy
@@ -116,6 +117,8 @@ class SurveyPolicy extends Policy
             return true;
         } elseif ($survey->ownerId == $user->id) {
             return true;
+        } elseif (SurveyCandidate::isCandidateOf($survey, $user->email)) {
+            return true;
         } else {
             return false;
         }
@@ -130,16 +133,16 @@ class SurveyPolicy extends Policy
      */
     public function invited(User $user, Survey $survey)
     {
-        if ($recipient = Recipient::findForOwner($survey->ownerId, $user->email)) {
-            $surveyRecipient = SurveyRecipient::where([
-                'surveyId'      => $survey->id,
-                'recipientId'   => $recipient->id
-            ])->first();
-            if ($surveyRecipient) {
-                return true;
-            } else {
-                return false;
-            }
+        $recipients = Recipient::where('mail', $user->email)
+                        ->get()
+                        ->map(function($item) {
+                            return $item->id;
+                        })
+                        ->toArray();
+        if ($survey->candidates()->whereIn('recipientId', $recipients)->count() > 0) {
+            return true;
+        } elseif ($survey->recipients()->whereIn('recipientId', $recipients)->count() > 0) {
+            return true;
         } else {
             return false;
         }

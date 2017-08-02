@@ -2,6 +2,7 @@
 
 use App\Contracts\Routable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
 * Represents a question category
@@ -51,6 +52,17 @@ class QuestionCategory extends Model implements Routable
         return route('api1-category', $this);
     }
 
+    /**
+     * Scope a query to not include instant feedback categories.
+     * 
+     * @param   Illuminate\Database\Eloquent\Builder    $query
+     * @return  Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNotForInstantFeedbacks(Builder $query)
+    {
+        return $query->where('title', '!=', 'Instant Feedbacks Category');
+    }
+
 	/**
 	* Returns the questions in the category
 	*/
@@ -58,6 +70,16 @@ class QuestionCategory extends Model implements Routable
 	{
 		return $this->hasMany('\App\Models\Question', 'categoryId');
 	}
+
+    /**
+     * Returns the user who owns this question category.
+     * 
+     * @return  App\Models\User
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'ownerId');
+    }
 
 	/**
 	* Creates a (database) copy of the current category
