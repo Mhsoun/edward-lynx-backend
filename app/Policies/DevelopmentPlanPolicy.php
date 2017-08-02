@@ -21,8 +21,6 @@ class DevelopmentPlanPolicy extends Policy
             return true;
         } elseif ($this->administer($user, $devPlan) || $this->supervise($user, $devPlan)) {
             return true;
-        } elseif ($user->isA(User::PARTICIPANT)) {
-            return true;
         } else {
             return false;
         }
