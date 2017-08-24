@@ -4,8 +4,6 @@
 /storage/oauth-public.key
 /public/reports
 composer.phar
-composer.lock
-vendor/
 bin/
 logs/
 
