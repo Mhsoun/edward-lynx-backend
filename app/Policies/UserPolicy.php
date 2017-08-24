@@ -26,6 +26,6 @@ class UserPolicy extends Policy
      */
     public function manage(User $user)
     {
-        return $user->isA(User::SUPERVISOR);
+        return $user->isA(User::SUPERVISOR) || $user->isA(User::ADMIN) || $user->isA(User::SUPERADMIN);
     }
 }
