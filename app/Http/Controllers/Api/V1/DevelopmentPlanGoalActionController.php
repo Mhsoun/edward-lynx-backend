@@ -7,6 +7,7 @@ use App\Models\DevelopmentPlan;
 use App\Models\DevelopmentPlanGoal;
 use App\Http\Controllers\Controller;
 use App\Models\DevelopmentPlanGoalAction;
+use App\Exceptions\InvalidOperationException;
 
 class DevelopmentPlanGoalActionController extends Controller
 {
@@ -46,6 +47,10 @@ class DevelopmentPlanGoalActionController extends Controller
             'checked'   => 'boolean',
             'position'  => 'integer|min:0'
         ]);
+
+        if ($request->has('checked') && !$goal->isValid()) {
+            throw new InvalidOperationException('Development plan goal has reached its due date.');
+        }
         
         $fields = ['title', 'checked', 'position'];
         foreach ($fields as $field) {
