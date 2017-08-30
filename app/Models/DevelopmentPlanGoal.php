@@ -171,6 +171,21 @@ class DevelopmentPlanGoal extends BaseModel implements Scope, JsonHalLinking
     }
 
     /**
+     * Returns TRUE if this development plan goal hasn't still reached its
+     * due date, if it has one.
+     * 
+     * @return  boolean
+     */
+    public function isValid()
+    {
+        if (is_null($this->dueDate)) {
+            return true;
+        } else {
+            return $this->dueDate->isFuture();
+        }
+    }
+
+    /**
      * Fixes null dueDates which is parsed as the current date time when
      * serialized to JSON.
      *
