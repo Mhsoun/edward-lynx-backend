@@ -1,5 +1,6 @@
 <?php namespace App\Models;
 
+use App\EmailContentParser;
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -161,6 +162,23 @@ class SurveyRecipient extends Model
             ->candidates()
             ->where('recipientId', '=', $this->invitedById)
             ->first();
+    }
+
+    public function generateDescription($desc)
+    {
+        $survey = $this->survey;
+        
+        $data = [
+            'surveyName'        => $survey->name,
+            'surveyLink'        => route('survey.answer', $survey),
+            'surveyEndDate'     => $survey->endDate->format('Y-m-d H:i'),
+            'recipientName'     => $this->recipient->name,
+            'companyName'       => $survey->owner->parentId === null ? $survey->owner->name : $survey->owner->company->name,
+            'toEvaluateName'    => Recipient::find($this->invitedById)->name
+        ];
+
+        $desc = EmailContentParser::parse($desc, $data);
+        return $desc;
     }
     
     /**
