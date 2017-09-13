@@ -70,13 +70,24 @@ class SurveyController extends Controller
         $now = Carbon::now();
         $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
-            $surveys = Survey::answerableBy($user)
-                            ->valid()
-                            ->whereIn('type', $supportedTypes)
-                            ->latest('endDate')
-                            ->orderByRaw('survey_recipients.hasAnswered ASC')
-                            ->paginate($num)
-                            ->sort($statusSorter);
+            $recipients = Recipient::where('mail', $user->email)
+                            ->get()
+                            ->map(function($recipient) {
+                                return $recipient->id;
+                            })
+                            ->toArray();
+
+            $invites = SurveyRecipient::whereIn('recipientId', $recipients)
+                                      ->get();
+            $surveys = $invites->map(function($sr) {
+                $json = $sr->survey->jsonSerialize();
+                $json['description'] = $sr->generateDescription($sr->survey->description);
+                $json['personsEvaluatedText'] = $json['description'];
+                return $json;
+            })->toArray();
+
+            return response()->jsonHal($surveys)
+                             ->summarize();
 
         } else {
             // $candidates = Recipient::where('mail', $user->email)
@@ -94,10 +105,10 @@ class SurveyController extends Controller
                            ->whereIn('type', $supportedTypes)
                            ->latest('surveys.endDate')
                            ->paginate($num);
+
+            return response()->jsonHal($surveys)
+                             ->summarize();
         }
-        
-        return response()->jsonHal($surveys)
-                         ->summarize();
     }
 	
 	/**
