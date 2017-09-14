@@ -86,7 +86,12 @@ class SurveyController extends Controller
                 return $json;
             })->toArray();
 
-            return response()->jsonHal($surveys)
+            return response()->jsonHal([
+                                'total' => count($surveys),
+                                'num'   => count($surveys),
+                                'pages' => 1,
+                                'items' => $surveys
+                             ])
                              ->summarize();
 
         } else {
