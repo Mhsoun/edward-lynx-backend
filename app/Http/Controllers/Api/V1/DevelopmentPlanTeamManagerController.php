@@ -62,7 +62,7 @@ class DevelopmentPlanTeamManagerController extends Controller
 
         $this->validate($request, [
             'items'             => 'required|array',
-            'items.*.id'        => 'required|exists:development_plans',
+            'items.*.id'        => 'required|exists:team_development_plans',
             'items.*.position'  => 'required|integer|min:0',
             'items.*.visible'   => 'required|boolean'
         ]);
