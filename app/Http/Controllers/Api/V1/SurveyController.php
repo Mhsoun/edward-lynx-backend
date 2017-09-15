@@ -70,21 +70,27 @@ class SurveyController extends Controller
         $now = Carbon::now();
         $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
-            $recipients = Recipient::where('mail', $user->email)
-                            ->get()
-                            ->map(function($recipient) {
-                                return $recipient->id;
-                            })
-                            ->toArray();
 
-            $invites = SurveyRecipient::whereIn('recipientId', $recipients)
-                                      ->get();
-            $surveys = $invites->map(function($sr) {
-                $json = $sr->survey->jsonSerialize();
-                $json['description'] = $sr->generateDescription($sr->survey->description);
-                $json['personsEvaluatedText'] = $json['description'];
-                return $json;
-            })->toArray();
+            // Only return 1 page of results.
+            if ($request->page === 1) {
+                $recipients = Recipient::where('mail', $user->email)
+                                ->get()
+                                ->map(function($recipient) {
+                                    return $recipient->id;
+                                })
+                                ->toArray();
+
+                $invites = SurveyRecipient::whereIn('recipientId', $recipients)
+                                          ->get();
+                $surveys = $invites->map(function($sr) {
+                    $json = $sr->survey->jsonSerialize();
+                    $json['description'] = $sr->generateDescription($sr->survey->description);
+                    $json['personsEvaluatedText'] = $json['description'];
+                    return $json;
+                })->toArray();
+            } else {
+                $surveys = [];
+            }
 
             return response()->jsonHal([
                                 'total' => count($surveys),
