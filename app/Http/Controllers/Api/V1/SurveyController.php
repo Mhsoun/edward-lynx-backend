@@ -25,6 +25,7 @@ use App\Notifications\SurveyInvitation;
 use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
+use App\Exceptions\InvalidOperationException;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class SurveyController extends Controller
@@ -72,7 +73,7 @@ class SurveyController extends Controller
         if ($request->filter === 'answerable') {
 
             // Only return 1 page of results.
-            if ($request->page == 1) {
+            if (is_null($request->page) || $request->page == 1) {
                 $recipients = Recipient::where('mail', $user->email)
                                 ->get()
                                 ->map(function($recipient) {
@@ -83,11 +84,13 @@ class SurveyController extends Controller
                 $invites = SurveyRecipient::whereIn('recipientId', $recipients)
                                           ->get();
                 $surveys = $invites->map(function($sr) {
-                    $json = $sr->survey->jsonSerialize();
-                    $json['description'] = $sr->generateDescription($sr->survey->description);
-                    $json['personsEvaluatedText'] = $json['description'];
-                    return $json;
-                })->toArray();
+                        $json = $sr->survey->jsonSerialize();
+                        $json['description'] = $sr->generateDescription($sr->survey->description);
+                        $json['personsEvaluatedText'] = $json['description'];
+                        return $json;
+                    })->sortBy(function($json) { // Sort by end date (deadline) and status.
+                        return sprintf('%d-%s', $json['status'], $json['endDate']);
+                    })->values();
             } else {
                 $surveys = [];
             }
@@ -588,19 +591,16 @@ class SurveyController extends Controller
         $existingRecipient = $survey->recipients()
             ->where('recipientId', '=', $recipient->id)
             ->where('surveyId', '=', $survey->id)
-            // ->where('invitedById', '=', $owner) // Changes
+            ->where('invitedById', '=', $inviter->recipientId)
             ->first();
 
         if ($existingRecipient) {
             return $existingRecipient;
         }
 
-        $endDatePassed = false;
-        // $endDatePassed = $survey->endDatePassed($inviter->recipientId, $inviter->recipientId);
-        // TODO: check if the candidate has reached it's end date.
-        
+        $endDatePassed = $survey->endDatePassed($inviter->recipientId, $inviter->recipientId);
         if ($endDatePassed) {
-            throw new Exception('Candidate has reached the end date!');
+            throw new InvalidOperationException('Candidate has reached the end date!');
         }
         
         $surveyRecipient = $survey->addRecipient($recipient->id, $role, $inviter->recipientId);
