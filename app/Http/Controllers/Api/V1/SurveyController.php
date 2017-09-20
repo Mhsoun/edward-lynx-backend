@@ -73,7 +73,7 @@ class SurveyController extends Controller
         if ($request->filter === 'answerable') {
 
             // Only return 1 page of results.
-            if ($request->page ==    1) {
+            if (is_null($request->page) || $request->page == 1) {
                 $recipients = Recipient::where('mail', $user->email)
                                 ->get()
                                 ->map(function($recipient) {
