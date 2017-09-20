@@ -84,11 +84,13 @@ class SurveyController extends Controller
                 $invites = SurveyRecipient::whereIn('recipientId', $recipients)
                                           ->get();
                 $surveys = $invites->map(function($sr) {
-                    $json = $sr->survey->jsonSerialize();
-                    $json['description'] = $sr->generateDescription($sr->survey->description);
-                    $json['personsEvaluatedText'] = $json['description'];
-                    return $json;
-                })->toArray();
+                        $json = $sr->survey->jsonSerialize();
+                        $json['description'] = $sr->generateDescription($sr->survey->description);
+                        $json['personsEvaluatedText'] = $json['description'];
+                        return $json;
+                    })->sortBy(function($json) { // Sort by end date (deadline) and status.
+                        return sprintf('%d-%s', $json['status'], $json['endDate']);
+                    })->values();
             } else {
                 $surveys = [];
             }
