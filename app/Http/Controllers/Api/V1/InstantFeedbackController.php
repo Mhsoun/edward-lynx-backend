@@ -99,9 +99,16 @@ class InstantFeedbackController extends Controller
     public function show(Request $request, InstantFeedback $instantFeedback)
     {
         $currentUser = $request->user();
-
         $recipient = $this->findRecipient($instantFeedback, $currentUser);
-        $key = $instantFeedback->answerKeyOf($recipient);
+
+        // If we have an invitation, retrieve the answer key.
+        if ($recipient) {
+            $key = $instantFeedback->answerKeyOf($recipient);
+        
+        // Otherwise, use a null key.
+        } else {
+            $key = null;
+        }
         
         return response()->jsonHal($instantFeedback)
                          ->with([
