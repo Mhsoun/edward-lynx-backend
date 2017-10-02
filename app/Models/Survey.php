@@ -1522,8 +1522,7 @@ class Survey extends Model implements Routable, JsonHalLinking
         ];
 
         if ($key && $surveyRecipient = SurveyRecipient::where('link', $key)->first()) {
-            $evaluated = Recipient::find($surveyRecipient->invitedById);
-            $data['toEvaluateName'] = $evaluated->name;
+            $data['toEvaluateName'] = $surveyRecipient->invitedByObj->name;
         }
 
         return EmailContentParser::parse($this->description, $data);
