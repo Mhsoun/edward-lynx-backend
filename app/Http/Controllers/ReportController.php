@@ -666,11 +666,8 @@ class ReportController extends Controller
             ]);
         }
 
-        if ($survey->owner->isAn(User::ADMIN) || $survey->owner->isAn(User::SUPERADMIN)) {
-            $company = $survey->owner;
-        } else {
-            $company = $survey->owner->company;
-        }
+        // Find the company this survey is under.
+        $company = $survey->owner->company != null ? $survey->owner->company : $survey->owner;
 
         $shared = SurveySharedReport::where([
             'surveyId'      => $survey->id,
