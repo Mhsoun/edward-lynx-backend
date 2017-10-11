@@ -463,7 +463,7 @@ abstract class Surveys
             }
 
             // Send push notifications for 360 surveys.
-            if ($survey->type == SurveyTypes::Individual) {
+            if ($survey->type == SurveyTypes::Individual || $survey->type == SurveyTypes::Progress) {
                 if ($user = User::where('email', $surveyRecipient->recipient->mail)->first()) {
                     $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
                 }
@@ -505,6 +505,11 @@ abstract class Surveys
                 $recipient->id);
 
             $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+            if ($user = User::where('email', $surveyRecipient->recipient->mail)->first()) {
+                $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
+            }
+
             $invited = true;
         }
 

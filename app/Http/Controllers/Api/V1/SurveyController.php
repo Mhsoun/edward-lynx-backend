@@ -14,6 +14,7 @@ use App\Models\Recipient;
 use App\Models\DefaultText;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
+use UnexpectedValueException;
 use App\Models\SurveyRecipient;
 use App\Models\SurveyCandidate;
 use App\Http\JsonHalCollection;
@@ -90,6 +91,8 @@ class SurveyController extends Controller
                         return $json;
                     })->sortBy(function($json) { // Sort by end date (deadline) and status.
                         return sprintf('%d-%s', $json['status'], $json['endDate']);
+                    })->filter(function($json) use ($supportedTypes) {
+                        return in_array($json['type'], $supportedTypes);
                     })->values();
             } else {
                 $surveys = [];
@@ -336,6 +339,10 @@ class SurveyController extends Controller
             $inviter = SurveyCandidate::where('surveyId', $survey->id)
                     ->whereIn('recipientId', $recipients)
                     ->first();
+        }
+
+        if ($inviter->recipientId == 0) {
+            throw new UnexpectedValueException("Invalid recipient ID 0 for candidate.");
         }
 
         foreach ($request->recipients as $recipient) {
