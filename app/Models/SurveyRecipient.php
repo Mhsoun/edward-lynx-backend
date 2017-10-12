@@ -168,13 +168,19 @@ class SurveyRecipient extends Model
     {
         $survey = $this->survey;
         
+        if ($this->invitedById == 0) {
+            $toEvaluate = $this->recipient;
+        } else {
+            $toEvaluate = $this->invitedByObj;
+        }
+
         $data = [
             'surveyName'        => $survey->name,
             'surveyLink'        => route('survey.answer', $survey),
             'surveyEndDate'     => $survey->endDate->format('Y-m-d H:i'),
             'recipientName'     => $this->recipient->name,
             'companyName'       => $survey->owner->parentId === null ? $survey->owner->name : $survey->owner->company->name,
-            'toEvaluateName'    => Recipient::find($this->invitedById)->name
+            'toEvaluateName'    => $toEvaluate
         ];
 
         $desc = EmailContentParser::parse($desc, $data);
