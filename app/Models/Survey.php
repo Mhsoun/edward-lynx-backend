@@ -1279,6 +1279,10 @@ class Survey extends Model implements Routable, JsonHalLinking
 
         }
 
+		// Re-introduce selfRoleId to our stack so we can use it on
+		// the response_rate field.
+		$selfRoleId = \App\SurveyReportHelpers::getSelfRoleId($this, null);
+
         $data['response_rate'] = array_map(function($item) use ($selfRoleId) {
         	if($item->id == $selfRoleId) {
         		$role_style = "selfColor";
