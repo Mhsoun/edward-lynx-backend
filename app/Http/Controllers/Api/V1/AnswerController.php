@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\SurveyTypes;
 use App\Models\Survey;
 use App\Models\Recipient;
 use App\Models\SurveyAnswer;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
+use App\Exceptions\InvalidOperationException;
 use App\Exceptions\SurveyAnswersFinalException;
 use App\Exceptions\SurveyMissingAnswersException;
 
@@ -153,6 +155,11 @@ class AnswerController extends Controller
      */
     public function results(Request $request, Survey $survey)
     {
+        $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
+        if (!in_array($survey->type, $supportedTypes)) {
+            throw new InvalidOperationException('Unsupported survey type.');
+        }
+
         $results = $survey->calculateAnswers();
         
         // Rearrange frequency results
