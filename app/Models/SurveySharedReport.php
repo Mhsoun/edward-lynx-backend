@@ -82,7 +82,7 @@ class SurveySharedReport extends Model
                             'id'    => $report->surveyId . '-' . $report->recipientId,
                             'type'  => 'user-report',
                             'name'  => $report->filename(),
-                            'link'  => action('ReportController@createUserPDF', ['userLink' => $report->link]),
+                            'link'  => action('ReportController@generateMobileReportPDF', ['link' => $report->link]),
                         ];
                     }
                 } else {

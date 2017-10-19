@@ -296,6 +296,8 @@
 <div class="container topContainer">
     @include('survey.reportpages.menu', ['parserData' => $surveyParserData])
 </div>
+
+<!-- START:.page -->
 <div class="page container">
     @if ($survey->type == \App\SurveyTypes::Progress)
         @include('survey.reports.progress')
@@ -307,6 +309,8 @@
         @include('survey.reports.normal')
     @endif
 </div>
+<!-- END:.page -->
+
 <script>
     $(document).ready(function () {
         $("#create").on("click", function (e) {
