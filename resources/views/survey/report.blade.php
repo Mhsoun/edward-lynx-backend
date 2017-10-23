@@ -127,6 +127,11 @@
     ?>
 </head>
 <body>
+
+@if ($autogenerate)
+<div class="autogenerate-curtain">Please wait...</div>
+@endif
+
 <script type="text/javascript">
     var chartsToDraw = [];
 
@@ -297,7 +302,6 @@
     @include('survey.reportpages.menu', ['parserData' => $surveyParserData])
 </div>
 
-<!-- START:.page -->
 <div class="page container">
     @if ($survey->type == \App\SurveyTypes::Progress)
         @include('survey.reports.progress')
@@ -309,7 +313,6 @@
         @include('survey.reports.normal')
     @endif
 </div>
-<!-- END:.page -->
 
 <script>
     $(document).ready(function () {
@@ -423,6 +426,12 @@
                 'lang' => ''])) !!} + newLang;
         @endif
     }
+
+    @if ($autogenerate)
+    $(window).on('load', function() {
+        setTimeout(function() { $('#create').click() }, 4500);
+    });
+    @endif
 </script>
 </body>
 </html>
