@@ -26,6 +26,7 @@ class TeamDevelopmentPlan extends Model implements Routable
      */
     public static function make(User $owner, $name, $lang)
     {
+        $name = strip_tags($name);
         $category = QuestionCategory::where([
             'title'             => $name,
             'lang'              => $lang,
