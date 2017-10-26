@@ -184,6 +184,7 @@ class SurveyRecipient extends Model
         ];
 
         $desc = EmailContentParser::parse($desc, $data);
+        $desc = strip_tags($desc);
         return $desc;
     }
     
