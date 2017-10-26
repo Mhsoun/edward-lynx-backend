@@ -94,9 +94,11 @@ class UserController extends Controller
         ]);
 
         $fields = ['name', 'info', 'lang', 'gender', 'department', 'city', 'country', 'role'];
+        $toStrip = ['name', 'info', 'gender', 'department', 'city', 'country', 'role'];
         foreach ($fields as $field) {
             if ($request->has($field)) {
-                $user->{$field} = $request->input($field);
+                $value = in_array($field, $toStrip) ? strip_tags($request->input($field)) : $request->input($field);
+                $user->{$field} = $value;
             }
         }
 
