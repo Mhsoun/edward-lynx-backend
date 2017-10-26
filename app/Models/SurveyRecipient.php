@@ -180,7 +180,7 @@ class SurveyRecipient extends Model
             'surveyEndDate'     => $survey->endDate->format('Y-m-d H:i'),
             'recipientName'     => $this->recipient->name,
             'companyName'       => $survey->owner->parentId === null ? $survey->owner->name : $survey->owner->company->name,
-            'toEvaluateName'    => $toEvaluate
+            'toEvaluateName'    => $toEvaluate->name
         ];
 
         $desc = EmailContentParser::parse($desc, $data);
