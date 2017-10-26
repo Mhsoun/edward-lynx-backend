@@ -784,20 +784,31 @@ class Survey extends Model implements Routable, JsonHalLinking
      */
     public function jsonSerialize($options = 0)
     {
-        $data = parent::jsonSerialize();
+		$data = parent::jsonSerialize();
         $currentUser = request()->user();
-        
+		
+		// Strip html tags in some fields
+		$toStrip = ['name', 'description', 'thankYouText', 'questionInfoText', 'personsEvaluatedText'];
+		foreach ($toStrip as $key) {
+			$data[$key] = strip_tags($data[$key]);
+		}
+
         $data['startDate'] = $this->startDate->toIso8601String();
         $data['endDate'] = $this->endDate->toIso8601String();
 
         if ($recipient = Recipient::findForOwner($this->ownerId, $currentUser->email)) {
+			$desc = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
+			$desc = strip_tags($desc);
+
             $data['key'] = $this->answerKeyOf($recipient);
             $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
-            $data['description'] = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
+            $data['description'] = $desc;
         } else {
+			$desc = strip_tags($this->description);
+
             $data['key'] = null;
             $data['status'] = 3;
-            $data['description'] = $this->description;
+            $data['description'] = $desc;
         }
 
         $recipients = $this->recipients();
@@ -807,7 +818,14 @@ class Survey extends Model implements Routable, JsonHalLinking
         ];
         
         if ($options == 0) {
-            $data = $this->getEmailsForJson($data);
+			$data = $this->getEmailsForJson($data);
+
+			// Strip tags in html emails
+			foreach ($data['emails'] as $emailType => $emailData) {
+				foreach ($emailData as $key => $value) {
+					$data['emails'][$emailType][$key] = strip_tags($value);
+				}
+			}
         } elseif ($options == 1) {
             foreach ($this->hiddenWhenSummarized as $field) {
                 unset($data[$field]);
