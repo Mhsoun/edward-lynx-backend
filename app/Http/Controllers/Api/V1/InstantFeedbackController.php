@@ -321,7 +321,7 @@ class InstantFeedbackController extends Controller
         $category = QuestionCategory::findCategoryForInstantFeedbacks($user, $instantFeedback->lang);
         foreach ($questions as $q) {
             $question = new Question;
-            $question->text = $q['text'];
+            $question->text = strip_tags($q['text']);
             $question->ownerId = $user->id;
             $question->categoryId = $category->id;
             $question->answerType = $q['answer']['type'];
