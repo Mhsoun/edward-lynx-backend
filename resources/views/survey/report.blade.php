@@ -128,7 +128,7 @@
 </head>
 <body>
 
-@if ($autogenerate)
+@if (isset($autogenerate) && $autogenerate)
 <div class="autogenerate-curtain">Please wait...</div>
 @endif
 
@@ -427,7 +427,7 @@
         @endif
     }
 
-    @if ($autogenerate)
+    @if (isset($autogenerate) && $autogenerate)
     $(window).on('load', function() {
         setTimeout(function() { $('#create').click() }, 4500);
     });
