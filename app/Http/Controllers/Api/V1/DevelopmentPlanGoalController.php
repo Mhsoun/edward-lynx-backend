@@ -40,6 +40,12 @@ class DevelopmentPlanGoalController extends Controller
         $goal->developmentPlanId = $devPlan->id;
         $goal->ownerId = $currentUser->id;
 
+        // Strip html tags
+        $toStrip = ['title', 'description'];
+        foreach ($toStrip as $key) {
+            $goal->{$key} = strip_tags($goal->{$key});
+        }
+
         if ($request->has('dueDate')) {
             $goal->dueDate = dateFromIso8601String($request->dueDate);
         }
@@ -58,7 +64,11 @@ class DevelopmentPlanGoalController extends Controller
         $goal->save();
 
         foreach ($request->actions as $action) {
-            $goal->actions()->create($action);
+            $attributes = [
+                'title'     => strip_tags($action['title']),
+                'position'  => intval($action['position']),
+            ];
+            $goal->actions()->create($attributes);
         }
 
         return createdResponse(['Location' => route('api1-dev-plan', $devPlan)]);
@@ -84,9 +94,11 @@ class DevelopmentPlanGoalController extends Controller
         ]);
 
         $fields = ['title', 'description', 'position', 'checked'];
+        $toStrip = ['title', 'description'];
         foreach ($fields as $field) {
             if ($request->has($field)) {
-                $goal->{$field} = $request->{$field};
+                $value = in_array($field, $toStrip) ? strip_tags($request->input($field)) : $request->input($field);
+                $goal->{$field} = $value;
             }
         }
 

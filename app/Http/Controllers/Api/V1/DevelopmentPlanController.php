@@ -81,7 +81,8 @@ class DevelopmentPlanController extends Controller
         $user = $request->user();
         
         // Create initial dev plan
-        $devPlan = new DevelopmentPlan($request->only('name'));
+        $devPlan = new DevelopmentPlan();
+        $devPlan->name = strip_tags($request->name);
         $devPlan->ownerId = $user->id;
 
         if ($request->has('shared')) {
@@ -93,8 +94,8 @@ class DevelopmentPlanController extends Controller
         // Process development plan goals
         foreach ($request->goals as $g) {
             $attributes = [
-                'title'         => sanitize($g['title']),
-                'description'   => empty($g['description']) ? '' : sanitize($g['description']),
+                'title'         => strip_tags($g['title']),
+                'description'   => empty($g['description']) ? '' : strip_tags($g['description']),
                 'dueDate'       => empty($g['dueDate']) ? null : dateFromIso8601String($g['dueDate']),
                 'position'      => $g['position'],
             ];
@@ -116,7 +117,7 @@ class DevelopmentPlanController extends Controller
             // Create actions under each goal.
             foreach ($g['actions'] as $a) {
                 $action = $goal->actions()->create([
-                    'title'     => sanitize($a['title']),
+                    'title'     => strip_tags($a['title']),
                     'position'  => $a['position']
                 ]);
                 $action->save();

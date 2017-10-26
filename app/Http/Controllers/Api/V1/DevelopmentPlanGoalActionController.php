@@ -27,7 +27,12 @@ class DevelopmentPlanGoalActionController extends Controller
             'position'  => 'required|integer|min:0'
         ]);
 
-        $action = $goal->actions()->create($request->only('title', 'position'));
+        $attributes = [
+            'title'     => strip_tags($request->input('title')),
+            'position'  => intval($request->position),
+        ];
+        $action = $goal->actions()->create($attributes);
+
         return createdResponse(['Location' => route('api1-dev-plan', $devPlan)]);
     }
 
@@ -53,9 +58,11 @@ class DevelopmentPlanGoalActionController extends Controller
         }
         
         $fields = ['title', 'checked', 'position'];
+        $toStrip = ['title'];
         foreach ($fields as $field) {
             if ($request->has($field)) {
-                $action->{$field} = $request->{$field};
+                $value = in_array($field, $toStrip) ? strip_tags($request->input($field)) : $request->input($field);
+                $action->{$field} = $value;
             }
         }
         $action->save();
