@@ -11,6 +11,7 @@ use App\Models\Survey;
 use App\Models\Question;
 use App\Models\EmailText;
 use App\Models\Recipient;
+use App\EmailContentParser;
 use App\Models\DefaultText;
 use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
@@ -237,9 +238,15 @@ class SurveyController extends Controller
     {
         $url = route('api1-survey-questions', $survey);
         $currentUser = $request->user();
-        
-        // Fetch the user's answers
         $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
+
+        // Find the invite record
+        $surveyRecipient = SurveyRecipient::where([
+            'recipientId'   => $recipient->id,
+            'surveyId'      => $survey->id,
+        ])->first();
+
+        // Fetch the user's answers
         $questionToAnswers = [];
         $answers = $survey->answers()
                           ->where('answeredById', $recipient->id)
@@ -258,15 +265,19 @@ class SurveyController extends Controller
          
         // Include the user's answer to each question 
         $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
-        $json = $categories->map(function($item) use ($questionToAnswers) {
+        $json = $categories->map(function($item) use ($questionToAnswers, $survey, $surveyRecipient) {
             $json = $item->jsonSerialize();
-            $json['questions'] = array_map(function($question) use ($questionToAnswers) {
+            $json['questions'] = array_map(function($question) use ($questionToAnswers, $survey, $surveyRecipient) {
                 $questionId = $question['id'];
                 $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId]['value'] : null;
                 
                 if (isset($questionToAnswers[$questionId]['explanation'])) {
                     $question['explanation'] = $questionToAnswers[$questionId]['explanation'];
                 }
+
+                $data = EmailContentParser::createParserData($survey, $surveyRecipient);
+                $question['text'] = EmailContentParser::parse($question['text'], $data);
+                $question['text'] = strip_tags($question['text']);
 
                 return $question;
             }, $json['questions']);
