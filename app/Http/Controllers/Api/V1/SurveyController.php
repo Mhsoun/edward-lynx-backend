@@ -601,7 +601,7 @@ class SurveyController extends Controller
     public function inviteAnonymousRecipient(Survey $survey, $inviter, $recipient)
     {
         $owner = $survey->ownerId;
-        $name = $recipient['name'];
+        $name = strip_tags($recipient['name']);
         $email = $recipient['email'];
         $role = Roles::valid($recipient['role']) ? $recipient['role'] : 1;
 
