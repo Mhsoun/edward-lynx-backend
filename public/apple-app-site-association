@@ -4,7 +4,7 @@
         "details": [
             {
                 "appID": "KGZFZP3DEA.com.mobileapp.edwardlynx",
-                "paths": ["/survey/answer/*", "/instant-feedbacks/answer/*"]
+                "paths": ["/survey/answer/*", "/instant-feedbacks/answer/*", "/dev-plan/*"]
             }
         ]
     }
