@@ -35,10 +35,23 @@ class FirebaseChannel
      */
     protected function sendToFcm(FirebaseNotification $notif)
     {
-        $key = sprintf('key=%s', config('services.firebase.api_key'));
-
         if (count($notif->tokens) == 0) {
             return false;
+        }
+
+        $key = sprintf('key=%s', config('services.firebase.api_key'));
+        $payload = [
+            'registration_ids'  => $notif->tokens,
+            'notification'      => [
+                'title' => $notif->title,
+                'body'  => $notif->body
+            ],
+            'data'              => $notif->data
+        ];
+
+        // If we have a badge count in data, move it under the notification key.
+        if (isset($payload['data']['badge'])) {
+            $payload['notification']['badge'] = $payload['data']['badge'];
         }
 
         $client = new Client;
@@ -46,14 +59,7 @@ class FirebaseChannel
             'headers'   => [
                 'Authorization' => $key
             ],
-            'json'      => [
-                'registration_ids'  => $notif->tokens,
-                'notification'      => [
-                    'title' => $notif->title,
-                    'body'  => $notif->body
-                ],
-                'data'              => $notif->data
-            ]
+            'json'      => $payload
         ]);
 
         return true;
