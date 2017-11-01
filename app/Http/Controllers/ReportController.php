@@ -360,9 +360,9 @@ class ReportController extends Controller
             // Create a candidate specific report record if present
             if (!empty($reportData->recipientId)) {
                 $candidateReport = new \App\Models\SurveyCandidateReport;
-                $candidateReport->survey_id = $reportData->survey->id;
-                $candidateReport->survey_report_file_id = $reportFile->id;
-                $candidateReport->recipient_id = $reportData->recipientId;
+                $candidateReport->surveyId = $reportData->survey->id;
+                $candidateReport->surveyReportFileId = $reportFile->id;
+                $candidateReport->recipientId = $reportData->recipientId;
                 $candidateReport->save();
             }
 

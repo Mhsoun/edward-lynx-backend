@@ -15,17 +15,17 @@ class CreateSurveyCandidateReportsTable extends Migration
     {
         Schema::create('survey_candidate_reports', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('survey_id')->unsigned();
-            $table->integer('survey_report_file_id')->unsigned();
-            $table->integer('recipient_id')->unsigned();
+            $table->integer('surveyId')->unsigned();
+            $table->integer('surveyReportFileId')->unsigned();
+            $table->integer('recipientId')->unsigned();
 
-            $table->foreign('survey_id')
+            $table->foreign('surveyId')
                   ->references('id')->on('surveys')
                   ->onDelete('cascade');
-            $table->foreign('survey_report_file_id')
+            $table->foreign('surveyReportFileId')
                   ->references('id')->on('survey_report_files')
                   ->onDelete('cascade');
-            $table->foreign('recipient_id')
+            $table->foreign('recipientId')
                   ->references('id')->on('recipients')
                   ->onDelete('cascade');
         });
