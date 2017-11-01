@@ -11,4 +11,14 @@ class SurveyCandidateReport extends Model
 
     protected $visible = [];
 
+    /**
+     * Returns the associated survey report file record.
+     *
+     * @return Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function surveyReportFile()
+    {
+        return $this->hasOne(SurveyReportFile::class, 'id', 'surveyReportFileId');
+    }
+
 }
