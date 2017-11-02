@@ -79,13 +79,26 @@ class SurveySharedReport extends Model
                     $report = $candidate->userReport();
                     if ($report) {
                         $surveyJson['reports'][] = [
-                            'id'    => $report->surveyId . '-' . $report->recipientId,
+                            'id'    => $report->surveyId . '-' . $report->recipientId . 'u',
                             'type'  => 'user-report',
                             'name'  => $report->filename(),
                             'link'  => action('ReportController@showUserReport', [
                                 'link'          => $report->link,
                                 'autogenerate'  => 1
                             ]),
+                        ];
+                    }
+
+                    $candidateReports = SurveyCandidateReport::where([
+                        'surveyId'      => $survey->id,
+                        'recipientId'   => $recipient->id,
+                    ])->get();
+                    foreach ($candidateReports as $report) {
+                        $surveyJson['reports'][] = [
+                            'id'    => $report->surveyId . '-' . $report->recipientId . 'c',
+                            'type'  => 'candidate-report',
+                            'name'  => $report->surveyReportFile->fileName,
+                            'link'  => secure_url(sprintf('/reports/%s', rawurlencode($report->surveyReportFile->fileName))),
                         ];
                     }
                 } else {

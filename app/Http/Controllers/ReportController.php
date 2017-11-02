@@ -356,6 +356,16 @@ class ReportController extends Controller
             $reportFile = new \App\Models\SurveyReportFile;
             $reportFile->fileName = $fileName;
             $survey->reports()->save($reportFile);
+
+            // Create a candidate specific report record if present
+            if (!empty($reportData->recipientId)) {
+                $candidateReport = new \App\Models\SurveyCandidateReport;
+                $candidateReport->surveyId = $reportData->survey->id;
+                $candidateReport->surveyReportFileId = $reportFile->id;
+                $candidateReport->recipientId = $reportData->recipientId;
+                $candidateReport->save();
+            }
+
             return redirect(action('ReportController@viewReport', $reportFile->id));
         }
     }

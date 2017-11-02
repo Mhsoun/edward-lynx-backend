@@ -521,6 +521,7 @@ class ComposerStaticInite5b3ac57034d80f019bff5c41d7b04a1
         'CreatePasswordResetsTable' => __DIR__ . '/../..' . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',
         'CreateQuestionCategoryTemplatesTable' => __DIR__ . '/../..' . '/database/migrations/2015_03_04_170402_create_question_category_templates_table.php',
         'CreateQuestionTemplatesTable' => __DIR__ . '/../..' . '/database/migrations/2015_03_03_190734_create_question_templates_table.php',
+        'CreateSurveyCandidateReportsTable' => __DIR__ . '/../..' . '/database/migrations/2017_11_01_173748_create_survey_candidate_reports_table.php',
         'CreateSurveyReportFilesTable' => __DIR__ . '/../..' . '/database/migrations/2015_08_12_123400_create_survey_report_files_table.php',
         'CreateSurveySharedReportsTable' => __DIR__ . '/../..' . '/database/migrations/2017_07_06_084638_create_survey_shared_reports_table.php',
         'CreateSurveysTable' => __DIR__ . '/../..' . '/database/migrations/2015_03_12_204910_create_surveys_table.php',
