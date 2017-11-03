@@ -54,7 +54,7 @@ class SurveySharedReport extends Model
             $recipient = Recipient::find($recipientId);
             $recipientJson = [
                 'id'        => $recipient->id,
-                'name'      => $recipient->name,
+                'name'      => strip_tags($recipient->name),
                 'surveys'   => [],
             ];
 
@@ -62,7 +62,7 @@ class SurveySharedReport extends Model
                 $survey = Survey::find($surveyId);
                 $surveyJson = [
                     'id'        => $survey->id,
-                    'name'      => $survey->name,
+                    'name'      => strip_tags($survey->name),
                     'type'      => $survey->type,
                     'reports'   => [],
                 ];
