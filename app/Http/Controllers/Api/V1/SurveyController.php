@@ -192,6 +192,39 @@ class SurveyController extends Controller
      */
     public function show(Request $request, Survey $survey)
     {
+        $currentUser = $request->user();
+        $recipients = Recipient::where('mail', $currentUser->email)
+            ->get()
+            ->map(function($r) {
+                return $r->id;
+            })
+            ->toArray();
+
+        $keys = [];
+        $candidates = SurveyCandidate::whereIn('recipientId', $recipients)
+            ->get()
+            ->map(function($c) {
+                return $c->link;
+            })
+            ->toArray();
+
+        $recipients = SurveyRecipient::whereIn('recipientId', $recipients)
+            ->get()
+            ->map(function($r) {
+                return $r->link;
+            })
+            ->toArray();
+        
+        $keys = array_merge($candidates, $recipients);
+
+        // Find the user with the same email as the recipient
+        $notifications = $currentUser->unreadNotifications;
+        foreach ($notifications as $notification) {
+            if (isset($notification->data['surveyKey']) && in_array($notification->data['surveyKey'], $keys)) {
+                $notification->markAsRead();
+            }
+        }
+
         return response()->jsonHal($survey);
     }
     

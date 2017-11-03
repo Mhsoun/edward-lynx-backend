@@ -143,15 +143,6 @@ class AnswerController extends Controller
             $recipient->hasAnswered = 1;
             $recipient->save();
         }
-
-        // Find the user with the same email as the recipient
-        $user = User::where('email', $recipient->mail)->first();
-        $notifications = $user->unreadNotifications;
-        foreach ($notifications as $notification) {
-            if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $key) {
-                $notification->markAsRead();
-            }
-        }
         
         return createdResponse(['Location' => route('api1-survey-answers', $survey)]);
     }
