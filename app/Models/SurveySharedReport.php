@@ -81,7 +81,7 @@ class SurveySharedReport extends Model
                         $surveyJson['reports'][] = [
                             'id'    => $report->surveyId . '-' . $report->recipientId . 'u',
                             'type'  => 'user-report',
-                            'name'  => $report->filename(),
+                            'name'  => strip_tags($report->filename()),
                             'link'  => action('ReportController@showUserReport', [
                                 'link'          => $report->link,
                                 'autogenerate'  => 1
@@ -97,7 +97,7 @@ class SurveySharedReport extends Model
                         $surveyJson['reports'][] = [
                             'id'    => $report->surveyId . '-' . $report->recipientId . 'c',
                             'type'  => 'candidate-report',
-                            'name'  => $report->surveyReportFile->fileName,
+                            'name'  => strip_tags($report->surveyReportFile->fileName),
                             'link'  => secure_url(sprintf('/reports/%s', rawurlencode($report->surveyReportFile->fileName))),
                         ];
                     }
@@ -106,7 +106,7 @@ class SurveySharedReport extends Model
                         $surveyJson['reports'][] = [
                             'id'    => $report->id,
                             'type'  => 'survey-report',
-                            'name'  => basename($report->fileName, '.pdf'),
+                            'name'  => strip_tags(basename($report->fileName, '.pdf')),
                             'link'  => secure_url('/reports/' . rawurlencode($report->fileName))
                         ];
                     }
