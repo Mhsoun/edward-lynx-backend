@@ -217,6 +217,14 @@ class InstantFeedbackController extends Controller
         $ifRecipient = InstantFeedbackRecipient::where('key', $key)->first();
         $ifRecipient->markAnswered();
         $ifRecipient->save();
+
+        // Mark the notification as read
+        $notifications = $currentUser->unreadNotifications;
+        foreach ($notifications as $notification) {
+            if (isset($notification->data['instantFeedbackKey']) && $notification->data['instantFeedbackKey'] == $key) {
+                $notification->markAsRead();
+            }
+        }
         
         return createdResponse();
     }
