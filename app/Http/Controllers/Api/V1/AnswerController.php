@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\SurveyTypes;
+use App\Models\User;
 use App\Models\Survey;
 use App\Models\Recipient;
 use App\Models\SurveyAnswer;
@@ -141,6 +142,15 @@ class AnswerController extends Controller
         if ($final) {
             $recipient->hasAnswered = 1;
             $recipient->save();
+        }
+
+        // Find the user with the same email as the recipient
+        $user = User::where('email', $recipient->mail)->first();
+        $notifications = $user->unreadNotifications;
+        foreach ($notifications as $notification) {
+            if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $key) {
+                $notification->markAsRead();
+            }
         }
         
         return createdResponse(['Location' => route('api1-survey-answers', $survey)]);
