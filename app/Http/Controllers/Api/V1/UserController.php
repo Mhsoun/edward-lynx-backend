@@ -208,8 +208,9 @@ class UserController extends Controller
                     'id'            => $item->id,
                     'type'          => 'survey',
                     'name'          => $item->name,
-                    'description'   => $item->description,
-                    'due'           => $item->endDate->toIso8601String()
+                    'description'   => $item->generateDescription($item->invite->recipient, $item->invite->link),
+                    'due'           => $item->endDate->toIso8601String(),
+                    'key'           => $item->invite->link,
                 ];
             } else {
                 throw new \UnexpectedValueException('Failed to encode reminder for object with type "'. get_class($item) .'".');

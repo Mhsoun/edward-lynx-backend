@@ -952,7 +952,9 @@ class User extends Authenticatable implements AuthorizableContract, Routable
         $allowedSurveyTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         foreach ($invites as $invite) {
             if ($invite->survey->isValid() && in_array($invite->survey->type, $allowedSurveyTypes)) {
-                $collection->push($invite->survey);
+                $survey = $invite->survey;
+                $survey->invite = $invite;
+                $collection->push($survey);
             }
         }
 

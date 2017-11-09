@@ -101,11 +101,7 @@ class SurveyRecipient extends Model
      */
     public function scopeAnswerableBy(Builder $query, User $user)
     {
-      $ids = Recipient::where('mail', $user->email)
-                      ->get()
-                      ->map(function ($recipient) {
-                        return $recipient->id;
-                      });
+        $ids = Recipient::recipientIdsOfUser($user);
         return $query->whereIn('recipientId', $ids);
     }
 
