@@ -74,30 +74,32 @@ class SurveyController extends Controller
         $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
 
-            // Only return 1 page of results.
-            if (is_null($request->page) || $request->page == 1) {
-                $recipients = Recipient::where('mail', $user->email)
-                                ->get()
-                                ->map(function($recipient) {
-                                    return $recipient->id;
-                                })
-                                ->toArray();
-
-                $invites = SurveyRecipient::whereIn('recipientId', $recipients)
-                                          ->get();
-                $surveys = $invites->map(function($sr) {
-                        $json = $sr->survey->jsonSerialize();
-                        $json['description'] = $sr->generateDescription($sr->survey->description);
-                        $json['personsEvaluatedText'] = $json['description'];
-                        return $json;
-                    })->sortBy(function($json) { // Sort by end date (deadline) and status.
-                        return sprintf('%d-%s', $json['status'], $json['endDate']);
-                    })->filter(function($json) use ($supportedTypes) {
-                        return in_array($json['type'], $supportedTypes);
-                    })->values();
-            } else {
-                $surveys = [];
+            // Return an empty array on pages other than 1
+            if ($request->page >= 2) {
+                return [];
             }
+
+            $surveys = collect();
+            $recipientIds = Recipient::recipientIdsOfUser($user);
+            
+            SurveyCandidate::whereIn('recipientId', $recipientIds)
+                ->get()
+                ->map(function($sc) use ($surveys) {
+                    $json = $this->serializeSurvey($sc->survey, $sc->recipient, $sc->link);
+                    $surveys->push($json);
+                });
+            SurveyRecipient::whereIn('recipientId', $recipientIds)
+                ->get()
+                ->map(function($sr) use ($surveys) {
+                    $json = $this->serializeSurvey($sr->survey, $sr->recipient, $sr->link);
+                    $surveys->push($json);
+                });
+
+            $surveys->sortBy(function($json) {
+                return sprintf('%d-%s', $json['status'], $json['endDate']);
+            })->filter(function($json) use ($supportedTypes) {
+                return in_array($json['type'], $supportedTypes);
+            })->values();
 
             return response()->jsonHal([
                                 'total' => count($surveys),
@@ -193,39 +195,38 @@ class SurveyController extends Controller
     public function show(Request $request, Survey $survey)
     {
         $currentUser = $request->user();
-        $recipients = Recipient::where('mail', $currentUser->email)
-            ->get()
-            ->map(function($r) {
-                return $r->id;
-            })
-            ->toArray();
+        $key = $request->key;
 
-        $keys = [];
-        $candidates = SurveyCandidate::whereIn('recipientId', $recipients)
-            ->get()
-            ->map(function($c) {
-                return $c->link;
-            })
-            ->toArray();
+        // Immediately return the survey details if this is the owner.
+        if ($survey->ownerId == $currentUser->id) {
+            return response()->jsonHal($survey);
+        }
 
-        $recipients = SurveyRecipient::whereIn('recipientId', $recipients)
-            ->get()
-            ->map(function($r) {
-                return $r->link;
-            })
-            ->toArray();
-        
-        $keys = array_merge($candidates, $recipients);
+        // For everyone else, validate the key.
+        if (!SurveyCandidate::userIsValidCandidate($survey, $currentUser, $key) &&
+            !SurveyRecipient::userIsValidRecipient($survey, $currentUser, $key)) {
+            throw new AuthorizationException('Invalid access key.');
+        }
 
-        // Find the user with the same email as the recipient
+        $json = $survey->jsonSerialize();
+
+        // Generate the description
+        if ($candidate = SurveyCandidate::findForUser($survey, $currentUser, $key)) {
+            $json = $this->serializeSurvey($survey, $candidate->recipient, $key);
+        } elseif ($recipient = SurveyRecipient::findForUser($survey, $currentUser, $key)) {
+            $json = $this->serializeSurvey($survey, $recipient->recipient, $key);
+        }
+
+        // Mark the associated notification as read
         $notifications = $currentUser->unreadNotifications;
         foreach ($notifications as $notification) {
-            if (isset($notification->data['surveyKey']) && in_array($notification->data['surveyKey'], $keys)) {
+            if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $key) {
                 $notification->markAsRead();
             }
         }
 
-        return response()->jsonHal($survey);
+        return response()->jsonHal($json)
+            ->withLinks($survey->jsonHalLinks());
     }
     
     /**
@@ -698,6 +699,23 @@ class SurveyController extends Controller
         $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
 
         return $surveyRecipient;
+    }
+
+    /**
+     * Serializes a survey JSON and generating the proper description.
+     *
+     * @param App\Models\Survey $survey
+     * @param App\Models\Recipient $recipient
+     * @param string $key
+     * @return array
+     */
+    protected function serializeSurvey(Survey $survey, Recipient $recipient, $key)
+    {
+        $json = $survey->jsonSerialize();
+        $json['description'] = strip_tags($survey->generateDescription($recipient, $key));
+        $json['key'] = $key;
+
+        return $json;
     }
 
 }
