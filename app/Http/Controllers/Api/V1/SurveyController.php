@@ -193,39 +193,40 @@ class SurveyController extends Controller
     public function show(Request $request, Survey $survey)
     {
         $currentUser = $request->user();
-        $recipients = Recipient::where('mail', $currentUser->email)
-            ->get()
-            ->map(function($r) {
-                return $r->id;
-            })
-            ->toArray();
+        $key = $request->key;
 
-        $keys = [];
-        $candidates = SurveyCandidate::whereIn('recipientId', $recipients)
-            ->get()
-            ->map(function($c) {
-                return $c->link;
-            })
-            ->toArray();
+        // Immediately return the survey details if this is the owner.
+        if ($survey->ownerId == $currentUser->id) {
+            return response()->jsonHal($survey);
+        }
 
-        $recipients = SurveyRecipient::whereIn('recipientId', $recipients)
-            ->get()
-            ->map(function($r) {
-                return $r->link;
-            })
-            ->toArray();
-        
-        $keys = array_merge($candidates, $recipients);
+        // For everyone else, validate the key.
+        if (!SurveyCandidate::userIsValidCandidate($survey, $currentUser, $key) &&
+            !SurveyRecipient::userIsValidRecipient($survey, $currentUser, $key)) {
+            throw new AuthorizationException('Invalid access key.');
+        }
 
-        // Find the user with the same email as the recipient
+        $json = $survey->jsonSerialize();
+
+        // Generate the description
+        if ($candidate = SurveyCandidate::findForUser($survey, $currentUser, $key)) {
+            $json['description'] = strip_tags($survey->generateDescription($candidate->recipient, $key));
+        } elseif ($recipient = SurveyRecipient::findForUser($survey, $currentUser, $key)) {
+            $json['description'] = strip_tags($survey->generateDescription($recipient->recipient, $key));
+        }
+
+        $json['key'] = $key;
+
+        // Mark the associated notification as read
         $notifications = $currentUser->unreadNotifications;
         foreach ($notifications as $notification) {
-            if (isset($notification->data['surveyKey']) && in_array($notification->data['surveyKey'], $keys)) {
+            if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $key) {
                 $notification->markAsRead();
             }
         }
 
-        return response()->jsonHal($survey);
+        return response()->jsonHal($json)
+            ->withLinks($survey->jsonHalLinks());
     }
     
     /**

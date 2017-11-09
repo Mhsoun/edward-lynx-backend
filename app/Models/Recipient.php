@@ -55,6 +55,22 @@ class Recipient extends Model
 		return $recipient;
 	}
 
+	/**
+	 * Returns an array of recipient ids that use the provided user's email.
+	 *
+	 * @param User $user
+	 * @return array
+	 */
+	public static function recipientIdsOfUser(User $user)
+	{
+		return self::where('mail', $user->email)
+			->get()
+			->map(function($r) {
+				return $r->id;
+			})
+			->toArray();
+	}
+
     /**
      * Allow `mail` to be accessed through `email`.
      * 

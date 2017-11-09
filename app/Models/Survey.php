@@ -797,18 +797,11 @@ class Survey extends Model implements Routable, JsonHalLinking
         $data['endDate'] = $this->endDate->toIso8601String();
 
         if ($recipient = Recipient::findForOwner($this->ownerId, $currentUser->email)) {
-			$desc = $this->generateDescription($recipient, $this->answerKeyOf($recipient, false));
-			$desc = strip_tags($desc);
-
             $data['key'] = $this->answerKeyOf($recipient);
             $data['status'] = SurveyRecipient::surveyStatus($this, $recipient);
-            $data['description'] = $desc;
         } else {
-			$desc = strip_tags($this->description);
-
             $data['key'] = null;
             $data['status'] = 3;
-            $data['description'] = $desc;
         }
 
         $recipients = $this->recipients();
@@ -1533,7 +1526,7 @@ class Survey extends Model implements Routable, JsonHalLinking
      * @param   string                  $key
      * @return  string
      */
-    protected function generateDescription(Recipient $recipient, $key)
+    public function generateDescription(Recipient $recipient, $key)
     {
         $data = [
             'surveyName'        => $this->name,
@@ -1549,7 +1542,7 @@ class Survey extends Model implements Routable, JsonHalLinking
 			} else {
 				$data['toEvaluateName'] = $surveyRecipient->invitedByObj->name;
 			}
-        }
+		}
 
         return EmailContentParser::parse($this->description, $data);
     }

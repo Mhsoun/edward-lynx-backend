@@ -41,6 +41,38 @@ class SurveyCandidate extends Model
     }
 
     /**
+     * Returns the first survey candidate record with the same email as the provided user.
+     *
+     * @param App\Models\Survey $survey
+     * @param App\Models\User $user
+     * @param string $key
+     * @return App\Models\SurveyCandidate
+     */
+    public static function findForUser(Survey $survey, User $user, $key)
+    {
+        $recipientIds = Recipient::recipientIdsOfUser($user);
+        
+        return $survey->candidates()
+            ->whereIn('recipientId', $recipientIds)
+            ->where('link', $key)
+            ->first();
+    }
+
+    /**
+     * Returns TRUE if the provided user with a given key is a valid candidate
+     * of the provided survey.
+     *
+     * @param App\Models\Survey $survey
+     * @param App\Models\User $user
+     * @param string $key
+     * @return bool
+     */
+    public static function userIsValidCandidate(Survey $survey, User $user, $key)
+    {
+        return self::findForUser($survey, $user, $key) != null;
+    }
+
+    /**
      * Returns the survey that the recipient belongs to
      */
     public function survey()
