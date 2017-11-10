@@ -74,11 +74,6 @@ class SurveyController extends Controller
         $supportedTypes = [SurveyTypes::Individual, SurveyTypes::Progress, SurveyTypes::Normal];
         if ($request->filter === 'answerable') {
 
-            // Return an empty array on pages other than 1
-            if ($request->page >= 2) {
-                return [];
-            }
-
             $surveys = collect();
             $recipientIds = Recipient::recipientIdsOfUser($user);
             
@@ -97,6 +92,16 @@ class SurveyController extends Controller
                 return in_array($json['type'], $supportedTypes);
             })->values();
 
+            // Return an empty array on pages other than 1
+            if ($request->page >= 2) {
+                return response()->jsonHal([
+                    'total' => count($surveys),
+                    'num'   => count($surveys),
+                    'pages' => 1,
+                    'items' => [],
+                ]);
+            }
+
             return response()->jsonHal([
                                 'total' => count($surveys),
                                 'num'   => count($surveys),
@@ -106,18 +111,8 @@ class SurveyController extends Controller
                              ->summarize();
 
         } else {
-            // $candidates = Recipient::where('mail', $user->email)
-                            // ->get()
-                            // ->map(function($item) {
-                                // return $item->id;
-                            // })
-                            // ->toArray();
-
             $surveys = Survey::select('surveys.*')
-                           // ->join('survey_candidates', 'surveys.id', '=', 'survey_candidates.surveyId')
-                           // ->whereIn('survey_candidates.recipientId', $candidates)
                            ->where('surveys.ownerId', $user->id)
-                           // ->valid()
                            ->whereIn('type', $supportedTypes)
                            ->latest('surveys.endDate')
                            ->paginate($num);
