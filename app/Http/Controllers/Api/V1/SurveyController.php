@@ -82,13 +82,6 @@ class SurveyController extends Controller
             $surveys = collect();
             $recipientIds = Recipient::recipientIdsOfUser($user);
             
-            SurveyCandidate::whereIn('recipientId', $recipientIds)
-                ->get()
-                ->map(function($sc) use ($surveys) {
-                    $json = $this->serializeSurvey($sc->survey, $sc->recipient, $sc->link);
-                    $json['status'] = $sc->surveyRecipient()->answerStatus($sc);
-                    $surveys->push($json);
-                });
             SurveyRecipient::whereIn('recipientId', $recipientIds)
                 ->get()
                 ->map(function($sr) use ($surveys) {
