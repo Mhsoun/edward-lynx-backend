@@ -215,6 +215,27 @@ class SurveyRecipient extends Model
         $desc = strip_tags($desc);
         return $desc;
     }
+
+    /**
+     * Returns the answer status of this recipient.
+     *
+     * @param App\Models\SurveyCandidate $candidate
+     * @return int
+     */
+    public function answerStatus(SurveyCandidate $candidate)
+    {   
+        // If this invite has been marked answered then it is complete.
+        if ($this->hasAnswered) {
+            return self::COMPLETE_ANSWERS;
+        }
+        
+        if ($this->answers()->where('invitedById', $candidate->recipientId)->count() > 0) {
+            dd($this->answers()->where('invitedById', $candidate->recipientId));
+            return self::PENDING_ANSWERS;
+        } else {
+            return self::NO_ANSWERS;
+        }
+    }
     
     /**
      * Returns the JSON representation of this model.
