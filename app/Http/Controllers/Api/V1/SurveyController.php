@@ -272,6 +272,73 @@ class SurveyController extends Controller
     {
         $url = route('api1-survey-questions', $survey);
         $currentUser = $request->user();
+        $key = $request->key;
+
+        // If there is no provided key, return the questions only.
+        if ($key === null) {
+            $categoriesAndQuestions = $survey->categoriesAndQuestions(true);
+            return $categoriesAndQuestions;
+        }
+
+        // Validate the key.
+        if (!SurveyCandidate::userIsValidCandidate($survey, $currentUser, $key) &&
+            !SurveyRecipient::userIsValidRecipient($survey, $currentUser, $key)) {
+            throw new AuthorizationException('Invalid access key.');
+        }
+
+        if (!$invite = SurveyCandidate::findForUser($survey, $currentUser, $key)) {
+            $invite = SurveyRecipient::findForUser($survey, $currentUser, $key);
+        }
+
+        $questionToAnswers = [];
+        $answers = $survey->answers()
+                        //   ->where('recipientId', $invite->recipient->id)
+                          ->where('answeredById', $invite->recipient->id)
+                          ->where('invitedById', $invite instanceof SurveyCandidate ? $invite->recipientId : $invite->invitedById)
+                          ->get();
+        foreach ($answers as $answer) {
+            $ans = $answer->jsonSerialize();
+            $questionToAnswers[$answer->questionId] = [
+                'value' => $ans['answer'],
+            ];
+        }
+
+        $data = [
+            'surveyName'    => $survey->name,
+            'surveyLink'    => '',
+            'surveyEndDate' => $survey->endDate->format('Y-m-d H:i'),
+            'companyName'   => $survey->owner->parentId == null ? $survey->owner->name : $survey->owner->company->name,
+        ];
+
+        $categories = new JsonHalCollection($survey->categoriesAndQuestions(true), $url);
+        $json = $categories->map(function($item) use ($questionToAnswers, $survey, $invite, $data) {
+            $json = $item->jsonSerialize();
+            $json['questions'] = array_map(function($question) use ($questionToAnswers, $survey, $invite, $data) {
+                $questionId = $question['id'];
+                $question['value'] = isset($questionToAnswers[$questionId]) ? $questionToAnswers[$questionId]['value'] : null;
+
+                if (isset($questionToAnswers[$questionId]['explanation'])) {
+                    $question['explanation'] = $questionToAnswers[$questionId]['explanation'];
+                }
+
+                $data = array_merge($data, [
+                    'recipientName'     => $invite->recipient->name,
+                    'toEvaluateName'    => $invite->invitedById != null ? $invite->invitedByObj->name : $invite->recipient->name,
+                ]);
+                // EmailContentParser::createParserData($survey, $invite);
+                $question['text'] = EmailContentParser::parse($question['text'], $data);
+                $question['text'] = strip_tags($question['text']);
+
+                return $question;
+            }, $json['questions']);
+
+            return $json;
+        });
+
+        return response()->jsonHal($json);
+
+        // --------
+
         $recipient = Recipient::findForOwner($survey->ownerId, $currentUser->email);
 
         // Find the invite record
