@@ -230,7 +230,6 @@ class SurveyRecipient extends Model
         }
         
         if ($this->answers()->where('invitedById', $candidate->recipientId)->count() > 0) {
-            dd($this->answers()->where('invitedById', $candidate->recipientId));
             return self::PENDING_ANSWERS;
         } else {
             return self::NO_ANSWERS;
