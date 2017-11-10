@@ -177,6 +177,7 @@
                     </div>
                     <br>
                     <button type="submit" class="btn btn-primary">{{ Lang::get('buttons.generate') }}</button>
+                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#share-report-modal" data-survey-id="{{ $survey->id }}">{{ Lang::get('buttons.shareReport') }}</a>
                 {!! Form::close() !!}
             @else
                 @if ($survey->answers()->count() > 0)
