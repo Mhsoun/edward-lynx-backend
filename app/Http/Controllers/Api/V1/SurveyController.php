@@ -92,8 +92,9 @@ class SurveyController extends Controller
             SurveyRecipient::whereIn('recipientId', $recipientIds)
                 ->get()
                 ->map(function($sr) use ($surveys) {
+                    $candidate = $sr->survey->type == SurveyTypes::Individual ? $sr->invitedByCandidate() : $sr;
                     $json = $this->serializeSurvey($sr->survey, $sr->recipient, $sr->link);
-                    $json['status'] = $sr->answerStatus($sr->invitedByCandidate());
+                    $json['status'] = $sr->answerStatus($candidate);
                     $surveys->push($json);
                 });
 
@@ -217,8 +218,9 @@ class SurveyController extends Controller
             $json = $this->serializeSurvey($survey, $candidate->recipient, $key);
             $json['status'] = $candidate->surveyRecipient()->answerStatus($candidate);
         } elseif ($recipient = SurveyRecipient::findForUser($survey, $currentUser, $key)) {
+            $candidate = $survey->type == SurveyTypes::Individual ? $recipient->invitedByCandidate() : $recipient;
             $json = $this->serializeSurvey($survey, $recipient->recipient, $key);
-            $json['status'] = $recipient->answerStatus($recipient->invitedByCandidate());
+            $json['status'] = $recipient->answerStatus($candidate);
         }
 
         // Mark the associated notification as read
