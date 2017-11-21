@@ -50,7 +50,7 @@ class DevelopmentPlanGoalController extends Controller
             $goal->dueDate = dateFromIso8601String($request->dueDate);
         }
 
-        if ($request->has('categoryId') && !$devPlan->isTeam()) {
+        if ($request->has('categoryId')) {
             $category = QuestionCategory::find($request->categoryId);
             if ($currentUser->can('view', $category)) {
                 $goal->categoryId = $category->id;
