@@ -15,6 +15,11 @@ abstract class TestCase extends BaseTestCase
         $this->setupDatabase();
     }
 
+    public function tearDown()
+    {
+        $this->resetDatabase();
+    }
+
     /**
      * Authenticates the user for API access.
      *

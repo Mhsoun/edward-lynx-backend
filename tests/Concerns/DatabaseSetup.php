@@ -15,21 +15,43 @@ trait DatabaseSetup
             $this->app[Kernel::class]->setArtisan(null);
             static::$migrated = true;
         }
-        // $this->beginDatabaseTransaction();
+
+        $this->seedDatabase();
+        $this->beginTransaction();
     }
 
-    public function beginDatabaseTransaction()
+    public function resetDatabase()
+    {
+        $this->rollbackTransaction();
+    }
+
+    public function seedDatabase()
+    {
+        $this->artisan('db:seed', ['--class' => 'TestDatabaseSeeder']);
+    }
+
+    public function beginTransaction()
     {
         $database = $this->app->make('db');
         foreach ($this->connectionsToTransact() as $name) {
             $database->connection($name)->beginTransaction();
         }
 
+        /*
         $this->beforeApplicationDestroyed(function () use ($database) {
             foreach ($this->connectionsToTransact() as $name) {
                 $database->connection($name)->rollBack();
             }
         });
+        */
+    }
+
+    public function rollbackTransaction(Type $var = null)
+    {
+        $database = $this->app->make('db');
+        foreach ($this->connectionsToTransact() as $name) {
+            $database->connection($name)->rollBack();
+        }
     }
 
     protected function connectionsToTransact()
