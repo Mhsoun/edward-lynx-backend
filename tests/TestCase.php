@@ -1,6 +1,7 @@
 <?php
 namespace Tests;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -13,11 +14,15 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         $this->setupDatabase();
+
+        Model::unguard();
     }
 
     public function tearDown()
     {
         $this->resetDatabase();
+
+        Model::reguard();
     }
 
     /**
