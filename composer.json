@@ -41,8 +41,10 @@
     ]
   },
   "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    },
     "classmap": [
-      "tests/TestCase.php",
       "tests/Concerns/AssertsCreatedResource.php",
       "tests/Concerns/AssertsDeletedResource.php"
     ]

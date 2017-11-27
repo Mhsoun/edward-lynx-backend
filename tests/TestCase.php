@@ -1,31 +1,18 @@
 <?php
+namespace Tests;
 
-use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
-class TestCase extends Illuminate\Foundation\Testing\TestCase
+abstract class TestCase extends BaseTestCase
 {
+    use Concerns\CreatesApplication, Concerns\DatabaseSetup;
 
-    protected $baseUrl = 'http://localhost';
+    protected $baseUrl = 'http://localhost:8000';
 
-    public function createApplication()
+    public function setUp()
     {
-        $app = require __DIR__ . '/../bootstrap/app.php';
-        $app->loadEnvironmentFrom('.env.testing.php');
-        $app->make(Kernel::class)->bootstrap();
-
+        parent::setUp();
         $this->setupDatabase();
-
-        return $app;
-    }
-
-    protected function setupDatabase()
-    {
-        Artisan::call('migrate');
-        Artisan::call('db:seed');
-        
-        $this->beforeApplicationDestroyed(function () {
-            Artisan::call('migrate:rollback');
-        });
     }
 
     /**
