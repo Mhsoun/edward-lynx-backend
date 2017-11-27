@@ -67,6 +67,91 @@ class TestUserTableSeeder extends Seeder
 
         $newUser2->isValidated = false;
         $newUser2->save();
+
+        $this->createAlphaCompany();
+    }
+
+    protected function createAlphaCompany()
+    {
+        $alpha = User::create([
+            'id'            => 1000,
+            'name'          => 'Alpha',
+            'email'         => 'hello@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 1,
+        ]);
+        $alphaAdmin = User::create([
+            'id'            => 1100,
+            'name'          => 'Admin Alpha',
+            'email'         => 'admin@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 1,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaSupA = User::create([
+            'id'            => 1200,
+            'name'          => 'SupervisorA Alpha',
+            'email'         => 'sup1@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 2,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaSupB = User::create([
+            'id'            => 1300,
+            'name'          => 'SupervisorB Alpha',
+            'email'         => 'sup2@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 2,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaUserA1 = User::create([
+            'id'            => 1201,
+            'name'          => 'UserA1 Alpha',
+            'email'         => 'ua1@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 3,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaUserA2 = User::create([
+            'id'            => 1202,
+            'name'          => 'UserA2 Alpha',
+            'email'         => 'ua2@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 3,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaUserA3 = User::create([
+            'id'            => 1203,
+            'name'          => 'UserA3 Alpha',
+            'email'         => 'ua3@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 3,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaUserB1 = User::create([
+            'id'            => 1301,
+            'name'          => 'UserB1 Alpha',
+            'email'         => 'ub1@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 3,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaUserB2 = User::create([
+            'id'            => 1302,
+            'name'          => 'UserB2 Alpha',
+            'email'         => 'ub2@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 3,
+            'parentId'      => $alpha->id,
+        ]);
+        $alphaUserB3 = User::create([
+            'id'            => 1303,
+            'name'          => 'UserB3 Alpha',
+            'email'         => 'ub3@alpha.com',
+            'password'      => Hash::make('p123'),
+            'accessLevel'   => 3,
+            'parentId'      => $alpha->id,
+        ]);
     }
 }
 
