@@ -32,6 +32,6 @@ class AddedCustomValues extends Migration
 	 */
 	public function down()
 	{
-		Schema::drop('question_custom_values');
+		// Schema::drop('question_custom_values');
 	}
 }

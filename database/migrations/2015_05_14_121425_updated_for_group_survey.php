@@ -51,7 +51,7 @@ class UpdatedForGroupSurvey extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('survey_groups');
+		Schema::dropIfExists('survey_groups');
 
 		Schema::table('surveys', function(Blueprint $table)
 		{
@@ -64,6 +64,7 @@ class UpdatedForGroupSurvey extends Migration {
 
 		Schema::table('survey_recipients', function(Blueprint $table)
 		{
+			$table->dropForeign('survey_recipients_groupid_foreign');
 			$table->dropColumn('groupId');
 		});
 	}

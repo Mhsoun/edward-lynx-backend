@@ -38,6 +38,7 @@ class AddOwnerIdToDevelopmentPlanGoals extends Migration
     public function down()
     {
         Schema::table('development_plan_goals', function (Blueprint $table) {
+            $table->dropForeign(['ownerId']);
             $table->dropColumn('ownerId');
         });
     }

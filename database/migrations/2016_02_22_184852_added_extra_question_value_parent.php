@@ -34,6 +34,7 @@ class AddedExtraQuestionValueParent extends Migration
 	{
 		Schema::table('extra_question_values', function(Blueprint $table)
 		{
+			$table->dropForeign('extra_question_values_parentvalueid_foreign');
 			$table->dropColumn('parentValueId');
 		});
 	}

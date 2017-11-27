@@ -31,6 +31,6 @@ class CreateQuestionCategoryTemplatesTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('question_category_templates');
+		Schema::dropIfExists('question_category_templates');
 	}
 }

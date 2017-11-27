@@ -28,7 +28,7 @@ class Recipiantsinforms extends Migration
      */
     public function down()
     {
-        Schema::drop('RecipientsInForm');
+        Schema::dropIfExists('RecipientsInForm');
     }
 
 }

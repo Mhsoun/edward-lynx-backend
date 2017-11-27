@@ -34,6 +34,7 @@ class AddedTeamInviteEmail extends Migration
 	{
 		Schema::table('surveys', function(Blueprint $table)
 		{
+			$table->dropForeign('surveys_evaluatedteaminvitationtextid_foreign');
 			$table->dropColumn('evaluatedTeamInvitationTextId');
 		});
 	}

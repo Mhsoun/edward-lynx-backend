@@ -41,6 +41,7 @@ class ChangedGroupTables2 extends Migration
 	{
 		Schema::table('surveys', function($table)
 		{
+			$table->dropForeign('surveys_targetgroupid_foreign');
 			$table->dropColumn('targetGroupId');
 		});
 

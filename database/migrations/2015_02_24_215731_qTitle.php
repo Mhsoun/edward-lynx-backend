@@ -28,7 +28,7 @@ class QTitle extends Migration {
 	 */
 	public function down()
 	{
-        Schema::drop('questionTitles');
+        Schema::dropIfExists('questionTitles');
 
     }
 

@@ -29,15 +29,17 @@ class MakeSurveyCandidatesTablePolymorphic extends Migration
      */
     public function down()
     {
-        DB::table('survey_candidates')
-            ->where('recipientType', 'users')
-            ->delete();
-        
-        Schema::table('survey_candidates', function (Blueprint $table) {
-            $table->foreign('recipientId', 'survey_recipients_recipientid_foreign')
-                  ->references('id')->on('recipients')
-                  ->onDelete('cascade');
-            $table->dropColumn('recipientType');
-        });
+        if (Schema::hasColumn('survey_candidates', 'recipientType')) {
+            DB::table('survey_candidates')
+                ->where('recipientType', 'users')
+                ->delete();
+            
+            Schema::table('survey_candidates', function (Blueprint $table) {
+                $table->foreign('recipientId', 'survey_recipients_recipientid_foreign')
+                    ->references('id')->on('recipients')
+                    ->onDelete('cascade');
+                $table->dropColumn('recipientType');
+            });
+        }
     }
 }

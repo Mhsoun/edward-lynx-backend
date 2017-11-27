@@ -24,9 +24,11 @@ class AddedDescriptionToCategory extends Migration {
 	 */
 	public function down()
 	{
+		/*
 		Schema::table('question_category_templates', function(Blueprint $table)
 		{
 			$table->dropColumn('description');
 		});
+		*/
 	}
 }

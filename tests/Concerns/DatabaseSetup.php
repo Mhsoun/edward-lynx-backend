@@ -15,7 +15,7 @@ trait DatabaseSetup
             $this->app[Kernel::class]->setArtisan(null);
             static::$migrated = true;
         }
-        $this->beginDatabaseTransaction();
+        // $this->beginDatabaseTransaction();
     }
 
     public function beginDatabaseTransaction()
