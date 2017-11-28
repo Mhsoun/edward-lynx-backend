@@ -27,8 +27,8 @@ class AddedDefaultToEvaluateMail extends Migration {
 	{
 		Schema::table('users', function(Blueprint $table)
 		{
-			$table->dropColumn('defaultToEvaluateEmailSubject');
-			$table->dropColumn('defaultToEvaluateEmailMessage');
+			// $table->dropColumn('defaultToEvaluateEmailSubject');
+			// $table->dropColumn('defaultToEvaluateEmailMessage');
 		});
 	}
 }

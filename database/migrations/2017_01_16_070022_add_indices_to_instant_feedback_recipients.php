@@ -36,8 +36,8 @@ class AddIndicesToInstantFeedbackRecipients extends Migration
     public function down()
     {
         Schema::table('instant_feedback_recipients', function (Blueprint $table) {
-            $table->dropForeign(['instant_feedback_id']);
-            $table->dropForeign(['user_id']);
+            // $table->dropForeign(['instant_feedback_id']);
+            // $table->dropForeign(['user_id']);
             $table->dropindex(['key']);
         });
     }

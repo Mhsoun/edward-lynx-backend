@@ -31,6 +31,7 @@ class AddedLangAndCategoryIdToTempalte extends Migration {
 	 */
 	public function down()
 	{
+		/*
 		Schema::table('question_templates', function($table)
 		{
 			$table->dropColumn('answerMinValue');
@@ -38,5 +39,6 @@ class AddedLangAndCategoryIdToTempalte extends Migration {
 			$table->dropColumn('lang');
 			$table->dropColumn('categoryId');
 		});
+		*/
 	}
 }

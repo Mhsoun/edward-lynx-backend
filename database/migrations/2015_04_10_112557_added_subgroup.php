@@ -33,6 +33,7 @@ class AddedSubgroup extends Migration {
 	{
 		Schema::table('Group', function(Blueprint $table)
         {
+			$table->dropForeign('groups_parentgroupid_foreign');
             $table->dropColumn('parentGroupId');
         });
 	}

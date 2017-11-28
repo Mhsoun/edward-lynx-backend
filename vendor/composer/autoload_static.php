@@ -42,6 +42,10 @@ class ComposerStaticInite5b3ac57034d80f019bff5c41d7b04a1
         array (
             'Webmozart\\Assert\\' => 17,
         ),
+        'T' => 
+        array (
+            'Tests\\' => 6,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Util\\' => 22,
@@ -154,6 +158,10 @@ class ComposerStaticInite5b3ac57034d80f019bff5c41d7b04a1
         'Webmozart\\Assert\\' => 
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
+        ),
+        'Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/tests',
         ),
         'Symfony\\Polyfill\\Util\\' => 
         array (
@@ -1030,7 +1038,6 @@ class ComposerStaticInite5b3ac57034d80f019bff5c41d7b04a1
         'SurveyThankYou' => __DIR__ . '/../..' . '/database/migrations/2016_02_13_125821_survey_thank_you.php',
         'TTFontFile' => __DIR__ . '/..' . '/mpdf/mpdf/classes/ttfontsuni.php',
         'TTFontFile_Analysis' => __DIR__ . '/..' . '/mpdf/mpdf/classes/ttfontsuni_analysis.php',
-        'TestCase' => __DIR__ . '/../..' . '/tests/TestCase.php',
         'TestDatabaseSeeder' => __DIR__ . '/../..' . '/database/seeds/TestDatabaseSeeder.php',
         'TestQuestionTableSeeder' => __DIR__ . '/../..' . '/database/seeds/TestDatabaseSeeder.php',
         'TestUserTableSeeder' => __DIR__ . '/../..' . '/database/seeds/TestDatabaseSeeder.php',

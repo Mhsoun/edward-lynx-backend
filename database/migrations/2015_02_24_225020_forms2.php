@@ -29,11 +29,13 @@ class Forms2 extends Migration
      */
     public function down()
     {
+        /*
         Schema::table('forms', function ($table) {
             $table->dropColumn('invite_text');
             $table->dropColumn('start_date');
             $table->dropColumn('end_date');
         });
+        */
     }
 
 }

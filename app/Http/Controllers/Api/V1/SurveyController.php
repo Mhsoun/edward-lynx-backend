@@ -24,6 +24,8 @@ use App\Models\QuestionCategory;
 use App\Events\SurveyKeyExchanged;
 use App\Http\Controllers\Controller;
 use App\Notifications\SurveyInvitation;
+use App\Notifications\SurveyAnswerRequest;
+use App\Notifications\SurveyInviteRequest;
 use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
@@ -437,7 +439,7 @@ class SurveyController extends Controller
                         })
                         ->toArray();
 
-        if ($survey->type == 3) {
+        if ($survey->type == SurveyTypes::Normal) { // Lynx Survey
             $inviter = SurveyRecipient::where('surveyId', $survey->id)
                     ->whereIn('recipientId', $recipients)
                     ->first();
@@ -718,6 +720,12 @@ class SurveyController extends Controller
         
         $surveyRecipient = $survey->addRecipient($recipient->id, $role, $inviter->recipientId);
         $this->emailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+        // Notify user with the same email as the recipient
+        if ($user = User::where('email', $email)->first()) {
+            $user->notify(new SurveyAnswerRequest($survey, $surveyRecipient->link));
+            $user->notify(new SurveyInviteRequest($survey, $surveyRecipient->link));
+        }
 
         return $surveyRecipient;
     }

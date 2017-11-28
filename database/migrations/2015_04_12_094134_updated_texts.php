@@ -42,8 +42,8 @@ class UpdatedTexts extends Migration {
 		Schema::rename('email_texts', 'invitation_texts');
         Schema::table('surveys', function(Blueprint $table)
         {
-            $table->dropColumn('manualRemindingTextId');
-            $table->dropColumn('toEvaluateInvitationTextId');
+            // $table->dropColumn('manualRemindingTextId');
+            // $table->dropColumn('toEvaluateInvitationTextId');
         });
 	}
 }

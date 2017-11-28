@@ -193,6 +193,34 @@ class Survey extends Model implements Routable, JsonHalLinking
 	}
 
 	/**
+	 * Creates a SurveyCandidate record for this survey.
+	 *
+	 * @param App\Models\Recipient $recipient
+	 * @param Carbon\Carbon $endDate
+	 * @param Carbon\Carbon $endDateRecipients
+	 * @return App\Models\SurveyCandidate
+	 */
+	public function addCandidate(Recipient $recipient, $endDate = null, $endDateRecipients = null)
+	{
+		if ($endDate == null) {
+			$endDate = $this->endDate;
+		}
+
+		if ($endDateRecipients == null) {
+			$endDateRecipients = $this->endDate;
+		}
+
+		$surveyCandidate = new SurveyCandidate;
+		$surveyCandidate->recipientId = $recipient->id;
+		$surveyCandidate->link = str_random(32);
+		$surveyCandidate->endDate = $endDate;
+		$surveyCandidate->endDateRecipients = $endDateRecipients;
+		$this->candidates()->save($surveyCandidate);
+
+		return $surveyCandidate;
+	}
+
+	/**
 	* Returns the recipients in the survey
 	*/
 	public function recipients()

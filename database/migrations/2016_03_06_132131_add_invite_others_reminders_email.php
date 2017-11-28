@@ -34,6 +34,7 @@ class AddInviteOthersRemindersEmail extends Migration
 	{
 		Schema::table('surveys', function(Blueprint $table)
 		{
+			$table->dropForeign('surveys_inviteothersremindertextid_foreign');
 			$table->dropColumn('inviteOthersReminderTextId');
 		});
 	}

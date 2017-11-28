@@ -35,13 +35,15 @@ class Invitelang extends Migration {
 	 */
 	public function down()
 	{
+        /*
         Schema::table('forms', function ($table) {
             $table->string('lang');
             $table->string('invite_text');
             // $table->integer('');
         });
+        */
 
-        Schema::drop('invite_text');
+        Schema::dropIfExists('invite_text');
 	}
 
 }

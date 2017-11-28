@@ -28,7 +28,7 @@ class Questions extends Migration {
 	 */
 	public function down()
 	{
-        Schema::drop('questions');
+        Schema::dropIfExists('questions');
 
     }
 

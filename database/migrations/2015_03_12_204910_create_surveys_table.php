@@ -174,13 +174,13 @@ class CreateSurveysTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('invitation_texts');
-		Schema::drop('surveys');
-		Schema::drop('question_categories');
-		Schema::drop('questions');
 		Schema::drop('survey_question_categories');
 		Schema::drop('survey_questions');
 		Schema::drop('survey_recipients');
 		Schema::drop('survey_answers');
+		Schema::drop('surveys');
+		Schema::drop('invitation_texts');
+		Schema::drop('questions');
+		Schema::drop('question_categories');
 	}
 }

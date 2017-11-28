@@ -30,6 +30,6 @@ class CreateQuestionTemplatesTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('question_templates');
+		Schema::dropIfExists('question_templates');
 	}
 }

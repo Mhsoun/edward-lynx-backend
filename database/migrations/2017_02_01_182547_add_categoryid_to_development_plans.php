@@ -29,6 +29,7 @@ class AddCategoryidToDevelopmentPlans extends Migration
     public function down()
     {
         Schema::table('development_plans', function (Blueprint $table) {
+            $table->dropForeign(['categoryId']);
             $table->dropColumn('categoryId');
         });
     }

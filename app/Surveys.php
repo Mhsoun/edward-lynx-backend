@@ -6,7 +6,8 @@ use App\Models\Survey;
 use App\Models\EmailText;
 use App\Models\Recipient;
 use App\Events\SurveyCreated;
-use App\Notifications\SurveyInvitation;
+use App\Notifications\SurveyAnswerRequest;
+use App\Notifications\SurveyInviteRequest;
 
 /**
 * Contains functions for surveys
@@ -445,28 +446,22 @@ abstract class Surveys
                 }
             }
 
-            $surveyInviteRecipient->endDate = $endDate;
+            $surveyInviteRecipient->endDate = $endDate;cr
             $surveyInviteRecipient->endDateRecipients = $endDateRecipients;
             $survey->candidates()->save($surveyInviteRecipient);
 
             //Send the emails
             $surveyEmailer->sendToEvaluate($survey, $surveyRecipient, $surveyRecipient->link);
 
-            // Send notification for registered users
-            // if ($userType == 'users') {
-                // $surveyRecipient->recipient->notify(new InviteOthersToEvaluate($survey));
-            // }
-
             //Progress only receives one email
             if ($survey->type != \App\SurveyTypes::Progress) {
                 $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
             }
 
-            // Send push notifications for 360 surveys.
-            if ($survey->type == SurveyTypes::Individual || $survey->type == SurveyTypes::Progress) {
-                if ($user = User::where('email', $surveyRecipient->recipient->mail)->first()) {
-                    $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
-                }
+            // Send push notifications.
+            if ($user = User::where('email', $surveyRecipient->recipient->mail)->first()) {
+                $user->notify(new SurveyAnswerRequest($survey, $surveyRecipient->link));
+                $user->notify(new SurveyInviteRequest($survey, $surveyRecipient->link));
             }
 
             $invited = true;
@@ -507,7 +502,7 @@ abstract class Surveys
             $surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
 
             if ($user = User::where('email', $surveyRecipient->recipient->mail)->first()) {
-                $user->notify(new SurveyInvitation($survey->id, $surveyRecipient->link));
+                $user->notify(new SurveyAnswerRequest($survey, $surveyRecipient->link));
             }
 
             $invited = true;

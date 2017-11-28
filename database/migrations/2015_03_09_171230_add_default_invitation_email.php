@@ -26,10 +26,10 @@ class AddDefaultInvitationEmail extends Migration {
 	 */
 	public function down()
 	{
-		Schema::find('users', function(Blueprint $table)
+		Schema::table('users', function(Blueprint $table)
 		{
-			$table->dropColumn('defaultInvitationEmailSubject');
-			$table->dropColumn('defaultInvitationEmailMessage');
+			// $table->dropColumn('defaultInvitationEmailSubject');
+			// $table->dropColumn('defaultInvitationEmailMessage');
 		});
 	}
 
