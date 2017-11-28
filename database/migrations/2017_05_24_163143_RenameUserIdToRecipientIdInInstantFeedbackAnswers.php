@@ -26,7 +26,7 @@ class RenameUserIdToRecipientIdInInstantFeedbackAnswers extends Migration
     public function down()
     {
         Schema::table('instant_feedback_answers', function (Blueprint $table) {
-            $table->renameColumn('userId', 'recipientId');
+            $table->renameColumn('recipientId', 'userId');
         });
     }
 }

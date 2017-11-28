@@ -27,8 +27,8 @@ class DefaultInvitationMail extends Migration {
 	{
 		Schema::table('users', function(Blueprint $table)
 		{
-			$table->dropColumn('defaultManualReminderEmailSubject');
-			$table->dropColumn('defaultManualReminderEmailMessage');
+			// $table->dropColumn('defaultManualReminderEmailSubject');
+			// $table->dropColumn('defaultManualReminderEmailMessage');
 		});
 	}
 }

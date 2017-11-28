@@ -30,11 +30,13 @@ class RemoveInstantFeedbackRecipientUserIdForeignEys extends Migration
      */
     public function down()
     {
+        /*
         Schema::table('instant_feedback_recipients', function (Blueprint $table) {
             $table->foreign('recipientId')
                   ->refereces('id')->on('users')
                   ->onDelete('cascade');
         });
+        */
     }
 
     protected function hasForeignKey($table, $key)

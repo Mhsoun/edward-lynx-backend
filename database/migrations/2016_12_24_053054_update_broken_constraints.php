@@ -55,32 +55,32 @@ class UpdateBrokenConstraints extends Migration
     public function down()
     {
 		Schema::table('group_members', function(Blueprint $table) {
-			$table->dropForeign('recipient_in_group_group_foreign');
-			$table->foreign('groupId')->references('id')->on('Group');
-			$table->dropForeign('recipient_in_group_member_foreign');
-			$table->foreign('memberId')->references('id')->on('Recipient');
+			$table->dropForeign('group_members_groupid_foreign');
+			$table->foreign('groupId')->references('id')->on('groups')->onDelete('cascade');
+			$table->dropForeign('group_members_memberid_foreign');
+			$table->foreign('memberId')->references('id')->on('recipients')->onDelete('cascade');
 		});
 		
 		Schema::table('groups', function(Blueprint $table) {
-			$table->dropForeign('group_parentgroupid_foreign');
-			$table->foreign('parentGroupId')->references('id')->on('Group')->onDelete('cascade');
+			$table->dropForeign('groups_parentgroupid_foreign');
+			$table->foreign('parentGroupId')->references('id')->on('groups')->onDelete('cascade');
 		});
 		
 		Schema::table('survey_answers', function(Blueprint $table) {
 			$table->dropForeign('survey_answers_answeredbyid_foreign');
-			$table->foreign('answeredById')->references('id')->on('Recipient')->onDelete('cascade');
+			$table->foreign('answeredById')->references('id')->on('recipients')->onDelete('cascade');
 		});
 		
 		Schema::table('survey_candidates', function(Blueprint $table) {
-			$table->dropForeign('survey_invite_recipients_recipientid_foreign');
-			$table->foreign('recipientId')->references('id')->on('Recipient')->onDelete('cascade');
+			// $table->dropForeign('survey_invite_recipients_recipientid_foreign');
+			$table->foreign('recipientId')->references('id')->on('recipients')->onDelete('cascade');
 		});
 		
         Schema::table('survey_recipients', function(Blueprint $table) {
             $table->dropForeign('survey_recipients_groupid_foreign');
-            $table->foreign('groupId')->references('id')->on('Group');
-            $table->dropForeign('survey_recipients_recipientid_foreign');
-            $table->foreign('recipientId')->references('id')->on('Recipient');
+            $table->foreign('groupId')->references('id')->on('groups');
+            // $table->dropForeign('survey_recipients_recipientid_foreign');
+            $table->foreign('recipientId')->references('id')->on('recipients');
         });
     }
 }

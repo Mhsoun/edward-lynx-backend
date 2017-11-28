@@ -40,12 +40,12 @@ class FixedInvalidConstraintsRecipientsInGroup extends Migration {
 	{
 		Schema::table('Recipient_In_Group', function($table)
 		{
-			$table->dropForeign('recipient_in_group_member_foreign');
+			$table->dropForeign('group_members_memberid_foreign');
 			$table->foreign('member')
 				->references('id')
 				->on('Recipient');
 
-			$table->dropForeign('recipient_in_group_group_foreign');
+			$table->dropForeign('group_members_groupid_foreign');
 			$table->foreign('Group')
 				->references('id')
 				->on('Recipient');

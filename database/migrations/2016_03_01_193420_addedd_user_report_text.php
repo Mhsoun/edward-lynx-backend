@@ -34,6 +34,7 @@ class AddeddUserReportText extends Migration
 	{
 		Schema::table('surveys', function(Blueprint $table)
 		{
+			$table->dropForeign('surveys_userreporttextid_foreign');
 			$table->dropColumn('userReportTextId');
 		});
 	}

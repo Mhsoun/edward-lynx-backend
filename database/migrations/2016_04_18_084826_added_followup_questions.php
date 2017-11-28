@@ -45,6 +45,7 @@ class AddedFollowupQuestions extends Migration
 	public function down()
 	{
 		Schema::drop('question_custom_values');
+		Schema::dropIfExists('question_follow_up_questions');
 		Schema::table('questions', function (Blueprint $table)
 		{
 			$table->dropColumn('isFollowUpQuestion')->default(false);

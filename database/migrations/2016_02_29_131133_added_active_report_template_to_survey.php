@@ -29,8 +29,9 @@ class AddedActiveReportTemplateToSurvey extends Migration
 	 */
 	public function down()
 	{
-		Schema::create('surveys', function(Blueprint $table)
+		Schema::table('surveys', function(Blueprint $table)
 		{
+			$table->dropForeign('surveys_activereporttemplateid_foreign');
 			$table->dropColumn('activeReportTemplateId');
 		});
 	}

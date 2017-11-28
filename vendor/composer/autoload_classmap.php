@@ -616,7 +616,6 @@ return array(
     'SurveyThankYou' => $baseDir . '/database/migrations/2016_02_13_125821_survey_thank_you.php',
     'TTFontFile' => $vendorDir . '/mpdf/mpdf/classes/ttfontsuni.php',
     'TTFontFile_Analysis' => $vendorDir . '/mpdf/mpdf/classes/ttfontsuni_analysis.php',
-    'TestCase' => $baseDir . '/tests/TestCase.php',
     'TestDatabaseSeeder' => $baseDir . '/database/seeds/TestDatabaseSeeder.php',
     'TestQuestionTableSeeder' => $baseDir . '/database/seeds/TestDatabaseSeeder.php',
     'TestUserTableSeeder' => $baseDir . '/database/seeds/TestDatabaseSeeder.php',

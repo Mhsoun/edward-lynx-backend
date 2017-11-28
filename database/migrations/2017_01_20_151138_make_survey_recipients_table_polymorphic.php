@@ -34,9 +34,9 @@ class MakeSurveyRecipientsTablePolymorphic extends Migration
             ->delete();
         
         Schema::table('survey_recipients', function (Blueprint $table) {
-            $table->foreign('recipientId', 'survey_recipients_recipientid_foreign')
-                  ->references('id')->on('recipients')
-                  ->onDelete('cascade');
+            // $table->foreign('recipientId', 'survey_recipients_recipientid_foreign')
+            //       ->references('id')->on('recipients')
+            //       ->onDelete('cascade');
             $table->dropColumn('recipientType');
         });
     }
