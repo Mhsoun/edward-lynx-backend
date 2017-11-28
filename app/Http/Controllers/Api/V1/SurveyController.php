@@ -24,6 +24,8 @@ use App\Models\QuestionCategory;
 use App\Events\SurveyKeyExchanged;
 use App\Http\Controllers\Controller;
 use App\Notifications\SurveyInvitation;
+use App\Notifications\SurveyAnswerRequest;
+use App\Notifications\SurveyInviteRequest;
 use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
@@ -419,6 +421,7 @@ class SurveyController extends Controller
     {
         $this->validate($request, [
             'recipients'                        => 'required|array',
+            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
             'recipients.*.name'                 => 'required_without:recipients.*.id|string',
             'recipients.*.email'                => 'required_without:recipients.*.id|email',
             'recipients.*.role'                 => 'required|in:2,3,4,5,6,7'
@@ -451,7 +454,11 @@ class SurveyController extends Controller
         }
 
         foreach ($request->recipients as $recipient) {
-            $this->inviteAnonymousRecipient($survey, $inviter, $recipient);
+            if (!empty($recipient['id'])) {
+                $this->inviteUserRecipient($survey, $inviter, $recipient);
+            } else {
+                $this->inviteAnonymousRecipient($survey, $inviter, $recipient);
+            }
         }
 
         return createdResponse();
@@ -713,6 +720,12 @@ class SurveyController extends Controller
         
         $surveyRecipient = $survey->addRecipient($recipient->id, $role, $inviter->recipientId);
         $this->emailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+        // Notify user with the same email as the recipient
+        if ($user = User::where('email', $email)->first()) {
+            $user->notify(new SurveyAnswerRequest($survey, $surveyRecipient->link));
+            $user->notify(new SurveyInviteRequest($survey, $surveyRecipient->link));
+        }
 
         return $surveyRecipient;
     }
