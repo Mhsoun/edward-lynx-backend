@@ -419,7 +419,6 @@ class SurveyController extends Controller
     {
         $this->validate($request, [
             'recipients'                        => 'required|array',
-            'recipients.*.id'                   => 'required_without_all:recipients.*.name,recipients.*.email|integer|exists:users,id',
             'recipients.*.name'                 => 'required_without:recipients.*.id|string',
             'recipients.*.email'                => 'required_without:recipients.*.id|email',
             'recipients.*.role'                 => 'required|in:2,3,4,5,6,7'
@@ -437,7 +436,7 @@ class SurveyController extends Controller
                         })
                         ->toArray();
 
-        if ($survey->type == 3) {
+        if ($survey->type == SurveyTypes::Normal) { // Lynx Survey
             $inviter = SurveyRecipient::where('surveyId', $survey->id)
                     ->whereIn('recipientId', $recipients)
                     ->first();
@@ -452,11 +451,7 @@ class SurveyController extends Controller
         }
 
         foreach ($request->recipients as $recipient) {
-            if (!empty($recipient['id'])) {
-                $this->inviteUserRecipient($survey, $inviter, $recipient);
-            } else {
-                $this->inviteAnonymousRecipient($survey, $inviter, $recipient);
-            }
+            $this->inviteAnonymousRecipient($survey, $inviter, $recipient);
         }
 
         return createdResponse();
