@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\SurveyEmailer;
 use Lang;
 use Auth;
+use App\Models\User;
+use App\Notifications\SurveyAnswerRequest;
+use App\Notifications\SurveyInviteRequest;
 
 /**
 * Represents an invitation controller.
@@ -132,6 +135,11 @@ class InviteController extends Controller
                     $inviter->recipientId);
 
                 $this->surveyEmailer->sendSurveyInvitation($survey, $surveyRecipient);
+
+                // Notify the user with the same email as the recipient
+                if ($user = User::where('email', $email)->first()) {
+                    $user->notify(new SurveyAnswerRequest($survey, $surveyRecipient->link));
+                }
 
                 return response()->json([
                     'id' => $recipient->id,
