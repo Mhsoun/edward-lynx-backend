@@ -446,7 +446,7 @@ abstract class Surveys
                 }
             }
 
-            $surveyInviteRecipient->endDate = $endDate;cr
+            $surveyInviteRecipient->endDate = $endDate;
             $surveyInviteRecipient->endDateRecipients = $endDateRecipients;
             $survey->candidates()->save($surveyInviteRecipient);
 
