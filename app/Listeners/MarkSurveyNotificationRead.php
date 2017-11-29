@@ -4,6 +4,8 @@ namespace App\Listeners;
 
 use App\Events\SurveyKeyExchanged;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Notifications\SurveyAnswerRequest;
+use App\Notifications\SurveyInviteRequest;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class MarkSurveyNotificationRead
@@ -21,16 +23,34 @@ class MarkSurveyNotificationRead
     /**
      * Handle the event.
      *
-     * @param  SurveyKeyExchanged  $event
+     * @param  App\Events\SurveyKeyExchanged  $event
      * @return void
      */
     public function handle(SurveyKeyExchanged $event)
     {
-        $notifications = $event->user->unreadNotifications;
-        foreach ($notifications as $notification) {
-            if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $event->key) {
-                $notification->markAsRead();
-            }
+        $whitelist = [SurveyAnswerRequest::class, SurveyInviteRequest::class];
+        $notifications = $event->user->unreadNotifications->filter(function ($notification) use ($whitelist) {
+            return in_array($notification->type, $whitelist);
+        });
+
+        if ($event->action === 'answer') {
+            $notifications
+                ->filter(function ($notification) {
+                    return $notification->type === SurveyAnswerRequest::class;
+                })->each(function ($notification) use ($event) {
+                    if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $event->key) {
+                        $notification->markAsRead();
+                    }
+                });
+        } elseif ($event->action === 'invite') {
+            $notifications
+                ->filter(function ($notification) {
+                    return $notification->type === SurveyInviteRequest::class;
+                })->each(function ($notification) use ($event) {
+                    if (isset($notification->data['surveyKey']) && $notification->data['surveyKey'] == $event->key) {
+                        $notification->markAsRead();
+                    }
+                });
         }
     }
 }
