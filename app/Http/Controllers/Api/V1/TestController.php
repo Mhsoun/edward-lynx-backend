@@ -16,10 +16,7 @@ class TestController extends Controller
         $title = $request->input('title', 'Sample Notification.');
         $body = $request->input('body', 'adsadadknsadnadnjadnjasd');
 
-        $users = User::all();
-        foreach ($users as $user) {
-            $user->notify(new TestNotification($title, $body));
-        }
+        $user->notify(new TestNotification($title, $body));
         return response("<br>sent notifications.<pre>". var_dump($title) ."\n". var_dump($body) ."</pre>");
     }
     
