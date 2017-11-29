@@ -29,14 +29,25 @@ class SurveyKeyExchanged
     public $key;
 
     /**
+     * The action the user wants to do when he/she exchanged the key.
+     * 
+     * @var string
+     */
+    public $action;
+
+    /**
      * Create a new event instance.
      *
+     * @param App\Models\User $user
+     * @param string $key
+     * @param string $action
      * @return void
      */
-    public function __construct(User $user, $key)
+    public function __construct(User $user, $key, $action)
     {
         $this->user = $user;
         $this->key = $key;
+        $this->action = $action;
     }
 
 }

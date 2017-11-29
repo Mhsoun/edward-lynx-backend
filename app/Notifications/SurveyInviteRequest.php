@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Survey;
 use Illuminate\Bus\Queueable;
 use App\Services\Firebase\FirebaseChannel;
 use Illuminate\Notifications\Notification;
