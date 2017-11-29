@@ -207,14 +207,8 @@ class SurveyController extends Controller
         $json = $survey->jsonSerialize();
 
         // Generate the description
-        if ($candidate = SurveyCandidate::findForUser($survey, $currentUser, $key)) {
-            $json = $this->serializeSurvey($survey, $candidate->recipient, $key);
-            $json['status'] = $candidate->surveyRecipient()->answerStatus($candidate);
-        } elseif ($recipient = SurveyRecipient::findForUser($survey, $currentUser, $key)) {
-            $candidate = $survey->type == SurveyTypes::Individual ? $recipient->invitedByCandidate() : $recipient;
-            $json = $this->serializeSurvey($survey, $recipient->recipient, $key);
-            $json['status'] = $recipient->answerStatus($candidate);
-        }
+        $surveyRecipient = SurveyRecipient::findForUser($survey, $currentUser, $key);
+        $json = $this->serializeSurvey($survey, $surveyRecipient);
 
         // Mark the associated notification as read
         $notifications = $currentUser->unreadNotifications;
