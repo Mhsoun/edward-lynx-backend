@@ -58,9 +58,11 @@ class SurveyInviteRequest extends Notification
      */
     public function toFirebase($notifiable)
     {
+        $body = sprintf('Hello %s, please invite other people to evaluate you in the survey %s.', $notifiable->name, $this->survey->name);
+
         return (new FirebaseNotification)
             ->title('Invite people to evaluate you.')
-            ->body("Hello $notifiable->name, please invite other people to evaluate you in the survey $this->survey->name.")
+            ->body($body)
             ->data($this->withBadgeCountOf($notifiable, [
                 'type'  => 'survey-answer',
                 'id'    => $this->survey->id,
