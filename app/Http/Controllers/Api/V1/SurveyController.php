@@ -394,6 +394,7 @@ class SurveyController extends Controller
     public function exchange(Request $request, $key)
     {
         $currentUser = $request->user();
+        $action = $request->input('action', 'answer');
         $recipients = Recipient::where('mail', $currentUser->email)
                         ->get()
                         ->map(function($recipient) {
@@ -403,7 +404,7 @@ class SurveyController extends Controller
                         ->whereIn('recipientId', $recipients)
                         ->firstOrFail();
 
-        event(new SurveyKeyExchanged($currentUser, $key));
+        event(new SurveyKeyExchanged($currentUser, $key, $action));
 
         return response()->jsonHal([
             'survey_id' => $surveyRecipient->surveyId
