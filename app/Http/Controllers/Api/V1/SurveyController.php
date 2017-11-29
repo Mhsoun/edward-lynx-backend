@@ -79,17 +79,20 @@ class SurveyController extends Controller
             $surveys = collect();
             $recipientIds = Recipient::recipientIdsOfUser($user);
             
+            // Fetch all surveys where the current user is a recipient of.
             SurveyRecipient::whereIn('recipientId', $recipientIds)
                 ->get()
                 ->map(function($sr) use ($surveys) {
                     $candidate = $sr->survey->type == SurveyTypes::Individual ? $sr->invitedByCandidate() : $sr;
-                    $json = $this->serializeSurvey($sr->survey, $sr->recipient, $sr->link);
+                    $json = $this->serializeSurvey($sr->survey, $sr);
                     $json['status'] = $sr->answerStatus($candidate);
                     $surveys->push($json);
                 });
 
+            // Sort by status and end date.
             $surveys->sortBy(function($json) {
                 return sprintf('%d-%s', $json['status'], $json['endDate']);
+            // Then remove "team" surveys.
             })->filter(function($json) use ($supportedTypes) {
                 return in_array($json['type'], $supportedTypes);
             })->values();
@@ -772,18 +775,25 @@ class SurveyController extends Controller
     }
 
     /**
-     * Serializes a survey JSON and generating the proper description.
+     * Serializes a survey to JSON and generates the proper description
+     * and personsEvaluatedText strings.
      *
      * @param App\Models\Survey $survey
-     * @param App\Models\Recipient $recipient
-     * @param string $key
+     * @param App\Models\SurveyRecipient $recipient
      * @return array
      */
-    protected function serializeSurvey(Survey $survey, Recipient $recipient, $key)
+    protected function serializeSurvey(Survey $survey, SurveyRecipient $surveyRecipient)
     {
+        if ($surveyRecipient->invitedByCandidate()) {
+            $invitedBy = $surveyRecipient->invitedByCandidate()->recipient->name;
+        } else {
+            $invitedBy = $surveyRecipient->invitedByObj->name;
+        }
+
         $json = $survey->jsonSerialize();
-        $json['description'] = strip_tags($survey->generateDescription($recipient, $key));
-        $json['key'] = $key;
+        $json['description'] = strip_tags($survey->generateDescription($surveyRecipient->recipient, $surveyRecipient->link));
+        $json['personsEvaluatedText'] = sprintf('The person being evaluated is %s.', $invitedBy);
+        $json['key'] = $surveyRecipient->link;
 
         return $json;
     }

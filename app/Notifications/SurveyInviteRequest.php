@@ -64,7 +64,7 @@ class SurveyInviteRequest extends Notification
             ->title('Invite people to evaluate you.')
             ->body($body)
             ->data($this->withBadgeCountOf($notifiable, [
-                'type'  => 'survey-answer',
+                'type'  => 'survey-invite',
                 'id'    => $this->survey->id,
                 'key'   => $this->key
             ]))
