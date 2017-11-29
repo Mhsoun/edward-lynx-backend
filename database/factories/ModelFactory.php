@@ -1,5 +1,27 @@
 <?php
 
+$factory->define(App\Models\EmailText::class, function (Faker\Generator $faker) use ($factory) {
+    return [
+        'lang'      => 'en',
+        'subject'   => 'Sample EmailText Subject',
+        'text'      => $faker->words(15, true),
+        'ownerId'   => 1,
+    ];
+});
+
+$factory->define(App\Models\Survey::class, function (Faker\Generator $faker) use ($factory) {
+    return [
+        'name'              => $faker->words(3, true),
+        'type'              => 'App\SurveyTypes::Individual',
+        'lang'              => 'en',
+        'invitationTextId'  => $factory->create(App\Models\EmailText::class)->id,
+        'ownerId'           => 1,
+        'startDate'         => Carbon\Carbon::now(),
+        'endDate'           => Carbon\Carbon::now()->addDay(30),
+        'description'       => $faker->words(15, true),
+    ];
+});
+
 $factory->define(App\Models\QuestionCategory::class, function (Faker\Generator $faker) use ($factory) {
     return [
         'title'         => $faker->words(3, true),
@@ -34,5 +56,26 @@ $factory->define(App\Models\DevelopmentPlanGoalAction::class, function (Faker\Ge
         'goalId'    => $goal->id,
         'title'     => $faker->words(3, true),
         'checked'   => $goal->checked ? true : $faker->boolean
+    ];
+});
+
+$factory->define(App\Models\Recipient::class, function (Faker\Generator $faker) use ($factory) {
+    return [
+        'ownerId'   => 1,
+        'name'      => $faker->name(),
+        'mail'      => $faker->safeEmail(),
+        'position'  => $faker->jobTitle(),
+    ];
+});
+
+$factory->define(App\Models\User::class, function (Faker\Generator $faker) use ($factory) {
+    return [
+        'name'          => $faker->name(),
+        'email'         => $faker->safeEmail(),
+        'info'          => $faker->words(5, true),
+        'password'      => $faker->password(),
+        'isAdmin'       => false,
+        'parentId'      => 1,
+        'accessLevel'   => 3,
     ];
 });
