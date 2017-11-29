@@ -88,8 +88,10 @@ class SurveyController extends Controller
                     $surveys->push($json);
                 });
 
+            // Sort by status and end date.
             $surveys->sortBy(function($json) {
                 return sprintf('%d-%s', $json['status'], $json['endDate']);
+            // Then remove "team" surveys.
             })->filter(function($json) use ($supportedTypes) {
                 return in_array($json['type'], $supportedTypes);
             })->values();
