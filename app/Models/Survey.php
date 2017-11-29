@@ -838,16 +838,7 @@ class Survey extends Model implements Routable, JsonHalLinking
             'answered'  => $recipients->where('hasAnswered', true)->count()
         ];
         
-        if ($options == 0) {
-			$data = $this->getEmailsForJson($data);
-
-			// Strip tags in html emails
-			foreach ($data['emails'] as $emailType => $emailData) {
-				foreach ($emailData as $key => $value) {
-					$data['emails'][$emailType][$key] = strip_tags($value);
-				}
-			}
-        } elseif ($options == 1) {
+        if ($options == 1) {
             foreach ($this->hiddenWhenSummarized as $field) {
                 unset($data[$field]);
             }
