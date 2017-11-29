@@ -58,9 +58,11 @@ class SurveyAnswerRequest extends Notification
      */
     public function toFirebase($notifiable)
     {
+        $body = sprintf('Hello %s, please answer the survey %s.', $notifiable->name, $this->survey->name);
+
         return (new FirebaseNotification)
             ->title('Invitation to answer a survey.')
-            ->body("Hello $notifiable->name, please answer the survey $this->survey->name.")
+            ->body($body)
             ->data($this->withBadgeCountOf($notifiable, [
                 'type'  => 'survey-answer',
                 'id'    => $this->survey->id,
