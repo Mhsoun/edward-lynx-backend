@@ -1,6 +1,7 @@
 <?php namespace App\Exceptions;
 
 use Exception;
+use ReflectionClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
 use Illuminate\Auth\AuthenticationException;
@@ -95,8 +96,8 @@ class Handler extends ExceptionHandler {
         } elseif ($e instanceof CustomValidationException) {
             return $this->convertCustomValidationExceptionToResponse($e, $request);
         } elseif ($e instanceof HttpException && $request->expectsJson()) {
-        	return $this->convertHttpExceptionToJsonResponse($e);
-        } elseif ($e instanceof ApiException) {
+			return $this->convertHttpExceptionToJsonResponse($e);	
+		} elseif ($e instanceof ApiException) {
         	return $this->convertApiExceptionToResponse($e);
         } elseif ($e instanceof SurveyExpiredException) {
             return $this->convertSurveyExpiredExceptionToResponse($e, $request);
@@ -131,6 +132,23 @@ class Handler extends ExceptionHandler {
 	}
 
 	/**
+	 * Converts an exception class name to a human-friendly name.
+	 *
+	 * @param Exception $e
+	 * @return string
+	 */
+	protected function exceptionToHumanReadable(Exception $e)
+	{
+		$reflect = new ReflectionClass($e);
+		$class = $reflect->getShortName();
+		$name = snake_case($class);
+		$name = str_replace('_', ' ', $name);
+		$name = ucwords($name);
+
+		return $name;
+	}
+
+	/**
 	 * Converts an exception to a JSON error response.
 	 * 
 	 * @param mixed $request
@@ -142,7 +160,7 @@ class Handler extends ExceptionHandler {
 	{
 		if (config('app.debug')) {
 			return response()->json([
-				'error'		=> get_class($e),
+				'error'		=> $this->exceptionToHumanReadable($e),
 				'message'	=> $e->getMessage(),
 				'source'	=> sprintf('%s:%d', $e->getFile(), $e->getLine()),
 			], $status);
@@ -246,8 +264,8 @@ class Handler extends ExceptionHandler {
 	{
 		$code = $e->getStatusCode();
 		return response()->json([
-			'error'		=> $this->codeToText[$code],
-			'message'	=> $e->getMessage()
+			'error'		=> $this->exceptionToHumanReadable($e),
+			'message'	=> $e->getMessage(),
 		], $code);
 	}
 
@@ -315,5 +333,7 @@ class Handler extends ExceptionHandler {
         if ($request->expectsJson()) {
             return response()->json($e, 422);
         }
-    }
+	}
+	
+
 }
