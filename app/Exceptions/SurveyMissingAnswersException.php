@@ -5,7 +5,7 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Http\Response;
 
-class SurveyMissingAnswersException extends SurveyException
+class SurveyMissingAnswersException extends ApiException
 {
     
     /**

@@ -26,7 +26,6 @@ use App\Http\Controllers\Controller;
 use App\Notifications\SurveyInvitation;
 use App\Notifications\SurveyAnswerRequest;
 use App\Notifications\SurveyInviteRequest;
-use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InvalidOperationException;
@@ -372,7 +371,7 @@ class SurveyController extends Controller
         ]);
 
         if ($survey->isClosed()) {
-            throw new SurveyExpiredException;
+            throw new InvalidOperationException('Survey closed.');
         }
 
         $currentUser = $request->user();

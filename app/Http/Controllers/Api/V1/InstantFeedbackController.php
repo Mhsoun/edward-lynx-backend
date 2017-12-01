@@ -25,7 +25,6 @@ use App\Events\InstantFeedbackResultsShared;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InvalidOperationException;
 use App\Notifications\InstantFeedbackInvitation;
-use App\Exceptions\InstantFeedbackClosedException;
 
 class InstantFeedbackController extends Controller
 {
@@ -163,7 +162,7 @@ class InstantFeedbackController extends Controller
 
         // Make sure the instant feedback is still open.
         if ($instantFeedback->closed) {
-            throw new InstantFeedbackClosedException;
+            throw new InvalidOperationException('Instant feedback closed.');
         }
 
         $recipients = $request->recipients;

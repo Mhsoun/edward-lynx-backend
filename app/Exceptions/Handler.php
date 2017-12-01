@@ -99,10 +99,6 @@ class Handler extends ExceptionHandler {
 			return $this->convertHttpExceptionToJsonResponse($e);	
 		} elseif ($e instanceof ApiException) {
         	return $this->convertApiExceptionToResponse($e);
-        } elseif ($e instanceof SurveyExpiredException) {
-            return $this->convertSurveyExpiredExceptionToResponse($e, $request);
-        } elseif ($e instanceof SurveyAnswersFinalException) {
-            return $this->convertSurveyAnswersFinalExceptionToResponse($e, $request);
         } elseif ($e instanceof SurveyMissingAnswersException) {
             return $this->convertSurveyMissingAnswersExceptionToResponse($e, $request);
 		}
@@ -283,42 +279,6 @@ class Handler extends ExceptionHandler {
 			'validation_errors'	=> $messages
 		], 422);
 	}
-    
-    /**
-     * Generates a response for expired survey exceptions.
-     *
-     * @param   App\Exceptions\SurveyExpiredException   $e
-     * @param   Illuminate\Http\Request                 $request
-     * @param   Illuminate\Http\Response
-     */
-    protected function convertSurveyExpiredExceptionToResponse(SurveyExpiredException $e, Request $request)
-    {
-        $message = "Survey has reached its end date and answers are not accepted anymore.";
-        if ($request->expectsJson()) {
-            return response()->json([
-                'error'     => 'survey_expired',
-                'message'   => $message
-            ], 400);
-        }
-    }
-    
-    /**
-     * Generates a response for final survey answers.
-     *
-     * @param   App\Exceptions\SurveyAnswersFinalException  $e
-     * @param   Illuminate\Http\Request                     $request
-     * @param   Illuminate\Http\Response
-     */
-    protected function convertSurveyAnswersFinalExceptionToResponse(SurveyAnswersFinalException $e, Request $request)
-    {
-        $message = "Survey has reached it's end date and answers are not accepted anymore.";
-        if ($request->expectsJson()) {
-            return response()->json([
-                'error'     => 'answers_final',
-                'message'   => 'Survey answers are not accepted anymore.'
-            ], 400);
-        }
-    }
     
     /**
      * Generates a response for surveys missing answers when marked as

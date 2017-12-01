@@ -10,12 +10,9 @@ use App\Models\SurveyAnswer;
 use Illuminate\Http\Request;
 use App\Models\SurveyRecipient;
 use App\Http\Controllers\Controller;
-use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InvalidOperationException;
-use App\Exceptions\SurveyAnswersFinalException;
-use App\Exceptions\SurveyMissingAnswersException;
 
 class AnswerController extends Controller
 {
@@ -77,13 +74,13 @@ class AnswerController extends Controller
         $questions = $survey->questions;
         
         // Make sure this survey hasn't expired yet.
-        if ($survey->endDate->isPast()) {
-            throw new SurveyExpiredException();
+        if ($survey->isClosed()) {
+            throw new InvalidOperationException('Survey closed.');
         }
         
         // Make sure the answers aren't finalized yet.
         if ($recipient->hasAnswered) {
-            throw new SurveyAnswersFinalException();
+            throw new InvalidOperationException('Survey answers have been finalized.');
         }
         
         // Validate answers.
