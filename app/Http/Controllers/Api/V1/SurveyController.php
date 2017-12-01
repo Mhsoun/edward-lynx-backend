@@ -26,7 +26,6 @@ use App\Http\Controllers\Controller;
 use App\Notifications\SurveyInvitation;
 use App\Notifications\SurveyAnswerRequest;
 use App\Notifications\SurveyInviteRequest;
-use App\Exceptions\SurveyExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InvalidOperationException;
@@ -126,60 +125,6 @@ class SurveyController extends Controller
                              ->summarize();
         }
     }
-	
-	/**
-	 * Creates a survey.
-	 *
-     * @param   Illuminate\Http\Request         $request
-	 * @return  Illuminate\Http\Response
-	 */
-	public function create(Request $request)
-	{        
-		$this->validate($request, [
-			'name'	                            => 'required|max:255',
-			'lang'	                            => 'required|in:en,fi,sv',
-			'type'	                            => 'required|in:individual',
-            'startDate'                         => 'required|isodate',
-            'endDate'                           => 'required|isodate',
-            'description'                       => 'string',
-            'thankYouText'                      => 'string',
-            'questionInfo'                      => 'string',
-            'questions'                         => 'required|array',
-            'questions.*.category.title'        => 'required|string',
-            'questions.*.category.description'  => 'string',
-            'questions.*.items'                 => 'required|array',
-            'questions.*.items.*.text'          => 'required|string',
-            'questions.*.items.*.isNA'          => 'required|boolean',
-            'questions.*.items.*.answer.type'   => 'required|in:0,1,2,3,4,5,6,7,8',
-            'questions.*.items.*.answer.options'=> 'array',
-            'candidates'                        => 'required|array',
-            'candidates.*.id'                   => 'required_without_all:candidates.*.name,candidates.*.email|integer|exists:users,id',
-            'candidates.*.name'                 => 'required_without:candidates.*.id|string',
-            'candidates.*.email'                => 'required_without:candidates.*.id|email'
-		], [
-		    'type.in'                           =>  'Only Lynx 360 (individual) types are accepted.'
-		]);
-            
-        // Convert the string type to our internal representation
-        // of a survey type.
-        $types = [
-            'individual'    => SurveyTypes::Individual
-        ];
-        $type = $types[$request->type];
-    
-        // Make sure that the current user can create this survey type.
-        $this->authorize('create', [Survey::class, $type]);
-        
-        // Make sure the candidates are within the user's company only.
-        $this->validateCandidates($request->user(), $request->candidates);
-        
-        // Create our draft survey.
-        $surveyData = $this->generateSurveyData($type, $request);
-        $survey = Surveys::create(app(), $surveyData);
-        $url = route('api1-survey', ['survey' => $survey]);
-        
-        return response('', 201, ['Location' => $url]);
-	}
 
     /**
      * Returns survey information.
@@ -426,7 +371,7 @@ class SurveyController extends Controller
         ]);
 
         if ($survey->isClosed()) {
-            throw new SurveyExpiredException;
+            throw new InvalidOperationException('Survey closed.');
         }
 
         $currentUser = $request->user();
@@ -460,66 +405,6 @@ class SurveyController extends Controller
         }
 
         return createdResponse();
-    }
-    
-    /**
-     * Cleans up strings.
-     *
-     * @param   string  $str
-     * @return  string
-     */
-    protected function sanitize($str)
-    {
-        return htmlspecialchars($str);
-    }
-	
-    /**
-     * Creates the survey data structure required by Surveys::create().
-     *
-     * @param   integer                     $type
-     * @param   Illuminate\Http\Request     $input
-     * @return  object
-     */
-	protected function generateSurveyData($type, Request $request)
-	{
-        $user = $request->user();
-        
-		$data               = new stdClass();
-        $data->name         = $this->sanitize($request->name);
-        $data->type         = $type;
-        $data->lang         = $request->lang;
-        $data->ownerId      = $request->user()->id;
-        $data->startDate    = dateFromIso8601String($request->startDate);
-        $data->endDate      = $request->has('endDate') ? dateFromIso8601String($request->endDate) : null;
-        
-        $data->description  = $this->getTextOrDefault($request, 'description', 'defaultInformationText', $data->type);
-        $data->thankYou     = $this->getTextOrDefault($request, 'thankYou', 'defaultThankYouText', $data->type);
-        $data->questionInfo = $this->getTextOrDefault($request, 'questionInfo', 'defaultQuestionInfoText', $data->type);
-        
-        $data->individual   = $this->generate360Data($request, $data->type);
-        $data->emails       = $this->generateEmails($request, $data->type);
-        
-        $this->processQuestions($data, $request->questions);
-        $this->processCandidates($data, $request->candidates);
-            
-        return $data;
-	}
-    
-    /**
-     * Generates the data under the "individual" key for survey data.
-     *
-     * @param   Illuminate\Http\Request $request
-     * @param   int                     $surveyType
-     * @return  object
-     */
-    protected function generate360Data($request, $surveyType)
-    {
-        $user = $request->user();
-        
-        $individual = new stdClass();
-        $individual->inviteText = $this->getTextOrDefault($request, 'inviteText', 'defaultInviteOthersInformationText', $surveyType);
-        $individual->candidates = [];
-        return $individual;
     }
     
     /**
@@ -571,116 +456,6 @@ class SurveyController extends Controller
             return $request->input($field);
         } else {
             return $request->user()->{$method}($surveyType, $request->lang)->text;
-        }
-    }
-    
-    /**
-     * Converts submitted questions into data understood by
-     * Surveys::create()
-     *
-     * @param   object  $data
-     * @param   array   $questions
-     * @return  void
-     */
-    protected function processQuestions($data, array $questions)
-    {
-        foreach ($questions as $index => $set) {
-            $c = $set['category'];
-            
-            $category = new QuestionCategory;
-            $category->title = $this->sanitize($c['title']);
-            $category->lang = $data->lang;
-            $category->description = empty($c['description']) ? '' : $this->sanitize($c['description']);
-            $category->ownerId = $data->ownerId;
-            $category->targetSurveyType = $data->type;
-            $category->save();
-            
-            $data->categories[] = (object) [
-                'id'    => $category->id,
-                'order' => $index
-            ];
-            
-            foreach ($set['items'] as $qIndex => $q) {
-                $question = new Question;
-                $question->text = $this->sanitize($q['text']);
-                $question->ownerId = $data->ownerId;
-                $question->categoryId = $category->id;
-                $question->answerType = intval($q['answer']['type']);
-                $question->isNA = $q['isNA'];
-                $question->save();
-                
-                $data->questions[] = (object) [
-                    'id'    => $question->id,
-                    'order' => $qIndex
-                ];
-            }
-        }
-    }
-    
-    /**
-     * Converts user IDs to valid objects that are accepted by
-     * Surveys::create().
-     *
-     * @param   object  $data
-     * @param   array   $candidates
-     * @return  array
-     */
-    protected function processCandidates($data, array $candidates)
-    {
-        $results = [];
-        foreach ($candidates as $candidate) {
-            if (isset($candidate['id'])) {
-                $user = User::find($candidate['id']);
-            
-                if (!$user) {
-                    continue;
-                }
-                
-                $results[] = (object) [
-                    'userId'    => $user->id,
-                    'name'      => $user->name,
-                    'email'     => $user->email,
-                    'position'  => ''
-                ];
-            } else {
-                $results[] = (object) [
-                    'name'      => $candidate['name'],
-                    'email'     => $candidate['email'],
-                    'position'  => ''
-                ];
-            }
-        }
-        $data->individual->candidates = $results;
-    }
-    
-    /**
-     * Validates candidate user IDs by making sure they exist and
-     * the current user can access them.
-     *
-     * @param   App\Models\User $user
-     * @param   array           $candidates
-     * @return  void
-     */
-    protected function validateCandidates(User $user, array $candidates)
-    {
-        $errors = [];
-        foreach ($candidates as $index => $c) {
-            if (!isset($c['id'])) {
-                continue;
-            }
-            
-            $candidate = User::find($c['id']);
-            if (!$candidate) {
-                $errors["candidates.{$index}.id"][] = 'Candidate does not exist.';
-            }
-            
-            if (!$candidate->can('view', $user)) {
-                $errors["candidates.{$index}.id"][] = 'Invalid candidate.';
-            }
-        }
-        
-        if (!empty($errors)) {
-            throw new CustomValidationException($errors);
         }
     }
 
