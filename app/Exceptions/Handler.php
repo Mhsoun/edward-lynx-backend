@@ -104,9 +104,53 @@ class Handler extends ExceptionHandler {
             return $this->convertSurveyAnswersFinalExceptionToResponse($e, $request);
         } elseif ($e instanceof SurveyMissingAnswersException) {
             return $this->convertSurveyMissingAnswersExceptionToResponse($e, $request);
-        }
+		}
 
         return $this->prepareResponse($request, $e);
+	}
+
+	/**
+	 * Handles exceptions not processed by other handlers.
+	 * 
+	 * Exceptions that fall here are usually code or logic errors
+	 * so they are rendered as a HTTP 500 error.
+	 *
+	 * @param mixed $request
+	 * @param Exception $e
+	 * @return Illuminate\Http\Response
+	 */
+	public function prepareResponse($request, Exception $e)
+	{
+		$response = parent::prepareResponse($request, $e);
+		
+		if ($request->expectsJson()) {
+			return $this->convertExceptionToJsonResponse($request, $e, 500);
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Converts an exception to a JSON error response.
+	 * 
+	 * @param mixed $request
+	 * @param Exception $e
+	 * @param integer $status
+	 * @return Illuminate\Http\Response
+	 */
+	protected function convertExceptionToJsonResponse($request, $e, $status = 500)
+	{
+		if (config('app.debug')) {
+			return response()->json([
+				'error'		=> get_class($e),
+				'message'	=> $e->getMessage(),
+				'source'	=> sprintf('%s:%d', $e->getFile(), $e->getLine()),
+			], $status);
+		} else {
+			return response()->json([
+				'error'		=> 'Internal Server Error',
+			], $status);
+		}
 	}
 
 	/**
