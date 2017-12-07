@@ -1,6 +1,7 @@
 <?php namespace App\Exceptions;
 
 use Exception;
+use ReflectionClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
 use Illuminate\Auth\AuthenticationException;
@@ -95,18 +96,75 @@ class Handler extends ExceptionHandler {
         } elseif ($e instanceof CustomValidationException) {
             return $this->convertCustomValidationExceptionToResponse($e, $request);
         } elseif ($e instanceof HttpException && $request->expectsJson()) {
-        	return $this->convertHttpExceptionToJsonResponse($e);
-        } elseif ($e instanceof ApiException) {
+			return $this->convertHttpExceptionToJsonResponse($e);	
+		} elseif ($e instanceof ApiException) {
         	return $this->convertApiExceptionToResponse($e);
-        } elseif ($e instanceof SurveyExpiredException) {
-            return $this->convertSurveyExpiredExceptionToResponse($e, $request);
-        } elseif ($e instanceof SurveyAnswersFinalException) {
-            return $this->convertSurveyAnswersFinalExceptionToResponse($e, $request);
         } elseif ($e instanceof SurveyMissingAnswersException) {
             return $this->convertSurveyMissingAnswersExceptionToResponse($e, $request);
-        }
+		}
 
         return $this->prepareResponse($request, $e);
+	}
+
+	/**
+	 * Handles exceptions not processed by other handlers.
+	 * 
+	 * Exceptions that fall here are usually code or logic errors
+	 * so they are rendered as a HTTP 500 error.
+	 *
+	 * @param mixed $request
+	 * @param Exception $e
+	 * @return Illuminate\Http\Response
+	 */
+	public function prepareResponse($request, Exception $e)
+	{
+		$response = parent::prepareResponse($request, $e);
+		
+		if ($request->expectsJson()) {
+			return $this->convertExceptionToJsonResponse($request, $e, 500);
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Converts an exception class name to a human-friendly name.
+	 *
+	 * @param Exception $e
+	 * @return string
+	 */
+	protected function exceptionToHumanReadable(Exception $e)
+	{
+		$reflect = new ReflectionClass($e);
+		$class = $reflect->getShortName();
+		$name = snake_case($class);
+		$name = str_replace('_', ' ', $name);
+		$name = ucwords($name);
+
+		return $name;
+	}
+
+	/**
+	 * Converts an exception to a JSON error response.
+	 * 
+	 * @param mixed $request
+	 * @param Exception $e
+	 * @param integer $status
+	 * @return Illuminate\Http\Response
+	 */
+	protected function convertExceptionToJsonResponse($request, $e, $status = 500)
+	{
+		if (config('app.debug')) {
+			return response()->json([
+				'error'		=> $this->exceptionToHumanReadable($e),
+				'message'	=> $e->getMessage(),
+				'source'	=> sprintf('%s:%d', $e->getFile(), $e->getLine()),
+			], $status);
+		} else {
+			return response()->json([
+				'error'		=> 'Internal Server Error',
+			], $status);
+		}
 	}
 
 	/**
@@ -202,8 +260,8 @@ class Handler extends ExceptionHandler {
 	{
 		$code = $e->getStatusCode();
 		return response()->json([
-			'error'		=> $this->codeToText[$code],
-			'message'	=> $e->getMessage()
+			'error'		=> $this->exceptionToHumanReadable($e),
+			'message'	=> $e->getMessage(),
 		], $code);
 	}
 
@@ -223,42 +281,6 @@ class Handler extends ExceptionHandler {
 	}
     
     /**
-     * Generates a response for expired survey exceptions.
-     *
-     * @param   App\Exceptions\SurveyExpiredException   $e
-     * @param   Illuminate\Http\Request                 $request
-     * @param   Illuminate\Http\Response
-     */
-    protected function convertSurveyExpiredExceptionToResponse(SurveyExpiredException $e, Request $request)
-    {
-        $message = "Survey has reached its end date and answers are not accepted anymore.";
-        if ($request->expectsJson()) {
-            return response()->json([
-                'error'     => 'survey_expired',
-                'message'   => $message
-            ], 400);
-        }
-    }
-    
-    /**
-     * Generates a response for final survey answers.
-     *
-     * @param   App\Exceptions\SurveyAnswersFinalException  $e
-     * @param   Illuminate\Http\Request                     $request
-     * @param   Illuminate\Http\Response
-     */
-    protected function convertSurveyAnswersFinalExceptionToResponse(SurveyAnswersFinalException $e, Request $request)
-    {
-        $message = "Survey has reached it's end date and answers are not accepted anymore.";
-        if ($request->expectsJson()) {
-            return response()->json([
-                'error'     => 'answers_final',
-                'message'   => 'Survey answers are not accepted anymore.'
-            ], 400);
-        }
-    }
-    
-    /**
      * Generates a response for surveys missing answers when marked as
      * final exception.
      *
@@ -271,5 +293,7 @@ class Handler extends ExceptionHandler {
         if ($request->expectsJson()) {
             return response()->json($e, 422);
         }
-    }
+	}
+	
+
 }
