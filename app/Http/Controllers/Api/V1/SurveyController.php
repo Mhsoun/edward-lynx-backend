@@ -155,6 +155,10 @@ class SurveyController extends Controller
         $surveyRecipient = SurveyRecipient::findForUser($survey, $currentUser, $key);
         $json = $this->serializeSurvey($survey, $surveyRecipient);
 
+        // Add disallowed recipients
+        $disallowed = $this->listDisallowedRecipients($survey, [$currentUser->email]);
+        $json['disallowed_recipients'] = $disallowed;
+
         // Mark the associated notification as read
         $notifications = $currentUser->unreadNotifications;
         foreach ($notifications as $notification) {
@@ -565,6 +569,30 @@ class SurveyController extends Controller
         $json['key'] = $surveyRecipient->link;
 
         return $json;
+    }
+
+    /**
+     * Returns an array of emails not allowed to be invited in the given survey.
+     *
+     * @param App\Models\Survey $survey
+     * @param array $additional
+     * @return array
+     */
+    protected function listDisallowedRecipients(Survey $survey, $additional = [])
+    {
+        $disallowed = array_merge([], $additional);
+
+        foreach ($survey->candidates as $surveyCandidate) {
+            $disallowed[] = $surveyCandidate->recipient->mail;
+        }
+
+        foreach ($survey->recipients as $surveyRecipient) {
+            $disallowed[] = $surveyRecipient->recipient->mail;
+        }
+
+        $disallowed = array_values(array_unique($disallowed));
+
+        return $disallowed;
     }
 
 }

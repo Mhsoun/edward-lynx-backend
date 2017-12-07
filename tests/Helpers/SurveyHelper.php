@@ -36,8 +36,8 @@ class SurveyHelper
             $candidate = factory(Recipient::class)->create([
                 'ownerId'   => $admin->id,
             ]);
-            $survey->addRecipient($candidate->id, 1, $admin->id);
-            $survey->addCandidate($candidate);
+            $surveyRecipient = $survey->addRecipient($candidate->id, 1, $admin->id);
+            $survey->addCandidate($candidate, $surveyRecipient->link);
 
             // Create participants for the candidate
             for ($j = 0; $j < 3; $j++) {
@@ -57,14 +57,14 @@ class SurveyHelper
      */
     public function createUserCandidate(Survey $survey)
     {
-        $candidate = $survey->candidates()->first()->recipient;
+        $candidate = $survey->candidates()->first();
         $user = factory(User::class)->make([
-            'name'      => $candidate->name,
-            'email'     => $candidate->mail,
+            'name'      => $candidate->recipient->name,
+            'email'     => $candidate->recipient->mail,
             'parentId'  => $survey->owner->company->id,
         ]);
 
-        return $user;
+        return [$user, $candidate->link];
     }
 
 }
