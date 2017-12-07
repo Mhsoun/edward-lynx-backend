@@ -159,6 +159,10 @@ class SurveyController extends Controller
         $disallowed = $this->listDisallowedRecipients($survey, [$currentUser->email]);
         $json['disallowed_recipients'] = $disallowed;
 
+        // Add correct status
+        $invitedByObj = $surveyRecipient->invitedById > 0 ? $surveyRecipient->invitedByObj : $surveyRecipient; // Account for participants with 0 as their inviters.
+        $json['status'] = $surveyRecipient->answerStatus($invitedByObj);
+
         // Mark the associated notification as read
         $notifications = $currentUser->unreadNotifications;
         foreach ($notifications as $notification) {
