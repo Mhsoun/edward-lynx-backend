@@ -156,7 +156,7 @@ class SurveyController extends Controller
         $json = $this->serializeSurvey($survey, $surveyRecipient);
 
         // Add disallowed recipients
-        $disallowed = $this->listDisallowedRecipients($survey, [$currentUser->email]);
+        $disallowed = $this->listDisallowedRecipients($survey, $currentUser);
         $json['disallowed_recipients'] = $disallowed;
 
         // Add correct status
@@ -579,12 +579,33 @@ class SurveyController extends Controller
      * Returns an array of emails not allowed to be invited in the given survey.
      *
      * @param App\Models\Survey $survey
-     * @param array $additional
+     * @param App\Models\User   $user
      * @return array
      */
-    protected function listDisallowedRecipients(Survey $survey, $additional = [])
+    protected function listDisallowedRecipients(Survey $survey, User $currentUser)
     {
-        $disallowed = array_merge([], $additional);
+        $disallowed = [$currentUser->email];
+
+        if ($survey->type == SurveyTypes::Individual || $survey->type == SurveyTypes::Progress) {
+            $recipientIds = Recipient::recipientIdsOfUser($currentUser);
+            $surveyCandidate = $survey->candidates()->whereIn('recipientId', $recipientIds)->first();
+
+            // If the user isn't a candidate, he/she can't invite. return an empty array.
+            if (!$surveyCandidate) {
+                return [];
+            }
+
+            // For candidates, disallow participants already invited by the current candidate.
+            $participants = $survey->recipients()->where('invitedById', $surveyCandidate->recipient->id)->get();
+            foreach ($participants as $participant) {
+                $disallowed[] = $participant->recipient->mail;
+            }
+        } elseif ($survey->type == SurveyTypes) {
+        }
+
+        return array_values(array_unique($disallowed));
+
+        $disallowed = [];
 
         foreach ($survey->candidates as $surveyCandidate) {
             $disallowed[] = $surveyCandidate->recipient->mail;

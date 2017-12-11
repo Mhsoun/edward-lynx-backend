@@ -21,16 +21,26 @@ class SurveyControllerTest extends TestCase
         $helper = new SurveyHelper();
         $survey = $helper->createSurvey();
         list($candidate, $key) = $helper->createUserCandidate($survey);
+        
+        // Fetch one participant for the current candidate.
+        $recipientIds = Recipient::recipientIdsOfUser($candidate);
+        $surveyCandidate = $survey->candidates()->whereIn('recipientId', $recipientIds)->first();
+        $invitedParticipant = $survey->recipients()->where('invitedById', $surveyCandidate->recipient->id)->first()->recipient;
+
+        // Fetch another participant for the other candidate
+        $surveyCandidate2 = $survey->candidates->last();
+        $invitedParticipant2 = $survey->recipients()->where('invitedById', $surveyCandidate2->recipient->id)->first()->recipient;
+
         $endpoint = sprintf('/api/v1/surveys/%d?key=%s', $survey->id, $key);
 
         $this->actingAs($candidate, 'api');
 
         $this->getJson($endpoint)
-             ->seeJsonStructure([
-                'disallowed_recipients',
-             ])
              ->seeJsonSubset([
-                'disallowed_recipients' => [$candidate->email],
+                'disallowed_recipients' => [$candidate->email, $invitedParticipant->mail],
+             ])
+             ->dontSeeJson([
+                'disallowed_recipients' => [$invitedParticipant2->mail],
              ]);
     }
 
