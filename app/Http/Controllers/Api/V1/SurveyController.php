@@ -571,6 +571,9 @@ class SurveyController extends Controller
         $json['description'] = strip_tags($survey->generateDescription($surveyRecipient->recipient, $surveyRecipient->link));
         $json['personsEvaluatedText'] = sprintf('The person being evaluated is %s.', $invitedBy);
         $json['key'] = $surveyRecipient->link;
+        $json['permissions'] = [
+            'can_invite' => $surveyRecipient->isCandidate(),
+        ];
 
         return $json;
     }

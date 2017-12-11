@@ -80,5 +80,26 @@ class SurveyControllerTest extends TestCase
                 'status' => SurveyRecipient::NO_ANSWERS,
              ]);
     }
+
+    public function testCanInviteFieldIsTrueForCandidates()
+    {
+        $helper = new SurveyHelper();
+        $survey = $helper->createSurvey();
+        list($candidate, $key) = $helper->createUserCandidate($survey);
+
+        $this->actingAs($candidate, 'api');
+
+        $endpoint = sprintf('/api/v1/surveys?filter=answerable', $survey->id, $key);
+        $this->getJson($endpoint)
+             ->seeJsonSubset([
+                'items' => [
+                    [
+                        'permissions' => [
+                            'can_invite' => true,
+                        ],
+                    ]
+                ]
+             ]);
+    }
     
 }
