@@ -587,40 +587,29 @@ class SurveyController extends Controller
      */
     protected function listDisallowedRecipients(Survey $survey, User $currentUser)
     {
+        // Only 360 and lynx progress surveys can invite.
+        if ($survey->type != SurveyTypes::Individual && $survey->type != SurveyTypes::Progress) {
+            return [];
+        }
+
         $disallowed = [$currentUser->email];
 
-        if ($survey->type == SurveyTypes::Individual || $survey->type == SurveyTypes::Progress) {
-            $recipientIds = Recipient::recipientIdsOfUser($currentUser);
-            $surveyCandidate = $survey->candidates()->whereIn('recipientId', $recipientIds)->first();
+        // Retrieve the candidate invitation.
+        $recipientIds = Recipient::recipientIdsOfUser($currentUser);
+        $surveyCandidate = $survey->candidates()->whereIn('recipientId', $recipientIds)->first();
 
-            // If the user isn't a candidate, he/she can't invite. return an empty array.
-            if (!$surveyCandidate) {
-                return [];
-            }
+        // If the user isn't a candidate, return an empty array.
+        if (!$surveyCandidate) {
+            return [];
+        }
 
-            // For candidates, disallow participants already invited by the current candidate.
-            $participants = $survey->recipients()->where('invitedById', $surveyCandidate->recipient->id)->get();
-            foreach ($participants as $participant) {
-                $disallowed[] = $participant->recipient->mail;
-            }
-        } elseif ($survey->type == SurveyTypes) {
+        // For candidates, disallow participants already invited by the current candidate.
+        $participants = $survey->recipients()->where('invitedById', $surveyCandidate->recipient->id)->get();
+        foreach ($participants as $participant) {
+            $disallowed[] = $participant->recipient->mail;
         }
 
         return array_values(array_unique($disallowed));
-
-        $disallowed = [];
-
-        foreach ($survey->candidates as $surveyCandidate) {
-            $disallowed[] = $surveyCandidate->recipient->mail;
-        }
-
-        foreach ($survey->recipients as $surveyRecipient) {
-            $disallowed[] = $surveyRecipient->recipient->mail;
-        }
-
-        $disallowed = array_values(array_unique($disallowed));
-
-        return $disallowed;
     }
 
 }
