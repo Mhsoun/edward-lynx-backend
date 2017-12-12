@@ -39,9 +39,10 @@ class SurveyHelper
     /**
      * Creates a blank 360 survey without any candidates and participans.
      *
+     * @param array $attributes
      * @return App\Models\Survey
      */
-    public function createBlankSurvey()
+    public function createBlankSurvey(array $attributes = [])
     {
         $faker = \Faker\Factory::create();
 
@@ -55,9 +56,12 @@ class SurveyHelper
             'isAdmin'       => true,
             'accessLevel'   => 1,
         ]);
-        $survey = factory(Survey::class)->create([
+
+        $newAttributes = array_merge([
             'ownerId'       => $admin->id,
-        ]);
+        ], $attributes);
+
+        $survey = factory(Survey::class)->create($newAttributes);
 
         return $survey;
     }
