@@ -111,6 +111,7 @@
                     <h4>{{ Lang::get('surveys.include') }}</h4>
                     <input type="hidden" name="includeInGroupReport" id="includeInGroupReport" value="">
                     @foreach ($survey->candidates as $candidate)
+                        @if ($candidate->exists())
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox"
@@ -120,6 +121,7 @@
                                        onchange="updateIncludeInGroupReport()"> {{ $candidate->recipient->name }}
                             </label>
                         </div>
+                        @endif
                     @endforeach
                 @endif
 

@@ -22,7 +22,9 @@
 
     foreach ($recipients as $recipient) {
         $roleId = $recipient->roleId;
-        $roleName = $roleNames[$roleId];
+
+        // Directly retrieve the role name from App\Roles if for some reason it hasn't been provided.
+        $roleName = !empty($roleNames[$roleId]) ? $roleNames[$roleId] : \App\Roles::name($roleId);
 
         if ($isGroupReport && $roleId == $selfRoleActualId) {
             $roleId = $selfRoleId;
