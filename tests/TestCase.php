@@ -32,10 +32,11 @@ abstract class TestCase extends BaseTestCase
      */
     public function runDatabaseMigrations()
     {
+        $this->artisan('droptables');
         $this->artisan('migrate');
         
         $this->beforeApplicationDestroyed(function() {
-            $this->artisan('droptables');
+            // $this->artisan('droptables');
         });
     }
 }
