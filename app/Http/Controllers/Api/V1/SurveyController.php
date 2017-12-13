@@ -563,7 +563,6 @@ class SurveyController extends Controller
         if ($surveyRecipient->invitedByCandidate()) {
             $invitedBy = $surveyRecipient->invitedByCandidate()->recipient->name;
         } else {
-            if (!$surveyRecipient->invitedByObj) dd($surveyRecipient->getAttributes(), Recipient::all()->jsonSerialize());
             $invitedBy = $surveyRecipient->invitedByObj->name;
         }
 
