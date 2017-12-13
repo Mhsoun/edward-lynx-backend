@@ -11,14 +11,16 @@ $factory->define(App\Models\EmailText::class, function (Faker\Generator $faker) 
 
 $factory->define(App\Models\Survey::class, function (Faker\Generator $faker) use ($factory) {
     return [
-        'name'              => $faker->words(3, true),
-        'type'              => 'App\SurveyTypes::Individual',
-        'lang'              => 'en',
-        'invitationTextId'  => $factory->create(App\Models\EmailText::class)->id,
-        'ownerId'           => 1,
-        'startDate'         => Carbon\Carbon::now(),
-        'endDate'           => Carbon\Carbon::now()->addDay(30),
-        'description'       => $faker->words(15, true),
+        'name'                  => $faker->words(3, true),
+        'type'                  => 'App\SurveyTypes::Individual',
+        'lang'                  => 'en',
+        'invitationTextId'      => $factory->create(App\Models\EmailText::class)->id,
+        'ownerId'               => 1,
+        'startDate'             => Carbon\Carbon::now(),
+        'endDate'               => Carbon\Carbon::now()->addDay(30),
+        'description'           => $faker->words(15, true),
+        'thankYouText'          => $faker->words(15, true),
+        'questionInfoText'      => $faker->words(15, true),
     ];
 });
 
