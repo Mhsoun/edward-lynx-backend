@@ -217,19 +217,20 @@ class SurveyRecipient extends Model
     }
 
     /**
-     * Returns the answer status of this recipient.
+     * Returns the answer status of this survey invitation.
      *
-     * @param App\Models\SurveyCandidate|App\Models\SurveyRecipient $invite
-     * @return int
+     * @return integer
      */
-    public function answerStatus($invite)
-    {   
-        // If this invite has been marked answered then it is complete.
+    public function answerStatus()
+    {
+        // Catch survey invites where the invitation is 0.
+        $invitedBy = $this->invitedById ? $this->invitedById : $this->recipientId;
+
         if ($this->hasAnswered) {
             return self::COMPLETE_ANSWERS;
         }
-        
-        if ($this->answers()->where('invitedById', $invite->recipientId)->count() > 0) {
+
+        if ($this->answers()->where('invitedById', $invitedBy)->count() > 0) {
             return self::PENDING_ANSWERS;
         } else {
             return self::NO_ANSWERS;
