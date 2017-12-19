@@ -174,5 +174,20 @@ class SurveyControllerTest extends TestCase
             ],
         ]);
     }
+
+    public function testExchangeEndpoint()
+    {
+        $helper = new SurveyHelper();
+        $survey = $helper->createSurvey();
+        list($candidate, $key) = $helper->createUserCandidate($survey);
+
+        $this->actingAs($candidate, 'api');
+
+        $endpoint = sprintf('/api/v1/surveys/exchange/%s', $key);
+        $this->getJson($endpoint);
+        $this->seeJsonSubset([
+            'survey_id' => $survey->id,
+        ]);
+    }
     
 }
