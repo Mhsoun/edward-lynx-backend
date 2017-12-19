@@ -16,12 +16,12 @@ class RenamnedFields extends Migration
 		{
 		    $table->renameColumn('EdwardLynx', 'isAdmin');
 			$table->dropColumn([
-				'defaultInvitationEmailSubject',
-				'defaultInvitationEmailMessage',
-				'defaultManualReminderEmailSubject',
-				'defaultManualReminderEmailMessage',
-				'defaultToEvaluateEmailSubject',
-				'defaultToEvaluateEmailMessage'
+				// 'defaultInvitationEmailSubject',
+				// 'defaultInvitationEmailMessage',
+				// 'defaultManualReminderEmailSubject',
+				// 'defaultManualReminderEmailMessage',
+				// 'defaultToEvaluateEmailSubject',
+				// 'defaultToEvaluateEmailMessage'
 			]);
 		});
 

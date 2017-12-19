@@ -81,10 +81,9 @@ class SurveyController extends Controller
             // Fetch all surveys where the current user is a recipient of.
             SurveyRecipient::whereIn('recipientId', $recipientIds)
                 ->get()
-                ->map(function($sr) use ($surveys) {
-                    $candidate = $sr->survey->type == SurveyTypes::Individual ? $sr->invitedByCandidate() : $sr;
+                ->map(function(SurveyRecipient $sr) use ($surveys) {
                     $json = $this->serializeSurvey($sr->survey, $sr);
-                    $json['status'] = $sr->answerStatus($candidate);
+                    $json['status'] = $sr->answerStatus();
                     $surveys->push($json);
                 });
 
