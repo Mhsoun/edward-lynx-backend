@@ -189,5 +189,33 @@ class SurveyControllerTest extends TestCase
             'survey_id' => $survey->id,
         ]);
     }
+
+    public function testRecipientsEndpoint()
+    {
+        $faker = \Faker\Factory::create();
+        $helper = new SurveyHelper();
+        $survey = $helper->createSurvey();
+        list($candidate, $key) = $helper->createUserCandidate($survey);
+
+        $recipients = [
+            [ 'name' => $faker->name(), 'email' => $faker->safeEmail(), 'role' => 2, ],
+        ];
+
+        $this->actingAs($candidate, 'api');
+
+        $endpoint = sprintf('/api/v1/surveys/%d/recipients', $survey->id);
+        $this->postJson($endpoint, [
+            'recipients'    => $recipients,
+        ]);
+        
+        $recipient = Recipient::where('mail', $recipients[0]['email'])->first();
+        $this->assertNotNull($recipient);
+
+        $surveyRecipient = SurveyRecipient::where([
+            'surveyId'      => $survey->id,
+            'recipientId'   => $recipient->id
+        ])->first();
+        $this->assertNotNull($surveyRecipient);
+    }
     
 }
