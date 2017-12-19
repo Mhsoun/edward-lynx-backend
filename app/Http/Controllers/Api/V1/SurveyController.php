@@ -563,6 +563,8 @@ class SurveyController extends Controller
     {
         if ($surveyRecipient->invitedByCandidate()) {
             $invitedBy = $surveyRecipient->invitedByCandidate()->recipient->name;
+        } elseif ($surveyRecipient->invitedById === 0) { // Catch old data where candidates have the invitedById field set to 0.
+            $invitedBy = $surveyRecipient->recipient->name;
         } else {
             $invitedBy = $surveyRecipient->invitedByObj->name;
         }
