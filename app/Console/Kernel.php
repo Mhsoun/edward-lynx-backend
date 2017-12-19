@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel {
 	 */
 	protected $commands = [
 		'App\Console\Commands\Inspire',
-        \App\Console\Commands\SendDueGoalReminders::class
+		\App\Console\Commands\DropTables::class,
+        \App\Console\Commands\SendDueGoalReminders::class,
         //doMail create a mailSchedul.php in commands
 	];
 

@@ -23,9 +23,9 @@ class SurveyHelper
             $candidate = factory(Recipient::class)->create([
                 'ownerId'   => $survey->ownerId,
             ]);
-            $surveyRecipient = $survey->addRecipient($candidate->id, 1, $survey->ownerId);
+            $surveyRecipient = $survey->addRecipient($candidate->id, 1, $candidate->id);
             $survey->addCandidate($candidate, $surveyRecipient->link);
-
+            
             // Create participants for the candidate
             for ($j = 0; $j < 3; $j++) {
                 $recipient = factory(Recipient::class)->create();
@@ -39,9 +39,10 @@ class SurveyHelper
     /**
      * Creates a blank 360 survey without any candidates and participans.
      *
+     * @param array $attributes
      * @return App\Models\Survey
      */
-    public function createBlankSurvey()
+    public function createBlankSurvey(array $attributes = [])
     {
         $faker = \Faker\Factory::create();
 
@@ -55,9 +56,12 @@ class SurveyHelper
             'isAdmin'       => true,
             'accessLevel'   => 1,
         ]);
-        $survey = factory(Survey::class)->create([
+
+        $newAttributes = array_merge([
             'ownerId'       => $admin->id,
-        ]);
+        ], $attributes);
+
+        $survey = factory(Survey::class)->create($newAttributes);
 
         return $survey;
     }

@@ -1,20 +1,56 @@
 <?php
 namespace Tests\Feature\Api;
 
+use Faker\Factory;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Survey;
+use App\Models\Question;
 use App\Models\Recipient;
+use App\Models\SurveyQuestion;
 use App\Models\SurveyCandidate;
 use App\Models\SurveyRecipient;
 use Tests\Helpers\SurveyHelper;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
+use App\Models\QuestionCategory;
+use App\Models\SurveyQuestionCategory;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class SurveyControllerTest extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTransactions;
+
+    public function testSurveysMineEndpoint()
+    {
+        $faker = \Faker\Factory::create();
+        $helper = new SurveyHelper();
+        $company = factory(User::class)->create([
+            'name'          => $faker->company,
+            'isAdmin'       => true,
+            'accessLevel'   => 1,
+        ]);
+        $admin = factory(User::class)->create([
+            'parentId'      => $company->id,
+            'isAdmin'       => true,
+            'accessLevel'   => 1,
+        ]);
+
+        $survey1 = $helper->createBlankSurvey([
+            'ownerId'       => $admin->id,
+        ]);
+        $survey2 = $helper->createBlankSurvey([
+            'ownerId'       => $admin->id,
+        ]);
+
+        $this->actingAs($admin, 'api');
+
+        $this->getJson('/api/v1/surveys/?filter=mine')
+             ->seeJsonSubset([
+                'items' => [
+                    [ 'id' => $survey1->id ],
+                    [ 'id' => $survey2->id ],
+                ]
+             ]);
+    }
 
     public function testSurveyDetailsHasDisallowedParticipants()
     {
@@ -25,11 +61,11 @@ class SurveyControllerTest extends TestCase
         // Fetch one participant for the current candidate.
         $recipientIds = Recipient::recipientIdsOfUser($candidate);
         $surveyCandidate = $survey->candidates()->whereIn('recipientId', $recipientIds)->first();
-        $invitedParticipant = $survey->recipients()->where('invitedById', $surveyCandidate->recipient->id)->first()->recipient;
+        $invitedParticipant = $survey->recipients()->where('invitedById', $surveyCandidate->recipient->id)->skip(1)->first()->recipient; // First record is usually the candidate invite.
 
         // Fetch another participant for the other candidate
         $surveyCandidate2 = $survey->candidates->last();
-        $invitedParticipant2 = $survey->recipients()->where('invitedById', $surveyCandidate2->recipient->id)->first()->recipient;
+        $invitedParticipant2 = $survey->recipients()->where('invitedById', $surveyCandidate2->recipient->id)->skip(1)->first()->recipient;  // First record is usually the candidate invite.
 
         $endpoint = sprintf('/api/v1/surveys/%d?key=%s', $survey->id, $key);
 
@@ -100,6 +136,86 @@ class SurveyControllerTest extends TestCase
                     ]
                 ]
              ]);
+    }
+
+    public function testQuestionsEndpoint()
+    {
+        $faker = \Faker\Factory::create();
+        $helper = new SurveyHelper();
+        $survey = $helper->createSurvey();
+        $candidate = $helper->createUserCandidate($survey)[0];
+
+        $category = factory(QuestionCategory::class)->create([
+            'ownerId' => $survey->ownerId,
+        ]);
+        $surveyQuestionCategory = factory(SurveyQuestionCategory::class)->create([
+            'surveyId'      => $survey->id,
+            'categoryId'    => $category->id,
+        ]);
+        for ($i = 0; $i < 3; $i++) {
+            $question = factory(Question::class)->create([
+                'ownerId'       => $survey->ownerId,
+                'categoryId'    => $category->id,
+            ]);
+            factory(SurveyQuestion::class)->create([
+                'surveyId'      => $survey->id,
+                'questionId'    => $question->id,
+                'order'         => $i,
+            ]);
+        }
+
+        $this->actingAs($candidate, 'api');
+
+        $endpoint = sprintf('/api/v1/surveys/%d/questions', $survey->id);
+        $this->getJson($endpoint);
+        $this->seeJsonStructure([
+            [
+                'questions' => [],
+            ],
+        ]);
+    }
+
+    public function testExchangeEndpoint()
+    {
+        $helper = new SurveyHelper();
+        $survey = $helper->createSurvey();
+        list($candidate, $key) = $helper->createUserCandidate($survey);
+
+        $this->actingAs($candidate, 'api');
+
+        $endpoint = sprintf('/api/v1/surveys/exchange/%s', $key);
+        $this->getJson($endpoint);
+        $this->seeJsonSubset([
+            'survey_id' => $survey->id,
+        ]);
+    }
+
+    public function testRecipientsEndpoint()
+    {
+        $faker = \Faker\Factory::create();
+        $helper = new SurveyHelper();
+        $survey = $helper->createSurvey();
+        list($candidate, $key) = $helper->createUserCandidate($survey);
+
+        $recipients = [
+            [ 'name' => $faker->name(), 'email' => $faker->safeEmail(), 'role' => 2, ],
+        ];
+
+        $this->actingAs($candidate, 'api');
+
+        $endpoint = sprintf('/api/v1/surveys/%d/recipients', $survey->id);
+        $this->postJson($endpoint, [
+            'recipients'    => $recipients,
+        ]);
+        
+        $recipient = Recipient::where('mail', $recipients[0]['email'])->first();
+        $this->assertNotNull($recipient);
+
+        $surveyRecipient = SurveyRecipient::where([
+            'surveyId'      => $survey->id,
+            'recipientId'   => $recipient->id
+        ])->first();
+        $this->assertNotNull($surveyRecipient);
     }
     
 }

@@ -6,46 +6,37 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    use Concerns\CreatesApplication, Concerns\DatabaseSetup;
+    use Concerns\CreatesApplication;
 
     protected $baseUrl = 'http://localhost:8000';
 
     public function setUp()
     {
         parent::setUp();
-        $this->setupDatabase();
+
+        $this->runDatabaseMigrations();
 
         Model::unguard();
     }
 
     public function tearDown()
     {
-        $this->resetDatabase();
-
+        parent::tearDown();
         Model::reguard();
     }
 
     /**
-     * Authenticates the user for API access.
+     * Setups the database before and after each test.
      *
-     * @param  App\Models\User $user
-     * @return $this
+     * @return void
      */
-    protected function apiAuthenticate(App\Models\User $user = null)
+    public function runDatabaseMigrations()
     {
-        if (!$user) {
-            $user = App\Models\User::find(1);
-        }
-
-        $this->actingAs($user, 'api');
-
-        return $this;
+        $this->artisan('droptables');
+        $this->artisan('migrate');
+        
+        $this->beforeApplicationDestroyed(function() {
+            // $this->artisan('droptables');
+        });
     }
-
-    protected function api($method, $uri, array $data = [], array $headers = [])
-    {
-        return $this->authenticateApi()
-                    ->json($method, $uri, $data, $headers);
-    }
-
 }
