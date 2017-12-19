@@ -88,6 +88,18 @@ $factory->define(App\Models\Survey::class, function (Faker\Generator $faker) use
     ];
 });
 
+$factory->define(App\Models\SurveyQuestion::class, function (Faker\Generator $faker) use ($factory) {
+    return [
+        'surveyId'      => function () {
+            return factory(App\Models\Survey::class)->create()->id;
+        },
+        'questionId'    => function () {
+            return factory(App\Models\Question::class)->create()->id;
+        },
+        'order'         => 0,
+    ];
+});
+
 $factory->define(App\Models\SurveyQuestionCategory::class, function (Faker\Generator $faker) use ($factory) {
     return [
         'surveyId'      => function() {

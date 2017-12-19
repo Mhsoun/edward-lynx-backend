@@ -143,7 +143,8 @@ class SurveyControllerTest extends TestCase
         $faker = \Faker\Factory::create();
         $helper = new SurveyHelper();
         $survey = $helper->createSurvey();
-    
+        $candidate = $helper->createUserCandidate($survey)[0];
+
         $category = factory(QuestionCategory::class)->create([
             'ownerId' => $survey->ownerId,
         ]);
@@ -163,9 +164,15 @@ class SurveyControllerTest extends TestCase
             ]);
         }
 
+        $this->actingAs($candidate, 'api');
+
         $endpoint = sprintf('/api/v1/surveys/%d/questions', $survey->id);
         $this->getJson($endpoint);
-        $this->dump();
+        $this->seeJsonStructure([
+            [
+                'questions' => [],
+            ],
+        ]);
     }
     
 }
