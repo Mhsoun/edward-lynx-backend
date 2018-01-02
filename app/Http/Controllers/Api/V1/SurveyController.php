@@ -504,7 +504,6 @@ class SurveyController extends Controller
         // Notify user with the same email as the recipient
         if ($user = User::where('email', $email)->first()) {
             $user->notify(new SurveyAnswerRequest($survey, $surveyRecipient->link));
-            $user->notify(new SurveyInviteRequest($survey, $surveyRecipient->link));
         }
 
         return $surveyRecipient;
