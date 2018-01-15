@@ -1,23 +1,18 @@
-## Laravel PHP Framework
+# Edward Lynx
 
-[![Build Status](https://travis-ci.org/laravel/framework.svg)](https://travis-ci.org/laravel/framework)
-[![Total Downloads](https://poser.pugx.org/laravel/framework/downloads.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/framework/v/stable.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/framework/v/unstable.svg)](https://packagist.org/packages/laravel/framework)
-[![License](https://poser.pugx.org/laravel/framework/license.svg)](https://packagist.org/packages/laravel/framework)
+## Server Requirements
+1. MySQL 5.7
+2. PHP 5.6 with OpenSSL, PDO, Mbstring, Tokenizer and XML extensions
+3. Apache or nginx
+4. Composer
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as authentication, routing, sessions, queueing, and caching.
-
-Laravel is accessible, yet powerful, providing powerful tools needed for large, robust applications. A superb inversion of control container, expressive migration system, and tightly integrated unit testing support give you the tools you need to build any application with which you are tasked.
-
-## Official Documentation
-
-Documentation for the framework can be found on the [Laravel website](http://laravel.com/docs).
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
-
-### License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+## Deployment
+1. Clone the repository https://bitbucket.org/ingenuityph/edward-lynx-backend to the server or virtual host.
+2. Configure nginx to redirect all requests to the public/index.php folder. See [Laravel Installation Docs](https://laravel.com/docs/5.3).
+3. `cd` into the cloned directory.
+4. Make sure `storage/` and `public/` are writable by the server and the PHP process.
+5. Setup environment variables by editing `.env`.
+4. Install dependencies through composer `composer install`.
+5. Run database migrations `php artisan migrate`.
+6. Generate OAuth keys using `php artisan passport:install`, taking note of the output as they are the OAuth access keys for API consumers.
+(Make sure the private keys `storage/oauth-public.key` and `storage/oauth-private.key` exists.)
