@@ -137,12 +137,7 @@ class SurveyController extends Controller
         $currentUser = $request->user();
         $key = $request->key;
 
-        // Immediately return the survey details if this is the owner.
-        if ($survey->ownerId == $currentUser->id) {
-            return response()->jsonHal($survey);
-        }
-
-        // For everyone else, validate the key.
+        // Validate the key
         if (!SurveyCandidate::userIsValidCandidate($survey, $currentUser, $key) &&
             !SurveyRecipient::userIsValidRecipient($survey, $currentUser, $key)) {
             throw new AuthorizationException('Invalid access key.');
@@ -150,13 +145,19 @@ class SurveyController extends Controller
 
         $json = $survey->jsonSerialize();
 
-        // Generate the description
-        $surveyRecipient = SurveyRecipient::findForUser($survey, $currentUser, $key);
-        $json = $this->serializeSurvey($survey, $surveyRecipient);
-
         // Add disallowed recipients
         $disallowed = $this->listDisallowedRecipients($survey, $currentUser);
         $json['disallowed_recipients'] = $disallowed;
+
+        // Immediately return the survey details if this is the owner.
+        if ($survey->ownerId == $currentUser->id) {
+            return response()->jsonHal($json)
+                ->withLinks($survey->jsonHalLinks());
+        }
+
+        // Generate the description
+        $surveyRecipient = SurveyRecipient::findForUser($survey, $currentUser, $key);
+        $json = $this->serializeSurvey($survey, $surveyRecipient);
 
         // Add correct status
         $invitedByObj = $surveyRecipient->invitedById > 0 ? $surveyRecipient->invitedByObj : $surveyRecipient; // Account for participants with 0 as their inviters.
