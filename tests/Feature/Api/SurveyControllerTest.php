@@ -72,6 +72,9 @@ class SurveyControllerTest extends TestCase
         $this->actingAs($candidate, 'api');
 
         $this->getJson($endpoint)
+            //  ->seeJsonSubset([
+                // 'disallowed_recipients' => [$candidate->email, $invitedParticipant->mail],
+            //  ])
              ->dontSeeJson([
                 'disallowed_recipients' => [$invitedParticipant2->mail],
              ]);
