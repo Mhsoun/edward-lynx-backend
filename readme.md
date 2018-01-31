@@ -11,8 +11,11 @@
 2. Configure nginx to redirect all requests to the public/index.php folder. See [Laravel Installation Docs](https://laravel.com/docs/5.3).
 3. `cd` into the cloned directory.
 4. Make sure `storage/` and `public/` are writable by the server and the PHP process.
-5. Setup environment variables by editing `.env`.
+5. Setup environment variables by copying and editing `.env.example` to `.env`.
 4. Install dependencies through composer `composer install`.
 5. Run database migrations `php artisan migrate`.
 6. Generate OAuth keys using `php artisan passport:install`, taking note of the output as they are the OAuth access keys for API consumers.
 (Make sure the private keys `storage/oauth-public.key` and `storage/oauth-private.key` exists.)
+
+## Testing
+Run unit tests by invoking `vendor/bin/phpunit`.
