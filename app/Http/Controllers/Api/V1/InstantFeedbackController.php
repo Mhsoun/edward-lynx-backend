@@ -65,7 +65,6 @@ class InstantFeedbackController extends Controller
     {
         $this->validate($request, [
             'lang'                              => 'required|in:en,fi,sv',
-            'anonymous'                         => 'boolean',
             'questions'                         => 'required|array|size:1',
             'questions.*.text'                  => 'required|string',
             'questions.*.isNA'                  => 'required|boolean',

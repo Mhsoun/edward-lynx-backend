@@ -14,9 +14,9 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
-    protected $fillable = ['userId', 'lang', 'closed', 'anonymous'];
+    protected $fillable = ['userId', 'lang', 'closed'];
     
-    protected $visible = ['id', 'lang', 'closed', 'anonymous'];
+    protected $visible = ['id', 'lang', 'closed'];
     
     /**
      * Returns the URL to this instant feedback.
