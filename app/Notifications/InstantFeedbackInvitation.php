@@ -61,9 +61,11 @@ class InstantFeedbackInvitation extends Notification implements ShouldQueue
     public function via($notifiable)
     {
         if (method_exists($notifiable, 'deviceTokens')) {
-            return ['database', 'mail', FirebaseChannel::class];
+            return ['database', 'mail', FirebaseChannel::class]; // Registered users with devices
+        } else if ($notifiable instanceof User) {
+            return ['database', 'mail'];                         // Registered users
         } else {
-            return ['database', 'mail'];
+            return ['mail'];                                     // Anonymous recipients
         }
     }
 
