@@ -197,6 +197,7 @@ class InstantFeedbackController extends Controller
                     $query->where('answered', 0);
                 })
             ],
+            'anonymous'             => 'required|boolean',
             'answers'               => 'required|array|size:1',
             'answers.*.question'    => 'required|integer|exists:questions,id',
             'answers.*.value'       => 'required_without:answers.*.answer',
@@ -206,7 +207,11 @@ class InstantFeedbackController extends Controller
         $currentUser = $request->user();
         $recipient = $this->findRecipient($instantFeedback, $currentUser);
         $key = $request->key;
-        $question = Question::find(intval($request->answers[0]['question']));
+        $data = [
+            'anonymous' => $request->anonymous,
+            'question'  => Question::find($request->answers[0]['question']),
+            'answer'    => $request->answers[0]['answer'],
+        ];
         
         if (isset($request->answers[0]['value'])) {
             $answer = $request->answers[0]['value'];
@@ -215,7 +220,7 @@ class InstantFeedbackController extends Controller
         }
         
         try {
-            InstantFeedbackAnswer::make($instantFeedback, $recipient, $question, $answer);
+            InstantFeedbackAnswer::make($instantFeedback, $recipient, $data);
         } catch (InvalidArgumentException $e) {
             throw new CustomValidationException([
                 'answers.0.answer'  => $e->getMessage()

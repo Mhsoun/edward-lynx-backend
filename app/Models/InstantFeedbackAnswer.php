@@ -109,30 +109,30 @@ class InstantFeedbackAnswer extends Model
      *
      * @param   App\Models\InstantFeedback  $instantFeedback
      * @param   App\Models\Recipient        $recipient
-     * @param   App\Models\Question         $question
-     * @param   array                       $answer
+     * @param   array                       $data
      * @return  App\Models\InstantFeedbackAnswer
      */
-    public static function make(InstantFeedback $instantFeedback, Recipient $recipient, Question $question, $answer)
+    public static function make(InstantFeedback $instantFeedback, Recipient $recipient, array $data)
     {
-        $answerType = $question->answerTypeObject();
-        if (!$question->isNA && $answer == -1) {
+        $answerType = $data['question']->answerTypeObject();
+        if (!$data['question']->isNA && $data['answer'] == -1) {
             throw new InvalidArgumentException('Question does not accept N/A answers.');
         }
         
-        if (!$answerType->isValidValue($answer)) {
+        if (!$answerType->isValidValue($data['answer'])) {
             throw new InvalidArgumentException('Invalid answer.');
         }
         
         if ($answerType->isNumeric()) {
-            $answer = intval($answer);
+            $data['answer'] = intval($data['answer']);
         }
         
         $ifAnswer = new self;
         $ifAnswer->instantFeedbackId = $instantFeedback->id;
         $ifAnswer->recipientId = $recipient->id;
-        $ifAnswer->questionId = $question->id;
-        $ifAnswer->answer = $answer;
+        $ifAnswer->questionId = $data['question']->id;
+        $ifAnswer->answer = $data['answer'];
+        $ifAnswer->anonymous = $data['anonymous'];
         $ifAnswer->save();
         
         return $ifAnswer;
