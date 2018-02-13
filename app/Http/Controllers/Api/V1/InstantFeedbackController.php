@@ -201,7 +201,14 @@ class InstantFeedbackController extends Controller
             'answers'               => 'required|array|size:1',
             'answers.*.question'    => 'required|integer|exists:questions,id',
             'answers.*.value'       => 'required_without:answers.*.answer',
-            'answers.*.answer'      => 'required_without:answers.*.value'
+            'answers.*.answer'      => 'required_without:answers.*.value',
+            'answers.*.question'    => [
+                'required',
+                'integer',
+                Rule::exists('instant_feedback_questions', 'questionId')->where(function ($query) use ($instantFeedback) {
+                    $query->where('instantFeedbackId', $instantFeedback->id);
+                })
+            ],
         ]);
             
         $currentUser = $request->user();
