@@ -238,6 +238,14 @@ class InstantFeedbackController extends Controller
         $ifRecipient->markAnswered();
         $ifRecipient->save();
         
+        return response()->json([
+            'key' => $request->key,
+            'anonymous' => $request->anonymous,
+            'answers' => [
+                ['question' => $request->answers[0]['question'], 'answer' => $request->answers[0]['answer']],
+            ]
+        ]);
+
         return createdResponse();
     }
     
