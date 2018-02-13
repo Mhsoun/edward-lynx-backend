@@ -39,16 +39,20 @@ class InstantFeedbackAnswer extends Model
             $answerObj = $question->answerTypeObject();
             $possibleValues = $answerObj->valuesFlat();
             $counts = [];
+            $submissions = [];
+            $nonAnonCount = 0;
    
             // If the question allows a N/A option, add a -1 value
             if ($question->isNA) {
                $counts['-1'] = 0;
+               $submissions['-1'] = [];
             }
 
             // Initialize possible values to zero
             foreach ($possibleValues as $val) {
                $key = strval($val);
                $counts[$key] = 0;
+               $submissions[$key] = [];
             }
 
             // Calculate frequencies of each question value
@@ -57,6 +61,16 @@ class InstantFeedbackAnswer extends Model
                if (isset($counts[$key])) {
                    $counts[$key] += 1;
                }
+
+               // Record users who chose not to be anonymous
+               if ($answer->anonymous != 1) {
+                    $submissions[$key][] = [
+                        'id' => $answer->user->id,
+                        'name' => $answer->user->name,
+                        'email' => $answer->user->email,
+                    ];
+                    $nonAnonCount++;
+               }
             }
 
             // Build a proper result array
@@ -64,12 +78,14 @@ class InstantFeedbackAnswer extends Model
                $results['frequencies'][] = [
                    'value'          => $key,
                    'description'    => strval($answerObj->descriptionOfValue($key)),
-                   'count'          => $count
+                   'count'          => $count,
+                   'submissions'    => $submissions[$key],
                ];
             }
         }
        
         $results['totalAnswers'] = count($answers);
+        $results['totalAnonymousAnswers'] = $results['totalAnswers'] - $nonAnonCount;
        
         return $results;
     }
