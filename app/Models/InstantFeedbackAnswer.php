@@ -22,15 +22,27 @@ class InstantFeedbackAnswer extends Model
      */
     public static function calculate(Question $question, Collection $answers)
     {
+        $nonAnonCount = 0;
         $results = [];
         
         // Process custom input questions
         if ($question->answerType == 5) {
             $results['frequencies'] = [];
             foreach ($answers as $answer) {
+                if ($answer->anonymous) {
+                    $submitter = [];
+                } else {
+                    $submitter = [
+                        'id' => $answer->user->id,
+                        'name' => $answer->user->name,
+                        'email' => $answer->user->email,
+                    ];
+                }
+
                 $results['frequencies'][] = [
-                    'value' =>  $answer->answer,
-                    'count' =>  1
+                    'value'         =>  $answer->answer,
+                    'count'         =>  1,
+                    'submissions'   => $submitter,
                 ];
             }
     
@@ -40,7 +52,6 @@ class InstantFeedbackAnswer extends Model
             $possibleValues = $answerObj->valuesFlat();
             $counts = [];
             $submissions = [];
-            $nonAnonCount = 0;
    
             // If the question allows a N/A option, add a -1 value
             if ($question->isNA) {
