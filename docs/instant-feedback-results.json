@@ -1,0 +1,134 @@
+{
+    "__TYPE": "Instant Feedback Type 0: 1-5 Scale",
+    "_links": {
+        "self": {
+            "href": "http:\/\/localhost:8000\/api\/v1\/instant-feedbacks\/74\/answers"
+        }
+    },
+    "frequencies": [
+        {
+            "value": -1,
+            "description": "N\/A",
+            "count": 1,
+            "submissions": [
+                {
+                    "id": 3,
+                    "name": "Jason Carreos",
+                    "email": "jason@ingenuity.ph"
+                }
+            ]
+        },
+        {
+            "value": 1,
+            "description": "1",
+            "count": 3,
+            "submissions": [
+                {
+                    "id": 4,
+                    "name": "Athena Chatto",
+                    "email": "athena@ingenuity.ph"
+                },
+                {
+                    "id": 5,
+                    "name": "Jeremy Pacabis",
+                    "email": "jeremy@ingenuity.ph"
+                },
+                {
+                    "id": 6,
+                    "name": "Hilton Soberano",
+                    "email": "hilton@ingenuity.ph"
+                }
+            ]
+        },
+        {
+            "value": 2,
+            "description": "2",
+            "count": 5,
+            "submissions": [
+                {
+                    "id": 4,
+                    "name": "Athena Chatto",
+                    "email": "athena@ingenuity.ph"
+                },
+                {
+                    "id": 5,
+                    "name": "Jeremy Pacabis",
+                    "email": "jeremy@ingenuity.ph"
+                },
+                {
+                    "id": 6,
+                    "name": "Hilton Soberano",
+                    "email": "hilton@ingenuity.ph"
+                }
+            ]
+        },
+        {
+            "value": 3,
+            "description": "3",
+            "count": 7,
+            "submissions": [
+                {
+                    "id": 4,
+                    "name": "Athena Chatto",
+                    "email": "athena@ingenuity.ph"
+                },
+                {
+                    "id": 5,
+                    "name": "Jeremy Pacabis",
+                    "email": "jeremy@ingenuity.ph"
+                },
+                {
+                    "id": 6,
+                    "name": "Hilton Soberano",
+                    "email": "hilton@ingenuity.ph"
+                }
+            ]
+        },
+        {
+            "value": 4,
+            "description": "4",
+            "count": 9,
+            "submissions": [
+                {
+                    "id": 4,
+                    "name": "Athena Chatto",
+                    "email": "athena@ingenuity.ph"
+                },
+                {
+                    "id": 5,
+                    "name": "Jeremy Pacabis",
+                    "email": "jeremy@ingenuity.ph"
+                },
+                {
+                    "id": 6,
+                    "name": "Hilton Soberano",
+                    "email": "hilton@ingenuity.ph"
+                }
+            ]
+        },
+        {
+            "value": 5,
+            "description": "5",
+            "count": 11,
+            "submissions": [
+                {
+                    "id": 4,
+                    "name": "Athena Chatto",
+                    "email": "athena@ingenuity.ph"
+                },
+                {
+                    "id": 5,
+                    "name": "Jeremy Pacabis",
+                    "email": "jeremy@ingenuity.ph"
+                },
+                {
+                    "id": 6,
+                    "name": "Hilton Soberano",
+                    "email": "hilton@ingenuity.ph"
+                }
+            ]
+        }
+    ],
+    "totalAnswers": 38,
+    "totalAnonymousAnswers": 2
+}
