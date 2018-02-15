@@ -13,8 +13,7 @@ return [
 	|
 	*/
 
-	'debug' => true,
-	// 'debug' => env('APP_DEBUG', false),
+	'debug' => env('APP_DEBUG', false),
 
 	/*
     |--------------------------------------------------------------------------
@@ -27,8 +26,7 @@ return [
     |
     */
    
-	'env' => 'development',
-	// 'env' => env('APP_ENV', 'production'),
+	'env' => env('APP_ENV', 'production'),
 
 	/*
 	|--------------------------------------------------------------------------
