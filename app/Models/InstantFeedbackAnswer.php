@@ -32,11 +32,11 @@ class InstantFeedbackAnswer extends Model
                 if ($answer->anonymous) {
                     $submitter = [];
                 } else {
-                    $submitter = [
+                    $submitter = [[
                         'id' => $answer->user->id,
                         'name' => $answer->user->name,
                         'email' => $answer->user->email,
-                    ];
+                    ]];
                 }
 
                 $results['frequencies'][] = [
