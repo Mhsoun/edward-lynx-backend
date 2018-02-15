@@ -37,6 +37,7 @@ class InstantFeedbackAnswer extends Model
                         'name' => $answer->user->name,
                         'email' => $answer->user->email,
                     ]];
+                    $nonAnonCount++;
                 }
 
                 $results['frequencies'][] = [
