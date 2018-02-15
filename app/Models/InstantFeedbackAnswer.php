@@ -39,16 +39,20 @@ class InstantFeedbackAnswer extends Model
             $answerObj = $question->answerTypeObject();
             $possibleValues = $answerObj->valuesFlat();
             $counts = [];
+            $submissions = [];
+            $nonAnonCount = 0;
    
             // If the question allows a N/A option, add a -1 value
             if ($question->isNA) {
                $counts['-1'] = 0;
+               $submissions['-1'] = [];
             }
 
             // Initialize possible values to zero
             foreach ($possibleValues as $val) {
                $key = strval($val);
                $counts[$key] = 0;
+               $submissions[$key] = [];
             }
 
             // Calculate frequencies of each question value
@@ -57,6 +61,16 @@ class InstantFeedbackAnswer extends Model
                if (isset($counts[$key])) {
                    $counts[$key] += 1;
                }
+
+               // Record users who chose not to be anonymous
+               if ($answer->anonymous != 1) {
+                    $submissions[$key][] = [
+                        'id' => $answer->user->id,
+                        'name' => $answer->user->name,
+                        'email' => $answer->user->email,
+                    ];
+                    $nonAnonCount++;
+               }
             }
 
             // Build a proper result array
@@ -64,12 +78,14 @@ class InstantFeedbackAnswer extends Model
                $results['frequencies'][] = [
                    'value'          => $key,
                    'description'    => strval($answerObj->descriptionOfValue($key)),
-                   'count'          => $count
+                   'count'          => $count,
+                   'submissions'    => $submissions[$key],
                ];
             }
         }
        
         $results['totalAnswers'] = count($answers);
+        $results['totalAnonymousAnswers'] = $results['totalAnswers'] - $nonAnonCount;
        
         return $results;
     }
@@ -109,30 +125,30 @@ class InstantFeedbackAnswer extends Model
      *
      * @param   App\Models\InstantFeedback  $instantFeedback
      * @param   App\Models\Recipient        $recipient
-     * @param   App\Models\Question         $question
-     * @param   array                       $answer
+     * @param   array                       $data
      * @return  App\Models\InstantFeedbackAnswer
      */
-    public static function make(InstantFeedback $instantFeedback, Recipient $recipient, Question $question, $answer)
+    public static function make(InstantFeedback $instantFeedback, Recipient $recipient, array $data)
     {
-        $answerType = $question->answerTypeObject();
-        if (!$question->isNA && $answer == -1) {
+        $answerType = $data['question']->answerTypeObject();
+        if (!$data['question']->isNA && $data['answer'] == -1) {
             throw new InvalidArgumentException('Question does not accept N/A answers.');
         }
         
-        if (!$answerType->isValidValue($answer)) {
+        if (!$answerType->isValidValue($data['answer'])) {
             throw new InvalidArgumentException('Invalid answer.');
         }
         
         if ($answerType->isNumeric()) {
-            $answer = intval($answer);
+            $data['answer'] = intval($data['answer']);
         }
         
         $ifAnswer = new self;
         $ifAnswer->instantFeedbackId = $instantFeedback->id;
         $ifAnswer->recipientId = $recipient->id;
-        $ifAnswer->questionId = $question->id;
-        $ifAnswer->answer = $answer;
+        $ifAnswer->questionId = $data['question']->id;
+        $ifAnswer->answer = $data['answer'];
+        $ifAnswer->anonymous = $data['anonymous'];
         $ifAnswer->save();
         
         return $ifAnswer;

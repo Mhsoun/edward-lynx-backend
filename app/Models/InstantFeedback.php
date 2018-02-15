@@ -14,9 +14,9 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     
-    protected $fillable = ['userId', 'lang', 'closed', 'anonymous'];
+    protected $fillable = ['userId', 'lang', 'closed'];
     
-    protected $visible = ['id', 'lang', 'closed', 'anonymous'];
+    protected $visible = ['id', 'lang', 'closed'];
     
     /**
      * Returns the URL to this instant feedback.
@@ -226,24 +226,6 @@ class InstantFeedback extends Model implements Routable, JsonHalLinking
             'id'    => $author->id,
             'name'  => $author->name
         ];
-
-        // Retrieve emails of all users.
-        $emails = User::all()
-                    ->map(function($user) {
-                        return $user->email;
-                    })
-                    ->toArray();
-
-        // Build recipients array
-        $data['recipients'] = [];
-        foreach ($this->recipients as $recipient) {
-            $data['recipients'][] = [
-                'id'    => $recipient->id,
-                'name'  => $recipient->name,
-                'email' => $recipient->email,
-                'isUser'=> in_array($recipient->email, $emails)
-            ];
-        }
         
         return $data;
     }
