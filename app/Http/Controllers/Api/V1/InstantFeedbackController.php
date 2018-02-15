@@ -200,8 +200,7 @@ class InstantFeedbackController extends Controller
             'anonymous'             => 'required|boolean',
             'answers'               => 'required|array|size:1',
             'answers.*.question'    => 'required|integer|exists:questions,id',
-            'answers.*.value'       => 'required_without:answers.*.answer',
-            'answers.*.answer'      => 'required_without:answers.*.value',
+            'answers.*.value'       => 'required',
             'answers.*.question'    => [
                 'required',
                 'integer',
@@ -217,14 +216,8 @@ class InstantFeedbackController extends Controller
         $data = [
             'anonymous' => $request->anonymous,
             'question'  => Question::find($request->answers[0]['question']),
-            'answer'    => $request->answers[0]['answer'],
+            'answer'    => $request->answers[0]['value'],
         ];
-        
-        if (isset($request->answers[0]['value'])) {
-            $answer = $request->answers[0]['value'];
-        } else {
-            $answer = $request->answers[0]['answer'];
-        }
         
         try {
             InstantFeedbackAnswer::make($instantFeedback, $recipient, $data);
@@ -242,7 +235,7 @@ class InstantFeedbackController extends Controller
             'key' => $request->key,
             'anonymous' => $request->anonymous,
             'answers' => [
-                ['question' => $request->answers[0]['question'], 'answer' => $request->answers[0]['answer']],
+                ['question' => $request->answers[0]['question'], 'answer' => $request->answers[0]['value']],
             ]
         ]);
 
