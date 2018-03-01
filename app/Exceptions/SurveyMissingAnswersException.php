@@ -22,6 +22,8 @@ class SurveyMissingAnswersException extends ApiException
      */
     public function __construct(array $errors)
     {
+        parent::__construct('Survey missing answers on required questions.', 400);
+
         $this->errors($errors);
     }
     

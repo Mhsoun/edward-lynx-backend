@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\CustomValidationException;
 use App\Exceptions\InvalidOperationException;
+use App\Exceptions\SurveyMissingAnswersException;
 
 class AnswerController extends Controller
 {
