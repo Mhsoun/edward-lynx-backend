@@ -7,7 +7,7 @@
 4. Composer
 
 ## Deployment
-1. Clone the repository https://bitbucket.org/ingenuityph/edward-lynx-backend to the server or virtual host.
+1. Clone the repository https://github.com/Mhsoun/edward-lynx-backend.git to the server or virtual host.
 2. Configure nginx to redirect all requests to the public/index.php folder. See [Laravel Installation Docs](https://laravel.com/docs/5.3).
 3. `cd` into the cloned directory.
 4. Make sure `storage/` and `public/` are writable by the server and the PHP process.
