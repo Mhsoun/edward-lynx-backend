@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'host' => env('MAIL_HOST', 'mail.datacenter.se'),
+    'host' => env('MAIL_HOST', 'smtp.office365.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'lynx.tool@edwardlynx.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'online.test@edwardlynx.com'),
         'name' => env('MAIL_FROM_NAME', 'Edward Lynx'),
     ],
 
@@ -84,7 +84,7 @@ return [
     |
     */
 
-    'username' => env('MAIL_USERNAME', 'lynxtool@edwardlynx.com'),
+    'username' => env('MAIL_USERNAME', 'online.test@edwardlynx.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ return [
     |
     */
 
-    'password' => env('MAIL_PASSWORD', '24J9%f2jdJ'),
+    'password' => env('MAIL_PASSWORD', 'Yup23658'),
 
     /*
     |--------------------------------------------------------------------------
