@@ -56,8 +56,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'online.test@edwardlynx.com'),
-        'name' => env('MAIL_FROM_NAME', 'Edward Lynx'),
+        'address' => env('MAIL_FROM_ADDRESS', 'lynx.tool@edwardlynx.com'),
+        'name' => env('MAIL_FROM_NAME', 'Edward Lynx Stage'),
     ],
 
     /*
@@ -84,7 +84,7 @@ return [
     |
     */
 
-    'username' => env('MAIL_USERNAME', 'online.test@edwardlynx.com'),
+    'username' => env('MAIL_USERNAME', 'lynx.tool@edwardlynx.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ return [
     |
     */
 
-    'password' => env('MAIL_PASSWORD', 'Yup23658'),
+    'password' => env('MAIL_PASSWORD', '24J9%f2jdJ'),
 
     /*
     |--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ return [
     */
 
     'sendmail' => '/usr/sbin/sendmail -bs',
-
+    
     'pretend' => false
 
 ];
